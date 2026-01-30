@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Device Lockdown Control Panel</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0066cc;
+            --primary-dark: #0052a3;
+            --primary-light: #e6f2ff;
+            --danger: #d32f2f;
+            --danger-dark: #b71c1c;
+            --danger-light: #ffebee;
+            --success: #2e7d32;
+            --success-dark: #1b5e20;
+            --success-light: #e8f5e9;
+            --bg: #ffffff;
+            --surface: #f8f9fa;
+            --surface-hover: #e9ecef;
+            --text: #212529;
+            --text-secondary: #6c757d;
+            --border: #dee2e6;
+            --shadow: rgba(0, 0, 0, 0.08);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 40px 0 30px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text);
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 15px;
+            font-weight: 400;
+        }
+
+        .company-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: var(--primary-light);
+            color: var(--primary);
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 12px;
+        }
+
+        .login-screen {
+            display: block;
+        }
+
+        .dashboard {
+            display: none;
+        }
+
+        .card {
+            background: var(--surface);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 3px var(--shadow);
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 15px;
+            font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            letter-spacing: 0.3px;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--primary-dark);
+            box-shadow: 0 2px 8px rgba(0, 102, 204, 0.3);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: var(--danger-dark);
+            box-shadow: 0 2px 8px rgba(211, 47, 47, 0.3);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            background: var(--success-dark);
+            box-shadow: 0 2px 8px rgba(46, 125, 50, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: var(--surface-hover);
+            border-color: var(--text-secondary);
+        }
+
+        .alert {
+            padding: 14px 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            border-left: 4px solid;
+        }
+
+        .alert-error {
+            background: var(--danger-light);
+            border-color: var(--danger);
+            color: var(--danger-dark);
+        }
+
+        .alert-success {
+            background: var(--success-light);
+            border-color: var(--success);
+            color: var(--success-dark);
+        }
+
+        .device-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .device-item {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 1px 3px var(--shadow);
+            transition: box-shadow 0.2s;
+        }
+
+        .device-item:hover {
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+
+        .device-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .device-info h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text);
+        }
+
+        .device-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .status-online {
+            background: var(--success);
+        }
+
+        .status-offline {
+            background: var(--text-secondary);
+        }
+
+        .device-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .toggle-armed {
+            background: var(--danger);
+            color: white;
+        }
+
+        .toggle-armed:hover {
+            background: var(--danger-dark);
+            box-shadow: 0 2px 6px rgba(211, 47, 47, 0.3);
+        }
+
+        .toggle-disarmed {
+            background: var(--success);
+            color: white;
+        }
+
+        .toggle-disarmed:hover {
+            background: var(--success-dark);
+            box-shadow: 0 2px 6px rgba(46, 125, 50, 0.3);
+        }
+
+        .btn-delete {
+            padding: 10px 16px;
+            background: var(--bg);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .btn-delete:hover {
+            background: var(--surface);
+            color: var(--danger);
+            border-color: var(--danger);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state svg {
+            width: 56px;
+            height: 56px;
+            margin-bottom: 16px;
+            opacity: 0.4;
+            stroke: var(--text-secondary);
+        }
+
+        .empty-state p {
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(0, 102, 204, 0.3);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .logout-btn {
+            grid-column: 1 / -1;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 16px;
+            }
+
+            .header {
+                padding: 30px 0 20px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .device-item {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Device Lockdown</h1>
+            <p>Remote Browser Control Panel</p>
+            <span class="company-badge">Enterprise Security</span>
+        </div>
+
+        <!-- Login Screen -->
+        <div id="loginScreen" class="login-screen">
+            <div class="card">
+                <div class="input-group">
+                    <label for="apiKeyInput">Master API Key</label>
+                    <input 
+                        type="password" 
+                        id="apiKeyInput" 
+                        placeholder="Enter your 64-character master key"
+                        autocomplete="off"
+                        spellcheck="false"
+                    >
+                </div>
+                <button class="btn btn-primary" id="loginBtn">
+                    <span id="loginBtnText">Unlock Control Panel</span>
+                    <span id="loginLoading" class="loading" style="display: none;"></span>
+                </button>
+                <div id="loginError" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="dashboard" class="dashboard">
+            <div id="alertContainer"></div>
+
+            <div class="card">
+                <h2 style="margin-bottom: 16px; font-size: 18px;">Your Devices</h2>
+                <div id="deviceList" class="device-list"></div>
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    <p>No devices registered</p>
+                    <p style="font-size: 12px; margin-top: 8px;">Install the browser extension to add devices</p>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button class="btn btn-primary" id="registerDeviceBtn">
+                    Register Device
+                </button>
+                <button class="btn btn-secondary" id="refreshBtn">
+                    Refresh
+                </button>
+                <button class="btn btn-secondary logout-btn" id="logoutBtn">
+                    Lock Panel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://browserbricker.onrender.com'; // Backend API URL
+        let masterApiKey = null;
+        let autoRefreshInterval = null;
+
+        // DOM Elements
+        const loginScreen = document.getElementById('loginScreen');
+        const dashboard = document.getElementById('dashboard');
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        const loginBtn = document.getElementById('loginBtn');
+        const loginBtnText = document.getElementById('loginBtnText');
+        const loginLoading = document.getElementById('loginLoading');
+        const loginError = document.getElementById('loginError');
+        const deviceList = document.getElementById('deviceList');
+        const emptyState = document.getElementById('emptyState');
+        const alertContainer = document.getElementById('alertContainer');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const registerDeviceBtn = document.getElementById('registerDeviceBtn');
+
+        // API Helper
+        async function apiCall(endpoint, method = 'GET', body = null) {
+            const options = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${masterApiKey}`
+                }
+            };
+
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+
+            const response = await fetch(`${API_URL}${endpoint}`, options);
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Request failed');
+            }
+
+            return data;
+        }
+
+        // Show Alert
+        function showAlert(message, type = 'error') {
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alertContainer.appendChild(alert);
+
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        // Login
+        loginBtn.addEventListener('click', async () => {
+            const apiKey = apiKeyInput.value.trim();
+
+            if (apiKey.length !== 64) {
+                loginError.style.display = 'block';
+                loginError.className = 'alert alert-error';
+                loginError.textContent = 'API key must be 64 characters';
+                return;
+            }
+
+            loginBtnText.style.display = 'none';
+            loginLoading.style.display = 'inline-block';
+            loginBtn.disabled = true;
+            loginError.style.display = 'none';
+
+            try {
+                masterApiKey = apiKey;
+                await apiCall('/api/devices');
+                
+                loginScreen.style.display = 'none';
+                dashboard.style.display = 'block';
+                loadDevices();
+                startAutoRefresh();
+            } catch (error) {
+                loginError.style.display = 'block';
+                loginError.className = 'alert alert-error';
+                loginError.textContent = error.message;
+                masterApiKey = null;
+            } finally {
+                loginBtnText.style.display = 'inline';
+                loginLoading.style.display = 'none';
+                loginBtn.disabled = false;
+            }
+        });
+
+        // Load Devices
+        async function loadDevices() {
+            try {
+                const data = await apiCall('/api/devices');
+                const devices = data.devices;
+
+                if (devices.length === 0) {
+                    deviceList.innerHTML = '';
+                    emptyState.style.display = 'block';
+                    return;
+                }
+
+                emptyState.style.display = 'none';
+                deviceList.innerHTML = devices.map(device => `
+                    <div class="device-item">
+                        <div class="device-header">
+                            <div class="device-info">
+                                <h3>${escapeHtml(device.deviceName)}</h3>
+                                <div class="device-status">
+                                    <span class="status-dot ${device.online ? 'status-online' : 'status-offline'}"></span>
+                                    <span>${device.online ? 'Online' : 'Offline'}</span>
+                                    ${device.lastHeartbeat ? `• ${formatTime(device.lastHeartbeat)}` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="device-controls">
+                            <button 
+                                class="toggle-btn ${device.armed ? 'toggle-armed' : 'toggle-disarmed'}"
+                                onclick="toggleDevice('${device.deviceId}', ${!device.armed})"
+                            >
+                                ${device.armed ? 'ARMED' : 'DISARMED'}
+                            </button>
+                            <button 
+                                class="btn-delete"
+                                onclick="deleteDevice('${device.deviceId}')"
+                                title="Delete device"
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                showAlert(error.message);
+            }
+        }
+
+        // Toggle Device
+        window.toggleDevice = async function(deviceId, arm) {
+            try {
+                const endpoint = arm ? '/api/device/arm' : '/api/device/disarm';
+                await apiCall(endpoint, 'POST', { deviceId });
+                showAlert(`Device ${arm ? 'armed' : 'disarmed'} successfully`, 'success');
+                await loadDevices();
+            } catch (error) {
+                showAlert(error.message);
+            }
+        };
+
+        // Delete Device
+        window.deleteDevice = async function(deviceId) {
+            if (!confirm('Delete this device? The extension will need to be reconfigured.')) {
+                return;
+            }
+
+            try {
+                await apiCall('/api/device/delete', 'POST', { deviceId });
+                showAlert('Device deleted successfully', 'success');
+                await loadDevices();
+            } catch (error) {
+                showAlert(error.message);
+            }
+        };
+
+        // Register Device
+        registerDeviceBtn.addEventListener('click', async () => {
+            const deviceName = prompt('Enter device name:');
+            if (!deviceName) return;
+
+            try {
+                const data = await apiCall('/api/device/register', 'POST', { deviceName });
+                alert(`Device registered!\n\nDevice API Key:\n${data.deviceApiKey}\n\nCopy this key and paste it in the browser extension setup.`);
+                await loadDevices();
+            } catch (error) {
+                showAlert(error.message);
+            }
+        });
+
+        // Refresh
+        refreshBtn.addEventListener('click', loadDevices);
+
+        // Logout
+        logoutBtn.addEventListener('click', () => {
+            masterApiKey = null;
+            stopAutoRefresh();
+            loginScreen.style.display = 'block';
+            dashboard.style.display = 'none';
+            apiKeyInput.value = '';
+        });
+
+        // Auto Refresh
+        function startAutoRefresh() {
+            autoRefreshInterval = setInterval(loadDevices, 10000);
+        }
+
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+        }
+
+        // Utilities
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diff = Math.floor((now - date) / 1000);
+
+            if (diff < 60) return `${diff}s ago`;
+            if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+            if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+            return date.toLocaleDateString();
+        }
+
+        // Enter key support
+        apiKeyInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                loginBtn.click();
+            }
+        });
+    </script>
+</body>
+</html>
