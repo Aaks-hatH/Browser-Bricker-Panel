@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BrowserBricker Admin | Command Center</title>
+    <title>BrowserBricker Admin | Ultimate Control Center</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><defs><linearGradient id='g' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' style='stop-color:%230f172a' /><stop offset='100%' style='stop-color:%23334155' /></linearGradient></defs><circle cx='50' cy='50' r='45' fill='url(%23g)' /><path d='M50 20 L35 35 V50 C35 60 50 75 50 75 C50 75 65 60 65 50 V35 L50 20Z' fill='white' opacity='0.9' /></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -16,8 +16,6 @@
         :root {
             --pjs: 'Plus Jakarta Sans', sans-serif;
             --mono: 'JetBrains Mono', monospace;
-
-            /* Color System */
             --white: #ffffff;
             --zinc-50: #fafafa;
             --zinc-100: #f4f4f5;
@@ -30,24 +28,19 @@
             --zinc-800: #27272a;
             --zinc-900: #18181b;
             --zinc-950: #09090b;
-
             --brand-primary: #3b82f6;
             --brand-dark: #2563eb;
             --status-safe: #10b981;
             --status-warn: #f59e0b;
             --status-danger: #ef4444;
             --status-info: #06b6d4;
-
-            /* Layout */
             --sidebar-width: 280px;
             --header-height: 80px;
             --radius-lg: 24px;
             --radius-md: 12px;
             --border: 1px solid rgba(0, 0, 0, 0.08);
-            
             --shadow-subtle: 0 1px 3px rgba(0,0,0,0.02), 0 10px 20px -5px rgba(0,0,0,0.04);
             --shadow-float: 0 20px 40px -10px rgba(0,0,0,0.08);
-            
             --transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
@@ -81,7 +74,6 @@
             width: 100vw;
         }
 
-        /* Sidebar */
         aside.sidebar {
             width: var(--sidebar-width);
             background: var(--white);
@@ -137,7 +129,6 @@
 
         .sidebar-footer { padding: 20px; border-top: var(--border); }
 
-        /* Main Content */
         main.content {
             flex: 1;
             display: flex;
@@ -193,7 +184,6 @@
             to { opacity: 1; transform: translateY(0); } 
         }
 
-        /* Auth Overlay */
         .auth-overlay {
             position: fixed; 
             top: 0; 
@@ -234,7 +224,6 @@
             border-bottom-color: var(--brand-primary);
         }
 
-        /* Components */
         .grid-stats { 
             display: grid; 
             grid-template-columns: repeat(4, 1fr); 
@@ -302,7 +291,6 @@
             gap: 10px; 
         }
 
-        /* Tables */
         .table-wrapper { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; }
         th { 
@@ -339,7 +327,6 @@
         .badge-armed { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
         .badge-disarmed { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
 
-        /* Form Elements */
         .field-group { margin-bottom: 20px; }
         .field-label { 
             font-size: 0.75rem; 
@@ -398,13 +385,13 @@
         }
         .btn-danger { background: var(--status-danger); color: white; }
         .btn-success { background: var(--status-safe); color: white; }
+        .btn-warn { background: var(--status-warn); color: white; }
 
         .btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
 
-        /* Loading Spinner */
         .spinner {
             width: 20px;
             height: 20px;
@@ -418,7 +405,6 @@
             to { transform: rotate(360deg); }
         }
 
-        /* Session Banner */
         .session-banner {
             background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-dark) 100%);
             color: white;
@@ -431,7 +417,6 @@
             box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
         }
 
-        /* Quick Actions */
         .quick-actions {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -466,7 +451,6 @@
             margin: 0 auto 12px;
         }
 
-        /* Activity Timeline */
         .activity-timeline {
             position: relative;
             padding-left: 30px;
@@ -502,7 +486,6 @@
             display: none;
         }
 
-        /* Log Terminal */
         .log-terminal {
             background: var(--zinc-950); 
             border-radius: 16px;
@@ -523,7 +506,6 @@
         .log-info { border-color: var(--brand-primary); color: #a78bfa; }
         .log-warn { border-color: var(--status-warn); color: #fbbf24; }
 
-        /* Toast Notifications */
         #toastContainer {
             position: fixed; 
             bottom: 30px; 
@@ -541,7 +523,6 @@
             to { transform: translateX(100px); opacity: 0; }
         }
 
-        /* Modal */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -565,8 +546,10 @@
             border: var(--border);
             border-radius: 24px;
             padding: 32px;
-            max-width: 500px;
+            max-width: 600px;
             width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
             box-shadow: 0 40px 100px rgba(0,0,0,0.2);
         }
 
@@ -576,7 +559,6 @@
             margin-bottom: 8px;
         }
 
-        /* Charts */
         .chart-container { 
             position: relative; 
             height: 300px; 
@@ -586,19 +568,15 @@
             border: var(--border);
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
             .grid-stats {
                 grid-template-columns: repeat(2, 1fr);
             }
-            .sidebar {
-                position: fixed;
-                left: -280px;
-                transition: 0.3s;
-            }
-            .sidebar.mobile-open {
-                left: 0;
-            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
     </style>
 </head>
@@ -626,7 +604,6 @@
                 <span style="font-size: 0.8rem; font-weight: 700; color: var(--zinc-600);">ENCRYPTED SESSION</span>
             </div>
             
-            <!-- Tab Navigation -->
             <div style="display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 2px solid var(--zinc-100);">
                 <button type="button" class="auth-tab active" onclick="switchAuthTab('login')" id="loginTab" style="flex: 1; padding: 12px; background: transparent; border: none; border-bottom: 3px solid transparent; font-weight: 700; font-size: 0.85rem; color: var(--zinc-400); cursor: pointer; margin-bottom: -2px; transition: 0.2s;">
                     Admin Login
@@ -636,7 +613,6 @@
                 </button>
             </div>
             
-            <!-- Login Form -->
             <div id="loginForm" class="auth-form-container">
                 <form onsubmit="handleAuth(event)" id="authForm">
                     <div class="field-group">
@@ -662,7 +638,6 @@
                 </div>
             </div>
             
-            <!-- Generate Form -->
             <div id="generateForm" class="auth-form-container" style="display: none;">
                 <p style="color: var(--zinc-500); margin-bottom: 20px; line-height: 1.6; font-size: 0.9rem; text-align: left;">
                     Generate a new admin API key using the system secret code. This code should only be known by authorized administrators.
@@ -746,11 +721,33 @@
                     <div class="nav-item" onclick="switchView('bulk-ops')">
                         <i data-lucide="zap" size="18"></i> Bulk Operations
                     </div>
+                    <div class="nav-item" onclick="switchView('quarantine')">
+                        <i data-lucide="shield-alert" size="18"></i> Quarantine
+                    </div>
+                    <div class="nav-item" onclick="switchView('breaches')">
+                        <i data-lucide="shield-off" size="18"></i> Breach Detection
+                    </div>
                     <div class="nav-item" onclick="switchView('blocked-ips')">
-                        <i data-lucide="shield-off" size="18"></i> Blocked IPs
+                        <i data-lucide="ban" size="18"></i> Blocked IPs
+                    </div>
+                    <div class="nav-item" onclick="switchView('sessions')">
+                        <i data-lucide="clock" size="18"></i> Sessions
+                    </div>
+                </div>
+
+                <div class="nav-group">
+                    <div class="nav-label">Advanced Features</div>
+                    <div class="nav-item" onclick="switchView('geofencing')">
+                        <i data-lucide="map-pin" size="18"></i> Geofencing
+                    </div>
+                    <div class="nav-item" onclick="switchView('locations')">
+                        <i data-lucide="map" size="18"></i> Location Tracking
                     </div>
                     <div class="nav-item" onclick="switchView('notifications')">
                         <i data-lucide="bell" size="18"></i> Notifications
+                    </div>
+                    <div class="nav-item" onclick="switchView('audit')">
+                        <i data-lucide="file-text" size="18"></i> Audit Log
                     </div>
                 </div>
 
@@ -794,304 +791,12 @@
                 </div>
             </header>
 
-            <!-- VIEW: OVERVIEW -->
-            <div id="view-overview" class="view-container active">
-                <div class="session-banner">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <i data-lucide="user-check" size="20"></i>
-                        <div>
-                            <div style="font-weight: 700; font-size: 0.9rem;">Administrator Session Active</div>
-                            <div style="opacity: 0.9; font-size: 0.75rem;" id="sessionInfo">Full system access granted</div>
-                        </div>
-                    </div>
-                    <button class="btn" style="background: rgba(255,255,255,0.2); color: white; font-size: 0.75rem; padding: 8px 14px;" onclick="refreshAllData()">
-                        <i data-lucide="refresh-cw" size="14"></i> Refresh
-                    </button>
-                </div>
-
-                <!-- Quick Actions -->
-                <div class="quick-actions">
-                    <div class="quick-action-btn" onclick="armAllDevices()">
-                        <div class="quick-action-icon">
-                            <i data-lucide="lock" size="24" style="color: var(--status-danger);"></i>
-                        </div>
-                        <div style="font-weight: 700; font-size: 0.85rem;">Lock All Devices</div>
-                        <div style="font-size: 0.7rem; color: var(--zinc-500); margin-top: 4px;">Emergency lockdown</div>
-                    </div>
-                    
-                    <div class="quick-action-btn" onclick="disarmAllDevices()">
-                        <div class="quick-action-icon">
-                            <i data-lucide="unlock" size="24" style="color: var(--status-safe);"></i>
-                        </div>
-                        <div style="font-weight: 700; font-size: 0.85rem;">Unlock All</div>
-                        <div style="font-size: 0.7rem; color: var(--zinc-500); margin-top: 4px;">Release all locks</div>
-                    </div>
-                    
-                    <div class="quick-action-btn" onclick="switchView('blocked-ips')">
-                        <div class="quick-action-icon">
-                            <i data-lucide="shield" size="24" style="color: var(--brand-primary);"></i>
-                        </div>
-                        <div style="font-weight: 700; font-size: 0.85rem;">Security</div>
-                        <div style="font-size: 0.7rem; color: var(--zinc-500); margin-top: 4px;">Manage blocks</div>
-                    </div>
-                    
-                    <div class="quick-action-btn" onclick="switchView('activity')">
-                        <div class="quick-action-icon">
-                            <i data-lucide="activity" size="24" style="color: var(--status-info);"></i>
-                        </div>
-                        <div style="font-weight: 700; font-size: 0.85rem;">Activity</div>
-                        <div style="font-size: 0.7rem; color: var(--zinc-500); margin-top: 4px;">View logs</div>
-                    </div>
-                </div>
-
-                <!-- Stats Grid -->
-                <div class="grid-stats">
-                    <div class="stat-card">
-                        <h4>Total Devices</h4>
-                        <div class="stat-value" id="totalDevices">--</div>
-                        <div class="stat-trend trend-up">
-                            <i data-lucide="arrow-up-right" size="12"></i> System Active
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <h4>Master Keys</h4>
-                        <div class="stat-value" id="totalUsers">--</div>
-                        <div class="stat-trend trend-up">
-                            <i data-lucide="users" size="12"></i> Registered Users
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <h4>Armed Devices</h4>
-                        <div class="stat-value" style="color: var(--status-danger)" id="armedDevices">--</div>
-                        <div class="stat-trend">
-                            <i data-lucide="lock" size="12"></i> Currently Locked
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <h4>Online Now</h4>
-                        <div class="stat-value" style="color: var(--status-safe)" id="onlineDevices">--</div>
-                        <div class="stat-trend trend-up">
-                            <i data-lucide="wifi" size="12"></i> Active Connections
-                        </div>
-                    </div>
-                </div>
-
-                <!-- System Stats & Charts -->
-                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
-                    <div class="card-main">
-                        <h3 class="card-title"><i data-lucide="bar-chart-3"></i> System Activity</h3>
-                        <div class="chart-container">
-                            <canvas id="activityChart"></canvas>
-                        </div>
-                    </div>
-
-                    <div class="card-main">
-                        <h3 class="card-title"><i data-lucide="cpu"></i> System Health</h3>
-                        <div id="systemHealth">
-                            <div style="margin-bottom: 20px;">
-                                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 8px;">
-                                    <span>CPU Usage</span><span id="cpuVal">--</span>
-                                </div>
-                                <div style="height: 6px; background: var(--zinc-100); border-radius: 100px; overflow: hidden;">
-                                    <div id="cpuBar" style="width: 0%; height: 100%; background: var(--brand-primary); transition: 0.5s;"></div>
-                                </div>
-                            </div>
-                            <div style="margin-bottom: 20px;">
-                                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 8px;">
-                                    <span>Memory</span><span id="memVal">--</span>
-                                </div>
-                                <div style="height: 6px; background: var(--zinc-100); border-radius: 100px; overflow: hidden;">
-                                    <div id="memBar" style="width: 0%; height: 100%; background: var(--brand-primary); transition: 0.5s;"></div>
-                                </div>
-                            </div>
-                            <div>
-                                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 8px;">
-                                    <span>Uptime</span><span id="uptimeVal">--</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- VIEW: ALL DEVICES -->
-            <div id="view-devices" class="view-container">
-                <div class="card-main">
-                    <div class="card-header">
-                        <h3 class="card-title"><i data-lucide="monitor"></i> All Devices</h3>
-                        <button class="btn btn-ghost" onclick="loadDevices()">
-                            <i data-lucide="refresh-cw" size="16"></i> Refresh
-                        </button>
-                    </div>
-                    <div class="table-wrapper">
-                        <table id="devicesTable">
-                            <thead>
-                                <tr>
-                                    <th>Device Name</th>
-                                    <th>Device ID</th>
-                                    <th>Status</th>
-                                    <th>Lock State</th>
-                                    <th>Last Seen</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr><td colspan="6" style="text-align: center; padding: 40px;">Loading devices...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- VIEW: USERS -->
-            <div id="view-users" class="view-container">
-                <div class="card-main">
-                    <div class="card-header">
-                        <h3 class="card-title"><i data-lucide="users"></i> Master Keys</h3>
-                        <button class="btn btn-ghost" onclick="loadUsers()">
-                            <i data-lucide="refresh-cw" size="16"></i> Refresh
-                        </button>
-                    </div>
-                    <div class="table-wrapper">
-                        <table id="usersTable">
-                            <thead>
-                                <tr>
-                                    <th>Key Hash</th>
-                                    <th>Created</th>
-                                    <th>Last Used</th>
-                                    <th>Devices</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr><td colspan="5" style="text-align: center; padding: 40px;">Loading users...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- VIEW: ACTIVITY -->
-            <div id="view-activity" class="view-container">
-                <div class="card-main">
-                    <div class="card-header">
-                        <h3 class="card-title"><i data-lucide="activity"></i> Activity Log</h3>
-                        <div style="display: flex; gap: 10px;">
-                            <select id="activityFilter" class="input-control" style="width: 150px; padding: 8px 12px; font-size: 0.8rem;" onchange="loadActivity()">
-                                <option value="">All Types</option>
-                                <option value="system">System</option>
-                                <option value="device">Device</option>
-                                <option value="admin">Admin</option>
-                                <option value="security">Security</option>
-                            </select>
-                            <button class="btn btn-ghost" onclick="loadActivity()">
-                                <i data-lucide="refresh-cw" size="16"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="activity-timeline" id="activityTimeline">
-                        <div style="text-align: center; padding: 40px; color: var(--zinc-400);">Loading activity...</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- VIEW: BULK OPERATIONS -->
-            <div id="view-bulk-ops" class="view-container">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
-                    <div class="card-main">
-                        <h3 class="card-title" style="color: var(--status-danger);"><i data-lucide="lock"></i> Arm All Devices</h3>
-                        <p style="color: var(--zinc-500); margin-bottom: 20px; line-height: 1.6;">
-                            Lock all devices in the system simultaneously. This is an emergency operation that will activate the lockdown screen on every registered device.
-                        </p>
-                        <div class="field-group">
-                            <label class="field-label">Lock Reason</label>
-                            <input type="text" id="armAllReason" class="input-control" placeholder="e.g., Emergency security lockdown">
-                        </div>
-                        <button class="btn btn-danger" style="width: 100%;" onclick="armAllDevices()">
-                            <i data-lucide="lock" size="16"></i> Execute Emergency Lockdown
-                        </button>
-                    </div>
-
-                    <div class="card-main">
-                        <h3 class="card-title" style="color: var(--status-safe);"><i data-lucide="unlock"></i> Disarm All Devices</h3>
-                        <p style="color: var(--zinc-500); margin-bottom: 20px; line-height: 1.6;">
-                            Release all device locks simultaneously. This will restore normal functionality to all locked devices in the system.
-                        </p>
-                        <div class="field-group">
-                            <label class="field-label">Unlock Reason</label>
-                            <input type="text" id="disarmAllReason" class="input-control" placeholder="e.g., All clear - normal operations">
-                        </div>
-                        <button class="btn btn-success" style="width: 100%;" onclick="disarmAllDevices()">
-                            <i data-lucide="unlock" size="16"></i> Release All Locks
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- VIEW: BLOCKED IPS -->
-            <div id="view-blocked-ips" class="view-container">
-                <div class="card-main">
-                    <div class="card-header">
-                        <h3 class="card-title"><i data-lucide="shield-off"></i> Blocked IPs</h3>
-                        <button class="btn btn-ghost" onclick="loadBlockedIPs()">
-                            <i data-lucide="refresh-cw" size="16"></i> Refresh
-                        </button>
-                    </div>
-                    <div id="blockedIPsList"></div>
-                </div>
-
-                <div class="card-main" style="max-width: 600px;">
-                    <h3 class="card-title"><i data-lucide="unlock"></i> Unblock IP Address</h3>
-                    <div class="field-group">
-                        <label class="field-label">IP Address</label>
-                        <input type="text" id="unblockIPInput" class="input-control" placeholder="Enter IP to unblock">
-                    </div>
-                    <button class="btn btn-primary" style="width: 100%;" onclick="unblockIP()">
-                        <i data-lucide="unlock" size="16"></i> Unblock IP Address
-                    </button>
-                </div>
-            </div>
-
-            <!-- VIEW: NOTIFICATIONS -->
-            <div id="view-notifications" class="view-container">
-                <div class="card-main">
-                    <div class="card-header">
-                        <h3 class="card-title"><i data-lucide="bell"></i> System Notifications</h3>
-                        <button class="btn btn-ghost" onclick="loadNotifications()">
-                            <i data-lucide="refresh-cw" size="16"></i> Refresh
-                        </button>
-                    </div>
-                    <div id="notificationsList"></div>
-                </div>
-            </div>
-
-            <!-- VIEW: SETTINGS -->
-            <div id="view-settings" class="view-container">
-                <div class="card-main">
-                    <h3 class="card-title"><i data-lucide="settings"></i> System Settings</h3>
-                    <div id="settingsForm"></div>
-                </div>
-            </div>
-
-            <!-- VIEW: LOGS -->
-            <div id="view-logs" class="view-container">
-                <div class="card-main">
-                    <div class="card-header">
-                        <h3 class="card-title"><i data-lucide="terminal"></i> System Logs</h3>
-                        <button class="btn btn-ghost" onclick="clearTerminal()">
-                            Clear Logs
-                        </button>
-                    </div>
-                    <div class="log-terminal" id="terminalLogs">
-                        <div class="log-line log-info">BrowserBricker Admin Panel initialized...</div>
-                        <div class="log-line log-success">Ready for operations.</div>
-                    </div>
-                </div>
-            </div>
+            <!-- All view containers will be populated by admin-script.js -->
+            <div id="dynamicViews"></div>
         </main>
     </div>
 
-    <!-- Edit Device Modal -->
+    <!-- Modals -->
     <div class="modal-overlay" id="editModal">
         <div class="modal">
             <h2>Edit Device</h2>
@@ -1100,757 +805,29 @@
             <form id="editForm" onsubmit="saveDeviceEdit(event)">
                 <div class="field-group">
                     <label class="field-label">Device Name</label>
-                    <input 
-                        type="text" 
-                        id="editDeviceName" 
-                        class="input-control"
-                        required
-                        maxlength="255"
-                    >
+                    <input type="text" id="editDeviceName" class="input-control" required maxlength="255">
                 </div>
                 <input type="hidden" id="editDeviceId">
                 
                 <div style="display: flex; gap: 10px; margin-top: 20px;">
-                    <button type="submit" class="btn btn-primary" style="flex: 1;">
-                        Save Changes
-                    </button>
-                    <button type="button" class="btn btn-ghost" onclick="closeEditModal()" style="flex: 1;">
-                        Cancel
-                    </button>
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Save Changes</button>
+                    <button type="button" class="btn btn-ghost" onclick="closeEditModal()" style="flex: 1;">Cancel</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Toast Container -->
+    <div class="modal-overlay" id="deviceDetailsModal">
+        <div class="modal">
+            <h2>Device Details</h2>
+            <div id="deviceDetailsContent"></div>
+            <button type="button" class="btn btn-ghost" onclick="closeDeviceDetails()" style="width: 100%; margin-top: 20px;">Close</button>
+        </div>
+    </div>
+
     <div id="toastContainer"></div>
 
-    <script>
-        lucide.createIcons();
-        
-        const API_URL = 'https://browserbricker.onrender.com';
-        let adminApiKey = null;
-        let refreshInterval = null;
-        let sessionStartTime = Date.now();
-        let activityChart = null;
-
-        // ========== AUTH ==========
-        function switchAuthTab(tab) {
-            // Update tab buttons
-            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-            if (tab === 'login') {
-                document.getElementById('loginTab').classList.add('active');
-                document.getElementById('loginForm').style.display = 'block';
-                document.getElementById('generateForm').style.display = 'none';
-            } else {
-                document.getElementById('generateTab').classList.add('active');
-                document.getElementById('loginForm').style.display = 'none';
-                document.getElementById('generateForm').style.display = 'block';
-            }
-            
-            // Clear error
-            document.getElementById('authError').style.display = 'none';
-        }
-
-        async function handleGenerate(event) {
-            event.preventDefault();
-            
-            const code = document.getElementById('secretCodeInput').value.trim();
-            const btn = document.getElementById('generateBtn');
-            const btnText = document.getElementById('generateBtnText');
-            const spinner = document.getElementById('generateSpinner');
-            const authError = document.getElementById('authError');
-            
-            if (!code) {
-                showAuthError('Please enter the secret code');
-                return;
-            }
-            
-            btn.disabled = true;
-            btnText.style.display = 'none';
-            spinner.style.display = 'inline-block';
-            authError.style.display = 'none';
-
-            try {
-                const response = await fetch(`${API_URL}/api/init/admin-key`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ secretCode: code })
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    
-                    btnText.textContent = 'Key Generated!';
-                    btnText.style.display = 'inline';
-                    spinner.style.display = 'none';
-                    
-                    showToast('Success', 'Admin key generated successfully!', 'success');
-                    
-                    // Auto-switch to login tab and fill in the key
-                    setTimeout(() => {
-                        switchAuthTab('login');
-                        document.getElementById('adminKeyInput').value = data.adminKey;
-                        document.getElementById('adminKeyInput').type = 'text';
-                        
-                        // Show key briefly, then hide it
-                        setTimeout(() => {
-                            document.getElementById('adminKeyInput').type = 'password';
-                        }, 3000);
-                    }, 800);
-                } else {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Failed to generate key');
-                }
-            } catch (err) {
-                showAuthError(err.message || 'Invalid secret code. Access denied.');
-                
-                gsap.fromTo(".auth-card", { x: -10 }, { 
-                    x: 10, 
-                    repeat: 5, 
-                    yoyo: true, 
-                    duration: 0.05, 
-                    onComplete: () => gsap.set('.auth-card', { x: 0 })
-                });
-            } finally {
-                btn.disabled = false;
-                btnText.textContent = 'Generate Admin Key';
-                btnText.style.display = 'inline';
-                spinner.style.display = 'none';
-            }
-        }
-
-        async function handleAuth(event) {
-            event.preventDefault();
-            
-            const key = document.getElementById('adminKeyInput').value.trim();
-            const btn = document.getElementById('authBtn');
-            const btnText = document.getElementById('authBtnText');
-            const spinner = document.getElementById('authSpinner');
-            const authError = document.getElementById('authError');
-            
-            if (!key || key.length !== 64) {
-                showAuthError('Admin key must be exactly 64 characters');
-                return;
-            }
-            
-            btn.disabled = true;
-            btnText.style.display = 'none';
-            spinner.style.display = 'inline-block';
-            authError.style.display = 'none';
-
-            try {
-                const response = await fetch(`${API_URL}/api/admin/stats`, {
-                    headers: { 'Authorization': `Bearer ${key}` }
-                });
-                
-                if (response.ok) {
-                    adminApiKey = key;
-                    sessionStorage.setItem('adminKey', key);
-                    
-                    btnText.textContent = 'Access Granted!';
-                    btnText.style.display = 'inline';
-                    spinner.style.display = 'none';
-                    
-                    setTimeout(() => revealDashboard(), 800);
-                } else {
-                    throw new Error('Unauthorized');
-                }
-            } catch (err) {
-                showAuthError('Invalid admin API key. Access denied.');
-                
-                gsap.fromTo(".auth-card", { x: -10 }, { 
-                    x: 10, 
-                    repeat: 5, 
-                    yoyo: true, 
-                    duration: 0.05, 
-                    onComplete: () => gsap.set('.auth-card', { x: 0 })
-                });
-            } finally {
-                btn.disabled = false;
-                btnText.textContent = 'Authenticate & Access System';
-                btnText.style.display = 'inline';
-                spinner.style.display = 'none';
-                lucide.createIcons();
-            }
-        }
-
-        function showAuthError(message) {
-            const authError = document.getElementById('authError');
-            const authErrorText = document.getElementById('authErrorText');
-            authErrorText.textContent = message;
-            authError.style.display = 'block';
-            lucide.createIcons();
-        }
-
-        function revealDashboard() {
-            gsap.to("#authOverlay", { opacity: 0, duration: 0.5, onComplete: () => {
-                document.getElementById('authOverlay').style.display = 'none';
-                document.getElementById('adminMain').style.display = 'flex';
-                initDashboard();
-                showToast("Access Granted", "Welcome to BrowserBricker Admin", "success");
-                logTerminal("Administrator authenticated successfully", "success");
-            }});
-        }
-
-        function logout() {
-            if (!confirm('Are you sure you want to sign out?')) return;
-            
-            sessionStorage.removeItem('adminKey');
-            clearInterval(refreshInterval);
-            setTimeout(() => location.reload(), 300);
-        }
-
-        // ========== INIT ==========
-        async function initDashboard() {
-            await loadStats();
-            await loadDevices();
-            await loadUsers();
-            await loadActivity();
-            initChart();
-            updateSessionTimer();
-            
-            refreshInterval = setInterval(async () => {
-                await loadStats();
-                updateSessionTimer();
-            }, 10000);
-        }
-
-        function updateSessionTimer() {
-            const elapsed = Date.now() - sessionStartTime;
-            const minutes = Math.floor(elapsed / 60000);
-            const seconds = Math.floor((elapsed % 60000) / 1000);
-            document.getElementById('sessionTimer').textContent = 
-                `Session: ${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-        }
-
-        // ========== API CALLS ==========
-        async function apiCall(endpoint, method = 'GET', body = null) {
-            const options = {
-                method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${adminApiKey}`
-                }
-            };
-
-            if (body) {
-                options.body = JSON.stringify(body);
-            }
-
-            const response = await fetch(API_URL + endpoint, options);
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || 'Request failed');
-            }
-
-            return data;
-        }
-
-        async function loadStats() {
-            try {
-                const data = await apiCall('/api/admin/stats');
-                
-                document.getElementById('totalDevices').textContent = data.devices?.total || 0;
-                document.getElementById('totalUsers').textContent = data.users?.total || 0;
-                document.getElementById('armedDevices').textContent = data.devices?.armed || 0;
-                document.getElementById('onlineDevices').textContent = data.devices?.online || 0;
-
-                // Update health
-                if (data.system) {
-                    const memUsed = data.system.memory?.used || 0;
-                    const memTotal = data.system.memory?.total || 100;
-                    const memPercent = (memUsed / memTotal) * 100;
-                    
-                    document.getElementById('memVal').textContent = `${memUsed}/${memTotal} MB`;
-                    document.getElementById('memBar').style.width = memPercent + '%';
-                    
-                    document.getElementById('uptimeVal').textContent = formatUptime(data.system.uptime);
-                    
-                    // Simulate CPU (since it's not in API)
-                    const cpuPercent = Math.floor(Math.random() * 30) + 10;
-                    document.getElementById('cpuVal').textContent = cpuPercent + '%';
-                    document.getElementById('cpuBar').style.width = cpuPercent + '%';
-                }
-
-                document.getElementById('apiStatusBadge').className = 'badge badge-safe';
-                document.getElementById('apiStatusBadge').innerHTML = '<i data-lucide="activity" size="12"></i> API: OK';
-                lucide.createIcons();
-            } catch (error) {
-                console.error('Stats error:', error);
-                document.getElementById('apiStatusBadge').className = 'badge badge-danger';
-                document.getElementById('apiStatusBadge').innerHTML = '<i data-lucide="alert-circle" size="12"></i> API: ERROR';
-                lucide.createIcons();
-            }
-        }
-
-        async function loadDevices() {
-            try {
-                const data = await apiCall('/api/admin/devices');
-                const tbody = document.querySelector('#devicesTable tbody');
-                
-                if (!data.devices || data.devices.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--zinc-400);">No devices found</td></tr>';
-                    return;
-                }
-
-                tbody.innerHTML = data.devices.map(device => {
-                    const statusBadge = device.online ? 
-                        '<span class="badge badge-safe"><i data-lucide="wifi" size="10"></i> Online</span>' :
-                        '<span class="badge badge-warn"><i data-lucide="wifi-off" size="10"></i> Offline</span>';
-                    
-                    const lockBadge = device.armed ?
-                        '<span class="badge badge-armed"><i data-lucide="lock" size="10"></i> Armed</span>' :
-                        '<span class="badge badge-disarmed"><i data-lucide="unlock" size="10"></i> Disarmed</span>';
-                    
-                    const lastSeen = device.lastHeartbeat ? 
-                        formatTime(device.lastHeartbeat) : 'Never';
-
-                    return `
-                        <tr>
-                            <td style="font-weight: 600;">${escapeHtml(device.deviceName)}</td>
-                            <td style="font-family: var(--mono); font-size: 0.75rem; color: var(--zinc-500);">${device.deviceId.substring(0, 16)}...</td>
-                            <td>${statusBadge}</td>
-                            <td>${lockBadge}</td>
-                            <td>${lastSeen}</td>
-                            <td>
-                                <div style="display: flex; gap: 8px;">
-                                    ${device.armed ? 
-                                        `<button class="btn btn-success" style="padding: 6px 12px; font-size: 0.75rem;" onclick="toggleDevice('${device.deviceId}', false)"><i data-lucide="unlock" size="12"></i> Disarm</button>` :
-                                        `<button class="btn btn-danger" style="padding: 6px 12px; font-size: 0.75rem;" onclick="toggleDevice('${device.deviceId}', true)"><i data-lucide="lock" size="12"></i> Arm</button>`
-                                    }
-                                    <button class="btn btn-ghost" style="padding: 6px 12px; font-size: 0.75rem;" onclick="editDevice('${device.deviceId}', '${escapeHtml(device.deviceName)}')"><i data-lucide="edit" size="12"></i></button>
-                                    <button class="btn btn-ghost" style="padding: 6px 12px; font-size: 0.75rem; color: var(--status-danger);" onclick="deleteDevice('${device.deviceId}', '${escapeHtml(device.deviceName)}')"><i data-lucide="trash-2" size="12"></i></button>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                }).join('');
-                
-                lucide.createIcons();
-            } catch (error) {
-                console.error('Devices error:', error);
-                showToast('Error', 'Failed to load devices', 'error');
-            }
-        }
-
-        async function loadUsers() {
-            try {
-                const data = await apiCall('/api/admin/users');
-                const tbody = document.querySelector('#usersTable tbody');
-                
-                if (!data.users || data.users.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--zinc-400);">No master keys found</td></tr>';
-                    return;
-                }
-
-                tbody.innerHTML = data.users.map(user => {
-                    const statusBadge = user.revoked ?
-                        '<span class="badge badge-danger">Revoked</span>' :
-                        '<span class="badge badge-safe">Active</span>';
-
-                    return `
-                        <tr>
-                            <td style="font-family: var(--mono); font-size: 0.8rem;">${user.keyHash}</td>
-                            <td>${new Date(user.created).toLocaleDateString()}</td>
-                            <td>${formatTime(user.lastUsed)}</td>
-                            <td><span class="badge badge-info">${user.deviceCount} device${user.deviceCount !== 1 ? 's' : ''}</span></td>
-                            <td>${statusBadge}</td>
-                        </tr>
-                    `;
-                }).join('');
-                
-                lucide.createIcons();
-            } catch (error) {
-                console.error('Users error:', error);
-            }
-        }
-
-        async function loadActivity() {
-            try {
-                const filter = document.getElementById('activityFilter')?.value || '';
-                const data = await apiCall(`/api/admin/activity?limit=50${filter ? '&type=' + filter : ''}`);
-                const timeline = document.getElementById('activityTimeline');
-                
-                if (!data.logs || data.logs.length === 0) {
-                    timeline.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--zinc-400);">No activity logs found</div>';
-                    return;
-                }
-
-                timeline.innerHTML = data.logs.map(log => `
-                    <div class="activity-item">
-                        <div style="font-size: 0.75rem; color: var(--zinc-400); margin-bottom: 4px;">${new Date(log.timestamp).toLocaleString()}</div>
-                        <div style="font-weight: 600; margin-bottom: 4px;">${escapeHtml(log.description)}</div>
-                        <div style="font-size: 0.85rem; color: var(--zinc-500);">Type: ${log.type}</div>
-                    </div>
-                `).join('');
-            } catch (error) {
-                console.error('Activity error:', error);
-            }
-        }
-
-        async function loadBlockedIPs() {
-            try {
-                const data = await apiCall('/api/admin/blocked-ips');
-                const container = document.getElementById('blockedIPsList');
-                
-                if (!data.blocked || data.blocked.length === 0) {
-                    container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--zinc-400);">No blocked IPs</div>';
-                    return;
-                }
-
-                container.innerHTML = data.blocked.map(ip => `
-                    <div style="background: var(--zinc-50); padding: 16px; border-radius: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <div style="font-family: var(--mono); font-weight: 700; margin-bottom: 4px;">${ip}</div>
-                            <div style="font-size: 0.75rem; color: var(--zinc-500);">Blocked due to suspicious activity</div>
-                        </div>
-                        <button class="btn btn-ghost" style="padding: 6px 12px; font-size: 0.75rem;" onclick="unblockIPDirect('${ip}')">
-                            <i data-lucide="unlock" size="12"></i> Unblock
-                        </button>
-                    </div>
-                `).join('');
-                
-                lucide.createIcons();
-            } catch (error) {
-                console.error('Blocked IPs error:', error);
-            }
-        }
-
-        async function loadNotifications() {
-            try {
-                const data = await apiCall('/api/admin/notifications');
-                const container = document.getElementById('notificationsList');
-                
-                if (!data.notifications || data.notifications.length === 0) {
-                    container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--zinc-400);">No notifications</div>';
-                    return;
-                }
-
-                container.innerHTML = data.notifications.map(notif => {
-                    const severityColor = {
-                        'info': 'var(--status-info)',
-                        'success': 'var(--status-safe)',
-                        'warning': 'var(--status-warn)',
-                        'critical': 'var(--status-danger)'
-                    }[notif.severity] || 'var(--zinc-500)';
-
-                    return `
-                        <div style="background: var(--zinc-50); padding: 16px; border-radius: 12px; margin-bottom: 12px; border-left: 4px solid ${severityColor};">
-                            <div style="font-weight: 700; margin-bottom: 4px;">${escapeHtml(notif.title)}</div>
-                            <div style="font-size: 0.85rem; color: var(--zinc-600); margin-bottom: 8px;">${escapeHtml(notif.message)}</div>
-                            <div style="font-size: 0.7rem; color: var(--zinc-400);">${new Date(notif.timestamp).toLocaleString()}</div>
-                        </div>
-                    `;
-                }).join('');
-            } catch (error) {
-                console.error('Notifications error:', error);
-            }
-        }
-
-        // ========== DEVICE OPERATIONS ==========
-        async function toggleDevice(deviceId, arm) {
-            try {
-                const endpoint = arm ? '/api/admin/device/arm' : '/api/admin/device/disarm';
-                await apiCall(endpoint, 'POST', { deviceId });
-                
-                showToast('Success', `Device ${arm ? 'armed' : 'disarmed'} successfully`, 'success');
-                logTerminal(`Device ${deviceId.substring(0, 8)}... ${arm ? 'armed' : 'disarmed'}`, 'info');
-                
-                await loadStats();
-                await loadDevices();
-            } catch (error) {
-                showToast('Error', error.message, 'error');
-            }
-        }
-
-        function editDevice(deviceId, deviceName) {
-            document.getElementById('editDeviceId').value = deviceId;
-            document.getElementById('editDeviceName').value = deviceName;
-            document.getElementById('editModal').classList.add('active');
-        }
-
-        function closeEditModal() {
-            document.getElementById('editModal').classList.remove('active');
-        }
-
-        async function saveDeviceEdit(event) {
-            event.preventDefault();
-            
-            const deviceId = document.getElementById('editDeviceId').value;
-            const deviceName = document.getElementById('editDeviceName').value.trim();
-
-            try {
-                await apiCall('/api/admin/device/update', 'PUT', { deviceId, deviceName });
-                
-                closeEditModal();
-                showToast('Success', 'Device updated successfully', 'success');
-                logTerminal(`Device ${deviceId.substring(0, 8)}... updated`, 'info');
-                await loadDevices();
-            } catch (error) {
-                showToast('Error', error.message, 'error');
-            }
-        }
-
-        async function deleteDevice(deviceId, deviceName) {
-            if (!confirm(`Delete device "${deviceName}"?\n\nThis action cannot be undone.`)) return;
-
-            try {
-                await apiCall('/api/admin/device/delete', 'DELETE', { deviceId });
-                
-                showToast('Success', 'Device deleted successfully', 'success');
-                logTerminal(`Device ${deviceId.substring(0, 8)}... deleted`, 'warn');
-                
-                await loadStats();
-                await loadDevices();
-            } catch (error) {
-                showToast('Error', error.message, 'error');
-            }
-        }
-
-        // ========== BULK OPERATIONS ==========
-        async function armAllDevices() {
-            const reason = document.getElementById('armAllReason')?.value || 'Admin bulk lock';
-            
-            if (!confirm(`Lock ALL devices in the system?\n\nReason: ${reason}\n\nThis will immediately activate the lockdown screen on all devices.`)) return;
-
-            try {
-                const data = await apiCall('/api/admin/devices/arm-all', 'POST', { reason });
-                
-                showToast('Success', `${data.armedCount} devices locked`, 'success');
-                logTerminal(`Bulk operation: Armed ${data.armedCount} devices`, 'warn');
-                
-                await loadStats();
-                await loadDevices();
-            } catch (error) {
-                showToast('Error', error.message, 'error');
-            }
-        }
-
-        async function disarmAllDevices() {
-            const reason = document.getElementById('disarmAllReason')?.value || 'Admin bulk unlock';
-            
-            if (!confirm(`Unlock ALL devices in the system?\n\nReason: ${reason}\n\nThis will release all active locks.`)) return;
-
-            try {
-                const data = await apiCall('/api/admin/devices/disarm-all', 'POST', { reason });
-                
-                showToast('Success', `${data.disarmedCount} devices unlocked`, 'success');
-                logTerminal(`Bulk operation: Disarmed ${data.disarmedCount} devices`, 'success');
-                
-                await loadStats();
-                await loadDevices();
-            } catch (error) {
-                showToast('Error', error.message, 'error');
-            }
-        }
-
-        // ========== IP OPERATIONS ==========
-        async function unblockIP() {
-            const ip = document.getElementById('unblockIPInput').value.trim();
-            if (!ip) {
-                showToast('Error', 'Please enter an IP address', 'error');
-                return;
-            }
-
-            try {
-                await apiCall('/api/admin/unblock-ip', 'DELETE', { ip });
-                
-                showToast('Success', `IP ${ip} unblocked`, 'success');
-                logTerminal(`IP ${ip} unblocked`, 'info');
-                
-                document.getElementById('unblockIPInput').value = '';
-                await loadBlockedIPs();
-            } catch (error) {
-                showToast('Error', error.message, 'error');
-            }
-        }
-
-        async function unblockIPDirect(ip) {
-            if (!confirm(`Unblock IP: ${ip}?`)) return;
-
-            try {
-                await apiCall('/api/admin/unblock-ip', 'DELETE', { ip });
-                
-                showToast('Success', `IP ${ip} unblocked`, 'success');
-                logTerminal(`IP ${ip} unblocked`, 'info');
-                await loadBlockedIPs();
-            } catch (error) {
-                showToast('Error', error.message, 'error');
-            }
-        }
-
-        // ========== UTILITIES ==========
-        function switchView(viewId) {
-            document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            
-            const targetView = document.getElementById('view-' + viewId);
-            if (targetView) targetView.classList.add('active');
-            
-            document.querySelectorAll('.nav-item').forEach(item => {
-                if (item.onclick && item.onclick.toString().includes(viewId)) {
-                    item.classList.add('active');
-                }
-            });
-
-            logTerminal(`Switched to ${viewId} view`, 'info');
-            
-            // Load data for specific views
-            if (viewId === 'devices') loadDevices();
-            if (viewId === 'users') loadUsers();
-            if (viewId === 'activity') loadActivity();
-            if (viewId === 'blocked-ips') loadBlockedIPs();
-            if (viewId === 'notifications') loadNotifications();
-            
-            lucide.createIcons();
-        }
-
-        async function refreshAllData() {
-            showToast('Refreshing', 'Updating all data...', 'info');
-            await loadStats();
-            await loadDevices();
-            await loadUsers();
-            await loadActivity();
-            showToast('Success', 'All data refreshed', 'success');
-        }
-
-        function showToast(title, msg, type = 'success') {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            const icon = type === 'success' ? 'check-circle-2' : type === 'error' ? 'alert-circle' : 'info';
-            const accent = type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6';
-
-            toast.style.cssText = `
-                background: white; border: 1px solid rgba(0,0,0,0.1); padding: 16px 20px;
-                border-radius: 16px; margin-top: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-                display: flex; gap: 15px; align-items: center; pointer-events: auto;
-                animation: toastIn 0.5s cubic-bezier(0.17, 0.67, 0.83, 0.67) forwards; min-width: 300px;
-            `;
-
-            toast.innerHTML = `
-                <div style="color: ${accent}"><i data-lucide="${icon}"></i></div>
-                <div>
-                    <div style="font-weight: 800; font-size: 0.9rem;">${title}</div>
-                    <div style="font-size: 0.8rem; color: #71717a; margin-top: 2px;">${msg}</div>
-                </div>
-            `;
-            
-            container.appendChild(toast);
-            lucide.createIcons();
-            
-            setTimeout(() => {
-                toast.style.animation = 'toastOut 0.5s forwards';
-                setTimeout(() => toast.remove(), 500);
-            }, 5000);
-        }
-
-        function logTerminal(msg, type = 'info') {
-            const term = document.getElementById('terminalLogs');
-            const line = document.createElement('div');
-            line.className = `log-line log-${type}`;
-            const ts = new Date().toLocaleTimeString('en-GB', { hour12: false });
-            line.innerHTML = `[${ts}] ${msg}`;
-            term.appendChild(line);
-            term.scrollTop = term.scrollHeight;
-        }
-
-        function clearTerminal() {
-            document.getElementById('terminalLogs').innerHTML = '<div class="log-line log-info">Logs cleared.</div>';
-        }
-
-        function escapeHtml(text) {
-            const map = {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#039;'
-            };
-            return String(text).replace(/[&<>"']/g, m => map[m]);
-        }
-
-        function formatTime(timestamp) {
-            const now = Date.now();
-            const diff = now - new Date(timestamp).getTime();
-            const seconds = Math.floor(diff / 1000);
-            
-            if (seconds < 10) return 'just now';
-            if (seconds < 60) return `${seconds}s ago`;
-            if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-            if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-            return `${Math.floor(seconds / 86400)}d ago`;
-        }
-
-        function formatUptime(seconds) {
-            const days = Math.floor(seconds / 86400);
-            const hours = Math.floor((seconds % 86400) / 3600);
-            const mins = Math.floor((seconds % 3600) / 60);
-            
-            if (days > 0) return `${days}d ${hours}h`;
-            if (hours > 0) return `${hours}h ${mins}m`;
-            return `${mins}m`;
-        }
-
-        function initChart() {
-            const ctx = document.getElementById('activityChart');
-            if (!ctx) return;
-
-            activityChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['6h ago', '5h ago', '4h ago', '3h ago', '2h ago', '1h ago', 'Now'],
-                    datasets: [{
-                        label: 'Heartbeats',
-                        data: [12, 19, 8, 15, 22, 18, 25],
-                        borderColor: '#3b82f6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        y: { beginAtZero: true }
-                    }
-                }
-            });
-        }
-
-        // Check for stored key on load
-        window.onload = function() {
-            const storedKey = sessionStorage.getItem('adminKey');
-            if (storedKey) {
-                adminApiKey = storedKey;
-                fetch(`${API_URL}/api/admin/stats`, {
-                    headers: { 'Authorization': `Bearer ${storedKey}` }
-                }).then(res => {
-                    if (res.ok) {
-                        revealDashboard();
-                    } else {
-                        sessionStorage.removeItem('adminKey');
-                    }
-                }).catch(() => {
-                    sessionStorage.removeItem('adminKey');
-                });
-            }
-        };
-
-        // Pulse animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes pulse {
-                0%, 100% { opacity: 1; }
-                50% { opacity: 0.5; }
-            }
-        `;
-        document.head.appendChild(style);
-    </script>
+    <!-- Load the JavaScript file -->
+    <script src="admin-script.js"></script>
 </body>
 </html>
