@@ -2,10 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Device Lockdown Control Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -14,78 +13,176 @@
         }
 
         :root {
-            --primary: #0066cc;
-            --primary-dark: #0052a3;
-            --primary-light: #e6f2ff;
-            --danger: #d32f2f;
-            --danger-dark: #b71c1c;
-            --danger-light: #ffebee;
-            --success: #2e7d32;
-            --success-dark: #1b5e20;
-            --success-light: #e8f5e9;
-            --bg: #ffffff;
-            --surface: #f8f9fa;
-            --surface-hover: #e9ecef;
-            --text: #212529;
-            --text-secondary: #6c757d;
-            --border: #dee2e6;
-            --shadow: rgba(0, 0, 0, 0.08);
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --primary-light: #dbeafe;
+            --danger: #ef4444;
+            --danger-dark: #dc2626;
+            --success: #10b981;
+            --success-dark: #059669;
+            --warning: #f59e0b;
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --surface-hover: #334155;
+            --text: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --border: #334155;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: var(--bg);
             color: var(--text);
             min-height: 100vh;
-            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            overflow-x: hidden;
         }
 
         .container {
-            max-width: 800px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
         }
 
+        /* Header */
         .header {
             text-align: center;
-            padding: 40px 0 30px;
+            padding: 50px 0 40px;
+            position: relative;
         }
 
-        .header h1 {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 8px;
-            color: var(--text);
-        }
-
-        .header p {
-            font-size: 15px;
-            color: var(--text-secondary);
-        }
-
-        .company-badge {
-            display: inline-block;
-            padding: 6px 16px;
-            background: var(--primary-light);
-            color: var(--primary);
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-top: 12px;
-            letter-spacing: 0.5px;
-        }
-
-        .card {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 2px 8px var(--shadow);
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
             margin-bottom: 20px;
         }
 
+        .logo {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--primary), #8b5cf6);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 40px rgba(59, 130, 246, 0.3);
+        }
+
+        .logo svg {
+            width: 36px;
+            height: 36px;
+            stroke: white;
+            stroke-width: 2.5;
+        }
+
+        .header h1 {
+            font-size: 38px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--primary), #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        .header p {
+            font-size: 16px;
+            color: var(--text-secondary);
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .stat-item {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--primary), #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        /* Card */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Tabs */
+        .tab-buttons {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 32px;
+            border-bottom: 2px solid var(--border);
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            padding: 14px 24px;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            margin-bottom: -2px;
+            white-space: nowrap;
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-btn:hover:not(.active) {
+            color: var(--text);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Input */
         .input-group {
-            margin-bottom: 16px;
+            margin-bottom: 20px;
         }
 
         .input-group label {
@@ -96,34 +193,40 @@
             color: var(--text);
         }
 
-        input {
+        input, select, textarea {
             width: 100%;
             padding: 12px 16px;
-            background: var(--surface);
+            background: var(--bg);
             border: 1px solid var(--border);
             border-radius: 8px;
             font-size: 14px;
             color: var(--text);
-            font-family: 'SF Mono', Monaco, monospace;
+            font-family: 'SF Mono', monospace;
             transition: border-color 0.2s;
         }
 
-        input:focus {
+        input:focus, select:focus, textarea:focus {
             outline: none;
             border-color: var(--primary);
-            background: var(--bg);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Buttons */
         .btn {
-            width: 100%;
-            padding: 14px;
+            padding: 12px 24px;
             border: none;
             border-radius: 8px;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
@@ -136,6 +239,26 @@
 
         .btn-primary:hover {
             background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: var(--danger-dark);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: var(--success-dark);
         }
 
         .btn-secondary {
@@ -153,9 +276,411 @@
             cursor: not-allowed;
         }
 
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Alert */
+        .alert {
+            padding: 14px 18px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            border-left: 4px solid;
+            display: none;
+            animation: slideIn 0.3s;
+        }
+
+        .alert.show {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: var(--danger);
+            color: #fca5a5;
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: var(--success);
+            color: #86efac;
+        }
+
+        .alert-info {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: var(--primary);
+            color: #93c5fd;
+        }
+
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: var(--warning);
+            color: #fcd34d;
+        }
+
+        /* Device List */
+        .device-grid {
+            display: grid;
+            gap: 16px;
+        }
+
+        .device-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .device-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), #8b5cf6);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .device-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .device-card:hover::before {
+            opacity: 1;
+        }
+
+        .device-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .device-info h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .device-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            flex-wrap: wrap;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .status-online {
+            background: var(--success);
+            box-shadow: 0 0 10px var(--success);
+        }
+
+        .status-offline {
+            background: #64748b;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-armed {
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .badge-disarmed {
+            background: rgba(16, 185, 129, 0.15);
+            color: #86efac;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .device-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .tag {
+            padding: 4px 10px;
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 4px;
+            font-size: 11px;
+            color: #c4b5fd;
+        }
+
+        .device-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .device-actions .btn {
+            width: 100%;
+            padding: 10px;
+            font-size: 13px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .empty-state h3 {
+            font-size: 20px;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            animation: slideUp 0.3s;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal h2 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .modal-subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        .api-key-display {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            padding: 16px;
+            border-radius: 8px;
+            font-family: 'SF Mono', monospace;
+            font-size: 13px;
+            word-break: break-all;
+            margin-bottom: 20px;
+            color: var(--primary);
+            position: relative;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 6px 12px;
+            font-size: 11px;
+        }
+
+        /* Notification Bell */
+        .notification-bell {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 100;
+        }
+
+        .notification-bell:hover {
+            background: var(--surface-hover);
+            transform: scale(1.1);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: var(--danger);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        .notification-panel {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            width: 400px;
+            max-height: 600px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            display: none;
+            flex-direction: column;
+            z-index: 101;
+        }
+
+        .notification-panel.active {
+            display: flex;
+        }
+
+        .notification-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification-list {
+            overflow-y: auto;
+            max-height: 500px;
+        }
+
+        .notification-item {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .notification-item:hover {
+            background: var(--bg);
+        }
+
+        .notification-item.unread {
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .notification-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .notification-message {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .notification-time {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        /* Loading */
         .loading {
-            width: 16px;
-            height: 16px;
+            width: 18px;
+            height: 18px;
             border: 2px solid rgba(255, 255, 255, 0.3);
             border-top-color: white;
             border-radius: 50%;
@@ -166,26 +691,7 @@
             to { transform: rotate(360deg); }
         }
 
-        .alert {
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            font-size: 14px;
-            border-left: 3px solid;
-        }
-
-        .alert-error {
-            background: var(--danger-light);
-            border-color: var(--danger);
-            color: var(--danger-dark);
-        }
-
-        .alert-success {
-            background: var(--success-light);
-            border-color: var(--success);
-            color: var(--success-dark);
-        }
-
+        /* Screens */
         .login-screen, .dashboard {
             display: none;
         }
@@ -194,494 +700,482 @@
             display: block;
         }
 
-        .tab-buttons {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .tab-btn {
-            flex: 1;
-            padding: 12px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: var(--text-secondary);
-        }
-
-        .tab-btn.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        /* Modal Styles */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .modal-overlay.active {
-            display: flex;
-        }
-
-        .modal {
-            background: white;
-            border-radius: 12px;
-            max-width: 500px;
-            width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-        }
-
-        .modal-header {
-            padding: 24px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .modal-header h2 {
-            font-size: 20px;
-            font-weight: 600;
-            color: var(--text);
-            margin-bottom: 8px;
-        }
-
-        .modal-header p {
-            font-size: 14px;
-            color: var(--text-secondary);
-            line-height: 1.5;
-        }
-
-        .modal-body {
-            padding: 24px;
-        }
-
-        .api-key-display {
-            background: var(--surface);
-            border: 2px solid var(--primary-light);
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 16px;
-            word-break: break-all;
-            font-family: 'SF Mono', Monaco, 'Courier New', monospace;
-            font-size: 13px;
-            line-height: 1.6;
-            color: var(--text);
-            user-select: all;
-        }
-
-        .warning-box {
-            background: #fff3cd;
-            border: 1px solid #ffc107;
-            border-radius: 6px;
-            padding: 12px;
-            margin-bottom: 16px;
-            font-size: 13px;
-            color: #856404;
-        }
-
-        .warning-box strong {
-            display: block;
-            margin-bottom: 4px;
-        }
-
-        .button-group {
-            display: flex;
-            gap: 12px;
-        }
-
-        .btn-copy {
-            flex: 1;
-            background: var(--primary);
-            color: white;
-            padding: 12px;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .btn-copy:hover {
-            background: var(--primary-dark);
-        }
-
-        .btn-copy.copied {
-            background: var(--success);
-        }
-
-        .btn-close-modal {
-            flex: 1;
-            background: var(--surface);
-            color: var(--text);
-            padding: 12px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .btn-close-modal:hover {
-            background: var(--surface-hover);
-        }
-
-        .device-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .device-item {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 1px 3px var(--shadow);
-        }
-
-        .device-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 12px;
-        }
-
-        .device-info h3 {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 6px;
-        }
-
-        .device-status {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-        }
-
-        .status-online {
-            background: var(--success);
-        }
-
-        .status-offline {
-            background: var(--text-secondary);
-        }
-
-        .badge {
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .badge-armed {
-            background: var(--danger-light);
-            color: var(--danger);
-            border: 1px solid var(--danger);
-        }
-
-        .badge-disarmed {
-            background: var(--success-light);
-            color: var(--success);
-            border: 1px solid var(--success);
-        }
-
-        .device-controls {
-            display: flex;
-            gap: 10px;
-            margin-top: 12px;
-        }
-
-        .toggle-btn {
-            flex: 1;
-            padding: 10px 16px;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-arm {
-            background: var(--danger-light);
-            color: var(--danger);
-            border: 1px solid var(--danger);
-        }
-
-        .btn-arm:hover {
-            background: var(--danger);
-            color: white;
-        }
-
-        .btn-disarm {
-            background: var(--success-light);
-            color: var(--success);
-            border: 1px solid var(--success);
-        }
-
-        .btn-disarm:hover {
-            background: var(--success);
-            color: white;
-        }
-
-        .btn-delete {
-            background: var(--surface);
-            color: var(--text-secondary);
-            border: 1px solid var(--border);
-        }
-
-        .btn-delete:hover {
-            background: var(--danger-light);
-            color: var(--danger);
-            border-color: var(--danger);
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: var(--text-secondary);
-        }
-
-        .empty-state svg {
-            width: 64px;
-            height: 64px;
-            margin-bottom: 16px;
-            opacity: 0.5;
-        }
-
-        .actions {
-            display: flex;
-            gap: 12px;
-            margin-top: 16px;
-        }
-
-        .info-note {
-            font-size: 13px;
-            color: var(--text-secondary);
-            margin-top: 12px;
-            line-height: 1.5;
-        }
-
-        @media (max-width: 480px) {
-            .container {
-                padding: 16px;
-            }
-
-            .header {
-                padding: 30px 0 20px;
-            }
-
+        /* Responsive */
+        @media (max-width: 768px) {
             .header h1 {
-                font-size: 24px;
+                font-size: 28px;
+            }
+
+            .stats-bar {
+                grid-template-columns: repeat(2, 1fr);
             }
 
             .card {
-                padding: 20px;
+                padding: 24px 20px;
             }
+
+            .device-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .notification-panel {
+                width: calc(100vw - 40px);
+                right: 20px;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+
+            .btn-group .btn {
+                width: 100%;
+            }
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 50;
+        }
+
+        .fab {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+        }
+
+        .fab svg {
+            width: 24px;
+            height: 24px;
         }
     </style>
 </head>
 <body>
+    <!-- Notification Bell -->
+    <div class="notification-bell" id="notificationBell">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+        <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+    </div>
+
+    <!-- Notification Panel -->
+    <div class="notification-panel" id="notificationPanel">
+        <div class="notification-header">
+            <span>Notifications</span>
+            <button class="btn btn-secondary" style="padding: 4px 12px; font-size: 12px;" id="clearNotifications">Clear All</button>
+        </div>
+        <div class="notification-list" id="notificationList">
+            <div class="empty-state" style="padding: 40px 20px;">
+                <p>No notifications</p>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
+        <!-- Header -->
         <div class="header">
+            <div class="logo-container">
+                <div class="logo">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <rect x="5" y="11" width="14" height="10" rx="2"/>
+                        <path d="M8 11V7a4 4 0 018 0v4" stroke-linecap="round"/>
+                    </svg>
+                </div>
+            </div>
             <h1>Device Lockdown</h1>
-            <p>Remote Browser Security Control Panel</p>
-            <span class="company-badge">Enterprise Security</span>
+            <p>Advanced Browser Security Control Panel</p>
         </div>
 
-        <!-- Login/Signup Screen -->
-        <div id="loginScreen" class="login-screen active">
-            <div class="card">
+        <!-- Login Screen -->
+        <div class="login-screen active" id="loginScreen">
+            <div class="card" style="max-width: 600px; margin: 0 auto;">
                 <div class="tab-buttons">
                     <button class="tab-btn active" data-tab="login">Sign In</button>
-                    <button class="tab-btn" data-tab="signup">Sign Up</button>
+                    <button class="tab-btn" data-tab="generate">Create Account</button>
                 </div>
+
+                <div id="alertContainer"></div>
 
                 <!-- Login Tab -->
-                <div id="loginTab" class="tab-content active">
-                    <div class="input-group">
-                        <label for="loginApiKey">Master API Key</label>
-                        <input 
-                            type="password" 
-                            id="loginApiKey" 
-                            placeholder="Enter your 64-character master key"
-                            autocomplete="off"
-                            spellcheck="false"
-                        >
+                <div class="tab-content active" id="loginTab">
+                    <form id="loginForm">
+                        <div class="input-group">
+                            <label>Master API Key</label>
+                            <input 
+                                type="password" 
+                                id="loginApiKey" 
+                                placeholder="Paste your 64-character master key"
+                                required
+                                autocomplete="off"
+                            >
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;" id="loginBtn">
+                            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M13.8 12H3"/>
+                            </svg>
+                            Access Control Panel
+                        </button>
+                    </form>
+                    <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 16px; margin-top: 24px;">
+                        <p style="font-size: 13px; color: #93c5fd; margin: 0; line-height: 1.6;">
+                            <strong>Secure Access:</strong> Your master API key provides full control over your registered devices. Keep it secure and never share it with anyone.
+                        </p>
                     </div>
-                    <button class="btn btn-primary" id="loginBtn">
-                        <span id="loginBtnText">Unlock Control Panel</span>
-                        <span id="loginLoading" class="loading" style="display: none;"></span>
-                    </button>
-                    <div id="loginError" style="display: none;"></div>
                 </div>
 
-                <!-- Signup Tab -->
-                <div id="signupTab" class="tab-content">
-                    <p class="info-note" style="margin-bottom: 16px;">
-                        Create a new master API key to start managing devices. Keep this key safe - you'll need it to access the control panel.
+                <!-- Generate Tab -->
+                <div class="tab-content" id="generateTab">
+                    <p style="color: var(--text-secondary); margin-bottom: 24px; line-height: 1.7; font-size: 14px;">
+                        Generate a new master API key to get started. This key will give you full control over device registration, management, and security operations.
                     </p>
-                    <button class="btn btn-primary" id="signupBtn">
-                        <span id="signupBtnText">Generate Master Key</span>
-                        <span id="signupLoading" class="loading" style="display: none;"></span>
+                    <button type="button" class="btn btn-primary" style="width: 100%;" id="generateKeyBtn">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                        Generate Master Key
                     </button>
-                    <div id="signupError" style="display: none;"></div>
+                    <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 16px; margin-top: 20px;">
+                        <p style="font-size: 13px; color: #fcd34d; margin: 0; line-height: 1.6;">
+                            <strong>Important:</strong> The master key will only be shown once. Save it immediately in a secure password manager. You cannot retrieve it later.
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Dashboard -->
-        <div id="dashboard" class="dashboard">
-            <div id="alertContainer"></div>
+        <div class="dashboard" id="dashboard">
+            <!-- Stats Bar -->
+            <div class="stats-bar" id="statsBar">
+                <div class="stat-item">
+                    <div class="stat-value" id="statTotal">0</div>
+                    <div class="stat-label">Total Devices</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="statOnline">0</div>
+                    <div class="stat-label">Online</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="statArmed">0</div>
+                    <div class="stat-label">Armed</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="statOffline">0</div>
+                    <div class="stat-label">Offline</div>
+                </div>
+            </div>
 
+            <!-- Main Card -->
             <div class="card">
-                <h2 style="margin-bottom: 16px; font-size: 18px;">Your Devices</h2>
-                <div id="deviceList" class="device-list"></div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; flex-wrap: wrap; gap: 16px;">
+                    <h2 style="font-size: 24px; font-weight: 700;">Device Management</h2>
+                    <div class="btn-group">
+                        <button class="btn btn-secondary" id="refreshBtn">
+                            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0118.8-4.3M22 12.5a10 10 0 01-18.8 4.2"/>
+                            </svg>
+                            Refresh
+                        </button>
+                        <button class="btn btn-primary" id="registerDeviceBtn">
+                            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 5v14M5 12h14"/>
+                            </svg>
+                            Register Device
+                        </button>
+                        <button class="btn btn-secondary" id="logoutBtn">
+                            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
+                            </svg>
+                            Logout
+                        </button>
+                    </div>
+                </div>
+
+                <div id="deviceList" class="device-grid"></div>
+                
                 <div id="emptyState" class="empty-state" style="display: none;">
-                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="5" y="11" width="14" height="10" rx="2"/>
+                        <path d="M8 11V7a4 4 0 018 0v4" stroke-linecap="round"/>
                     </svg>
-                    <p>No devices registered</p>
-                    <p style="font-size: 13px; margin-top: 8px;">Click "Register Device" to add your first device</p>
-                </div>
-            </div>
-
-            <div class="actions">
-                <button class="btn btn-primary" id="registerDeviceBtn">
-                    Register Device
-                </button>
-                <button class="btn btn-secondary" id="refreshBtn">
-                    Refresh
-                </button>
-                <button class="btn btn-secondary" id="logoutBtn">
-                    Lock Panel
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Master Key Modal (for signup) -->
-    <div id="masterKeyModal" class="modal-overlay">
-        <div class="modal">
-            <div class="modal-header">
-                <h2>🔑 Your Master API Key</h2>
-                <p>This is your master key for accessing the control panel. Save it securely!</p>
-            </div>
-            <div class="modal-body">
-                <div class="warning-box">
-                    <strong>⚠️ Important:</strong>
-                    Save this key now! You won't be able to see it again. Store it in a password manager or secure location.
-                </div>
-                <div class="api-key-display" id="masterKeyDisplay"></div>
-                <div class="button-group">
-                    <button class="btn-copy" id="copyMasterKeyBtn">Copy Key</button>
-                    <button class="btn-close-modal" id="closeMasterKeyModal">I've Saved It</button>
+                    <h3>No Devices Registered</h3>
+                    <p>Get started by registering your first device</p>
+                    <button class="btn btn-primary" style="margin-top: 20px;" onclick="document.getElementById('registerDeviceBtn').click()">
+                        Register First Device
+                    </button>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Device API Key Modal -->
-    <div id="apiKeyModal" class="modal-overlay">
-        <div class="modal">
-            <div class="modal-header">
-                <h2>Device API Key</h2>
-                <p>Copy this key and paste it in your browser extension to activate protection.</p>
-            </div>
-            <div class="modal-body">
-                <div class="api-key-display" id="apiKeyDisplay"></div>
-                <div class="button-group">
-                    <button class="btn-copy" id="copyKeyBtn">Copy Key</button>
-                    <button class="btn-close-modal" id="closeModalBtn">Close</button>
+        <!-- Master Key Modal -->
+        <div class="modal-overlay" id="masterKeyModal">
+            <div class="modal">
+                <h2>Master Key Generated</h2>
+                <p class="modal-subtitle">Save this key securely. It will only be shown once and cannot be retrieved again.</p>
+                
+                <div class="api-key-display" id="masterKeyDisplay" style="position: relative;">
+                    <button class="btn btn-primary copy-btn" id="copyMasterKeyBtn">Copy</button>
+                    <div style="padding-right: 80px; word-break: break-all;"></div>
                 </div>
+                
+                <div class="btn-group" style="width: 100%;">
+                    <button class="btn btn-primary" style="flex: 1;" id="copyMasterKeyBtn2">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                        </svg>
+                        Copy Key
+                    </button>
+                    <button class="btn btn-secondary" style="flex: 1;" id="closeMasterKeyModal">
+                        Continue to Login
+                    </button>
+                </div>
+
+                <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 16px; margin-top: 20px;">
+                    <p style="font-size: 13px; color: #fca5a5; margin: 0; line-height: 1.6;">
+                        <strong>Security Notice:</strong> Store this key in a password manager or secure location. Anyone with this key can control all your devices.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Device API Key Modal -->
+        <div class="modal-overlay" id="apiKeyModal">
+            <div class="modal">
+                <h2>Device Registered Successfully</h2>
+                <p class="modal-subtitle">Copy this API key and paste it into the browser extension on your device to activate protection.</p>
+                
+                <div class="api-key-display" id="apiKeyDisplay" style="position: relative;">
+                    <button class="btn btn-primary copy-btn" id="copyKeyBtnTop">Copy</button>
+                    <div style="padding-right: 80px; word-break: break-all;"></div>
+                </div>
+                
+                <div class="btn-group" style="width: 100%;">
+                    <button class="btn btn-primary" style="flex: 1;" id="copyKeyBtn">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                        </svg>
+                        Copy API Key
+                    </button>
+                    <button class="btn btn-secondary" style="flex: 1;" id="closeModalBtn">
+                        Close
+                    </button>
+                </div>
+
+                <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 16px; margin-top: 20px;">
+                    <p style="font-size: 13px; color: #93c5fd; margin: 0; line-height: 1.6;">
+                        <strong>Next Steps:</strong> Install the Device Lockdown extension on the target browser, then paste this API key in the extension popup to activate protection.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Register Device Modal -->
+        <div class="modal-overlay" id="registerModal">
+            <div class="modal">
+                <h2>Register New Device</h2>
+                <p class="modal-subtitle">Enter device information to register it for remote protection.</p>
+                
+                <form id="registerForm">
+                    <div class="input-group">
+                        <label>Device Name *</label>
+                        <input 
+                            type="text" 
+                            id="deviceNameInput" 
+                            placeholder="e.g., Work Laptop, Personal Desktop, Mom's Computer"
+                            required
+                            maxlength="255"
+                            style="font-family: 'Inter', sans-serif;"
+                        >
+                    </div>
+
+                    <div class="input-group">
+                        <label>Tags (Optional)</label>
+                        <input 
+                            type="text" 
+                            id="deviceTagsInput" 
+                            placeholder="e.g., work, personal, family (comma-separated)"
+                            style="font-family: 'Inter', sans-serif;"
+                        >
+                        <small style="color: var(--text-secondary); font-size: 12px; margin-top: 4px; display: block;">Separate multiple tags with commas</small>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Location (Optional)</label>
+                        <input 
+                            type="text" 
+                            id="deviceLocationInput" 
+                            placeholder="e.g., Home Office, Company HQ, Remote"
+                            style="font-family: 'Inter', sans-serif;"
+                        >
+                    </div>
+                    
+                    <div class="btn-group" style="width: 100%;">
+                        <button type="submit" class="btn btn-primary" style="flex: 1;">
+                            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 5v14M5 12h14"/>
+                            </svg>
+                            Register Device
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="cancelRegisterBtn" style="flex: 1;">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Edit Device Modal -->
+        <div class="modal-overlay" id="editModal">
+            <div class="modal">
+                <h2>Edit Device</h2>
+                <p class="modal-subtitle">Update device information and settings.</p>
+                
+                <form id="editForm">
+                    <div class="input-group">
+                        <label>Device Name</label>
+                        <input 
+                            type="text" 
+                            id="editDeviceName" 
+                            required
+                            maxlength="255"
+                            style="font-family: 'Inter', sans-serif;"
+                        >
+                    </div>
+
+                    <div class="input-group">
+                        <label>Tags</label>
+                        <input 
+                            type="text" 
+                            id="editDeviceTags" 
+                            placeholder="comma-separated"
+                            style="font-family: 'Inter', sans-serif;"
+                        >
+                    </div>
+
+                    <div class="input-group">
+                        <label>Location</label>
+                        <input 
+                            type="text" 
+                            id="editDeviceLocation" 
+                            style="font-family: 'Inter', sans-serif;"
+                        >
+                    </div>
+
+                    <input type="hidden" id="editDeviceId">
+                    
+                    <div class="btn-group" style="width: 100%;">
+                        <button type="submit" class="btn btn-primary" style="flex: 1;">
+                            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+                                <polyline points="17 21 17 13 7 13 7 21"/>
+                                <polyline points="7 3 7 8 15 8"/>
+                            </svg>
+                            Save Changes
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="cancelEditBtn" style="flex: 1;">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 
     <script>
-        const API_URL = 'https://browserbricker.onrender.com'; // Backend API URL
+        const API_URL = 'https://browserbricker.onrender.com';
+        
         let masterApiKey = null;
         let autoRefreshInterval = null;
 
-        // DOM Elements
+        // Elements
         const loginScreen = document.getElementById('loginScreen');
         const dashboard = document.getElementById('dashboard');
+        const loginForm = document.getElementById('loginForm');
         const loginApiKey = document.getElementById('loginApiKey');
         const loginBtn = document.getElementById('loginBtn');
-        const loginBtnText = document.getElementById('loginBtnText');
-        const loginLoading = document.getElementById('loginLoading');
-        const loginError = document.getElementById('loginError');
-        const signupBtn = document.getElementById('signupBtn');
-        const signupBtnText = document.getElementById('signupBtnText');
-        const signupLoading = document.getElementById('signupLoading');
-        const signupError = document.getElementById('signupError');
+        const generateKeyBtn = document.getElementById('generateKeyBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const registerDeviceBtn = document.getElementById('registerDeviceBtn');
         const deviceList = document.getElementById('deviceList');
         const emptyState = document.getElementById('emptyState');
         const alertContainer = document.getElementById('alertContainer');
-        const registerDeviceBtn = document.getElementById('registerDeviceBtn');
-        const refreshBtn = document.getElementById('refreshBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
+        const notificationBell = document.getElementById('notificationBell');
+        const notificationPanel = document.getElementById('notificationPanel');
+        const notificationBadge = document.getElementById('notificationBadge');
+        const notificationList = document.getElementById('notificationList');
 
         // Tab switching
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                const tab = btn.getAttribute('data-tab');
-                
-                // Update button states
+                const tab = btn.dataset.tab;
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                
-                // Update content
                 document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
                 document.getElementById(tab + 'Tab').classList.add('active');
-                
-                // Clear errors
-                loginError.style.display = 'none';
-                signupError.style.display = 'none';
             });
         });
 
-        // API call helper
+        // Notification bell toggle
+        notificationBell.addEventListener('click', () => {
+            notificationPanel.classList.toggle('active');
+            if (notificationPanel.classList.contains('active')) {
+                loadNotifications();
+            }
+        });
+
+        // Close notification panel when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!notificationBell.contains(e.target) && !notificationPanel.contains(e.target)) {
+                notificationPanel.classList.remove('active');
+            }
+        });
+
+        // Alert function
+        function showAlert(message, type = 'error') {
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type} show`;
+            
+            const icon = type === 'error' ? '⚠️' : type === 'success' ? '✓' : 'ℹ️';
+            alert.innerHTML = `<span>${icon}</span><span>${message}</span>`;
+            
+            alertContainer.appendChild(alert);
+
+            setTimeout(() => {
+                alert.classList.remove('show');
+                setTimeout(() => alert.remove(), 300);
+            }, 5000);
+        }
+
+        // API Call Helper
         async function apiCall(endpoint, method = 'GET', body = null) {
             const options = {
                 method,
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/json'
                 }
             };
 
@@ -703,97 +1197,89 @@
             return data;
         }
 
-        // Show alert
-        function showAlert(message, type = 'error') {
-            const alert = document.createElement('div');
-            alert.className = `alert alert-${type}`;
-            alert.textContent = message;
-            alertContainer.appendChild(alert);
-
-            setTimeout(() => {
-                alert.remove();
-            }, 5000);
-        }
-
-        // Signup - Generate Master Key
-        signupBtn.addEventListener('click', async () => {
-            signupBtnText.style.display = 'none';
-            signupLoading.style.display = 'block';
-            signupBtn.disabled = true;
-            signupError.style.display = 'none';
+        // Generate Master Key
+        generateKeyBtn.addEventListener('click', async () => {
+            generateKeyBtn.disabled = true;
+            generateKeyBtn.innerHTML = '<div class="loading"></div> Generating...';
 
             try {
                 const data = await apiCall('/api/init/master-key', 'POST');
                 showMasterKeyModal(data.masterKey);
+                showAlert('Master key generated successfully', 'success');
             } catch (error) {
-                signupError.textContent = error.message;
-                signupError.className = 'alert alert-error';
-                signupError.style.display = 'block';
+                showAlert(error.message);
             } finally {
-                signupBtnText.style.display = 'block';
-                signupLoading.style.display = 'none';
-                signupBtn.disabled = false;
+                generateKeyBtn.disabled = false;
+                generateKeyBtn.innerHTML = `
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                    Generate Master Key
+                `;
             }
         });
 
         // Login
-        loginBtn.addEventListener('click', async () => {
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
             const apiKey = loginApiKey.value.trim();
-
-            if (!apiKey) {
-                loginError.textContent = 'Please enter your master API key';
-                loginError.className = 'alert alert-error';
-                loginError.style.display = 'block';
-                return;
-            }
-
+            
             if (apiKey.length !== 64) {
-                loginError.textContent = 'Master API key must be 64 characters';
-                loginError.className = 'alert alert-error';
-                loginError.style.display = 'block';
+                showAlert('Invalid API key format (must be 64 characters)');
                 return;
             }
 
-            loginBtnText.style.display = 'none';
-            loginLoading.style.display = 'block';
             loginBtn.disabled = true;
-            loginError.style.display = 'none';
+            loginBtn.innerHTML = '<div class="loading"></div> Signing in...';
 
             try {
                 masterApiKey = apiKey;
                 await loadDevices();
-                
                 loginScreen.classList.remove('active');
                 dashboard.classList.add('active');
-                
                 startAutoRefresh();
+                loadNotifications();
+                showAlert('Signed in successfully', 'success');
             } catch (error) {
                 masterApiKey = null;
-                loginError.textContent = error.message;
-                loginError.className = 'alert alert-error';
-                loginError.style.display = 'block';
+                showAlert(error.message);
             } finally {
-                loginBtnText.style.display = 'block';
-                loginLoading.style.display = 'none';
                 loginBtn.disabled = false;
+                loginBtn.innerHTML = `
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M13.8 12H3"/>
+                    </svg>
+                    Access Control Panel
+                `;
             }
         });
 
         // Logout
         logoutBtn.addEventListener('click', () => {
-            masterApiKey = null;
-            loginApiKey.value = '';
-            stopAutoRefresh();
-            dashboard.classList.remove('active');
-            loginScreen.classList.add('active');
-            deviceList.innerHTML = '';
+            if (confirm('Are you sure you want to logout?')) {
+                masterApiKey = null;
+                loginApiKey.value = '';
+                stopAutoRefresh();
+                dashboard.classList.remove('active');
+                loginScreen.classList.add('active');
+                deviceList.innerHTML = '';
+                notificationPanel.classList.remove('active');
+            }
         });
 
-        // Load devices
+        // Load Devices
         async function loadDevices() {
             try {
                 const data = await apiCall('/api/devices');
                 const devices = data.devices || [];
+
+                // Update stats
+                document.getElementById('statTotal').textContent = data.total || 0;
+                document.getElementById('statOnline').textContent = data.online || 0;
+                document.getElementById('statArmed').textContent = data.armed || 0;
+                document.getElementById('statOffline').textContent = (data.total || 0) - (data.online || 0);
 
                 if (devices.length === 0) {
                     deviceList.innerHTML = '';
@@ -803,26 +1289,62 @@
 
                 emptyState.style.display = 'none';
                 deviceList.innerHTML = devices.map(device => `
-                    <div class="device-item">
+                    <div class="device-card">
                         <div class="device-header">
                             <div class="device-info">
                                 <h3>${escapeHtml(device.deviceName)}</h3>
-                                <div class="device-status">
+                                <div class="device-meta">
                                     <span class="status-dot ${device.online ? 'status-online' : 'status-offline'}"></span>
                                     <span>${device.online ? 'Online' : 'Offline'}</span>
-                                    ${device.lastHeartbeat ? `<span>• Last seen ${formatTime(device.lastHeartbeat)}</span>` : ''}
+                                    ${device.lastHeartbeat ? `<span>• ${formatTime(device.lastHeartbeat)}</span>` : ''}
+                                    ${device.location ? `<span>• ${escapeHtml(device.location)}</span>` : ''}
                                 </div>
                             </div>
                             <span class="badge ${device.armed ? 'badge-armed' : 'badge-disarmed'}">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    ${device.armed ? 
+                                        '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4" stroke-linecap="round"/>' :
+                                        '<path d="M8 11V7a4 4 0 018 0v4M5 13h14a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2z"/>'
+                                    }
+                                </svg>
                                 ${device.armed ? 'ARMED' : 'DISARMED'}
                             </span>
                         </div>
-                        <div class="device-controls">
+                        ${device.tags && device.tags.length > 0 ? `
+                            <div class="device-tags">
+                                ${device.tags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('')}
+                            </div>
+                        ` : ''}
+                        <div class="device-actions">
                             ${device.armed ? 
-                                `<button class="toggle-btn btn-disarm" onclick="toggleDevice('${device.deviceId}', false)">Disarm</button>` :
-                                `<button class="toggle-btn btn-arm" onclick="toggleDevice('${device.deviceId}', true)">Arm</button>`
+                                `<button class="btn btn-success" onclick="toggleDevice('${device.deviceId}', false)">
+                                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M8 11V7a4 4 0 018 0v4M5 13h14a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2z"/>
+                                    </svg>
+                                    Disarm
+                                </button>` :
+                                `<button class="btn btn-danger" onclick="toggleDevice('${device.deviceId}', true)">
+                                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="5" y="11" width="14" height="10" rx="2"/>
+                                        <path d="M8 11V7a4 4 0 018 0v4" stroke-linecap="round"/>
+                                    </svg>
+                                    Arm
+                                </button>`
                             }
-                            <button class="toggle-btn btn-delete" onclick="deleteDevice('${device.deviceId}')">Delete</button>
+                            <button class="btn btn-secondary" onclick="editDevice('${device.deviceId}', '${escapeHtml(device.deviceName)}', '${(device.tags || []).join(',')}', '${escapeHtml(device.location || '')}')">
+                                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                </svg>
+                                Edit
+                            </button>
+                            <button class="btn btn-danger" onclick="deleteDevice('${device.deviceId}', '${escapeHtml(device.deviceName)}')">
+                                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="3 6 5 6 21 6"/>
+                                    <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                                </svg>
+                                Delete
+                            </button>
                         </div>
                     </div>
                 `).join('');
@@ -831,25 +1353,26 @@
             }
         }
 
-        // Toggle device armed state
+        // Toggle Device
         window.toggleDevice = async function(deviceId, arm) {
             try {
-                await apiCall(`/api/device/${arm ? 'arm' : 'disarm'}`, 'POST', { deviceId });
+                await apiCall(`/api/device/${arm ? 'arm' : 'disarm'}`, 'POST', { deviceId, reason: arm ? 'User locked device' : 'User unlocked device' });
                 showAlert(`Device ${arm ? 'armed' : 'disarmed'} successfully`, 'success');
                 await loadDevices();
+                loadNotifications();
             } catch (error) {
                 showAlert(error.message);
             }
         };
 
-        // Delete device
-        window.deleteDevice = async function(deviceId) {
-            if (!confirm('Delete this device? The extension will need to be reconfigured.')) {
+        // Delete Device
+        window.deleteDevice = async function(deviceId, deviceName) {
+            if (!confirm(`Delete "${deviceName}"? This action cannot be undone and the device will need to be reconfigured.`)) {
                 return;
             }
 
             try {
-                await apiCall('/api/device/delete', 'POST', { deviceId });
+                await apiCall('/api/device/delete', 'DELETE', { deviceId });
                 showAlert('Device deleted successfully', 'success');
                 await loadDevices();
             } catch (error) {
@@ -857,14 +1380,84 @@
             }
         };
 
-        // Register device
-        registerDeviceBtn.addEventListener('click', async () => {
-            const deviceName = prompt('Enter device name:');
-            if (!deviceName) return;
+        // Register Device
+        const registerModal = document.getElementById('registerModal');
+        const registerForm = document.getElementById('registerForm');
+        const deviceNameInput = document.getElementById('deviceNameInput');
+        const deviceTagsInput = document.getElementById('deviceTagsInput');
+        const deviceLocationInput = document.getElementById('deviceLocationInput');
+        const cancelRegisterBtn = document.getElementById('cancelRegisterBtn');
+
+        registerDeviceBtn.addEventListener('click', () => {
+            registerModal.classList.add('active');
+            deviceNameInput.value = '';
+            deviceTagsInput.value = '';
+            deviceLocationInput.value = '';
+            deviceNameInput.focus();
+        });
+
+        cancelRegisterBtn.addEventListener('click', () => {
+            registerModal.classList.remove('active');
+        });
+
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const deviceName = deviceNameInput.value.trim();
+            const tagsStr = deviceTagsInput.value.trim();
+            const location = deviceLocationInput.value.trim() || null;
+            const tags = tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(t => t) : [];
+            
+            if (!deviceName) {
+                showAlert('Device name is required');
+                return;
+            }
 
             try {
-                const data = await apiCall('/api/device/register', 'POST', { deviceName });
+                const data = await apiCall('/api/device/register', 'POST', { deviceName, tags, location });
+                registerModal.classList.remove('active');
                 showApiKeyModal(data.deviceApiKey);
+                await loadDevices();
+            } catch (error) {
+                showAlert(error.message);
+            }
+        });
+
+        // Edit Device
+        const editModal = document.getElementById('editModal');
+        const editForm = document.getElementById('editForm');
+        const editDeviceName = document.getElementById('editDeviceName');
+        const editDeviceTags = document.getElementById('editDeviceTags');
+        const editDeviceLocation = document.getElementById('editDeviceLocation');
+        const editDeviceId = document.getElementById('editDeviceId');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+
+        window.editDevice = function(deviceId, deviceName, tags, location) {
+            editDeviceId.value = deviceId;
+            editDeviceName.value = deviceName;
+            editDeviceTags.value = tags;
+            editDeviceLocation.value = location;
+            editModal.classList.add('active');
+            editDeviceName.focus();
+        };
+
+        cancelEditBtn.addEventListener('click', () => {
+            editModal.classList.remove('active');
+        });
+
+        editForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const deviceId = editDeviceId.value;
+            const deviceName = editDeviceName.value.trim();
+            const tagsStr = editDeviceTags.value.trim();
+            const location = editDeviceLocation.value.trim() || null;
+            const tags = tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(t => t) : [];
+
+            try {
+                await apiCall('/api/device/update', 'PATCH', { deviceId, deviceName, tags, settings: { location } });
+                editModal.classList.remove('active');
+                showAlert('Device updated successfully', 'success');
                 await loadDevices();
             } catch (error) {
                 showAlert(error.message);
@@ -874,24 +1467,28 @@
         // Refresh
         refreshBtn.addEventListener('click', async () => {
             refreshBtn.disabled = true;
-            refreshBtn.textContent = 'Refreshing...';
+            const originalHTML = refreshBtn.innerHTML;
+            refreshBtn.innerHTML = '<div class="loading"></div> Refreshing...';
+            
             try {
                 await loadDevices();
-                showAlert('Devices refreshed', 'success');
+                loadNotifications();
+                showAlert('Data refreshed', 'success');
             } catch (error) {
                 showAlert(error.message);
             } finally {
                 refreshBtn.disabled = false;
-                refreshBtn.textContent = 'Refresh';
+                refreshBtn.innerHTML = originalHTML;
             }
         });
 
-        // Auto refresh
+        // Auto Refresh (5 seconds)
         function startAutoRefresh() {
             stopAutoRefresh();
             autoRefreshInterval = setInterval(() => {
                 loadDevices();
-            }, 15000);
+                loadNotifications();
+            }, 5000);
         }
 
         function stopAutoRefresh() {
@@ -901,76 +1498,122 @@
             }
         }
 
+        // Load Notifications
+        async function loadNotifications() {
+            try {
+                const data = await apiCall('/api/notifications');
+                const notifications = data.notifications || [];
+                
+                if (data.unread > 0) {
+                    notificationBadge.textContent = data.unread;
+                    notificationBadge.style.display = 'block';
+                } else {
+                    notificationBadge.style.display = 'none';
+                }
+
+                if (notifications.length === 0) {
+                    notificationList.innerHTML = `
+                        <div class="empty-state" style="padding: 40px 20px;">
+                            <p>No notifications</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                notificationList.innerHTML = notifications.map(notif => `
+                    <div class="notification-item ${!notif.read ? 'unread' : ''}" onclick="markNotificationRead('${notif.id}')">
+                        <div class="notification-title">${escapeHtml(notif.title)}</div>
+                        <div class="notification-message">${escapeHtml(notif.message)}</div>
+                        <div class="notification-time">${formatTime(notif.timestamp)}</div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load notifications:', error);
+            }
+        }
+
+        window.markNotificationRead = async function(id) {
+            try {
+                await apiCall(`/api/notifications/${id}/read`, 'PATCH');
+                loadNotifications();
+            } catch (error) {
+                console.error('Failed to mark notification as read:', error);
+            }
+        };
+
+        document.getElementById('clearNotifications').addEventListener('click', () => {
+            if (confirm('Clear all notifications?')) {
+                notificationList.innerHTML = `
+                    <div class="empty-state" style="padding: 40px 20px;">
+                        <p>No notifications</p>
+                    </div>
+                `;
+                notificationBadge.style.display = 'none';
+            }
+        });
+
         // Master Key Modal
         const masterKeyModal = document.getElementById('masterKeyModal');
         const masterKeyDisplay = document.getElementById('masterKeyDisplay');
         const copyMasterKeyBtn = document.getElementById('copyMasterKeyBtn');
+        const copyMasterKeyBtn2 = document.getElementById('copyMasterKeyBtn2');
         const closeMasterKeyModal = document.getElementById('closeMasterKeyModal');
 
         function showMasterKeyModal(apiKey) {
-            masterKeyDisplay.textContent = apiKey;
+            masterKeyDisplay.querySelector('div').textContent = apiKey;
             masterKeyModal.classList.add('active');
         }
 
-        function hideMasterKeyModal() {
-            masterKeyModal.classList.remove('active');
-            copyMasterKeyBtn.textContent = 'Copy Key';
-            copyMasterKeyBtn.classList.remove('copied');
+        async function copyMasterKey() {
+            const apiKey = masterKeyDisplay.querySelector('div').textContent;
+            await copyToClipboard(apiKey);
+            showAlert('Master key copied to clipboard', 'success');
         }
 
-        copyMasterKeyBtn.addEventListener('click', async () => {
-            const apiKey = masterKeyDisplay.textContent;
-            await copyToClipboard(apiKey, copyMasterKeyBtn);
-        });
+        copyMasterKeyBtn.addEventListener('click', copyMasterKey);
+        copyMasterKeyBtn2.addEventListener('click', copyMasterKey);
 
         closeMasterKeyModal.addEventListener('click', () => {
-            hideMasterKeyModal();
-            // Switch to login tab and pre-fill the key
-            const generatedKey = masterKeyDisplay.textContent;
+            masterKeyModal.classList.remove('active');
+            const generatedKey = masterKeyDisplay.querySelector('div').textContent;
             document.querySelector('[data-tab="login"]').click();
             loginApiKey.value = generatedKey;
-            loginApiKey.type = 'text'; // Show it so user can see it's filled
+            loginApiKey.type = 'text';
             setTimeout(() => {
                 loginApiKey.type = 'password';
-            }, 2000);
+            }, 3000);
         });
 
         // Device API Key Modal
         const apiKeyModal = document.getElementById('apiKeyModal');
         const apiKeyDisplay = document.getElementById('apiKeyDisplay');
         const copyKeyBtn = document.getElementById('copyKeyBtn');
+        const copyKeyBtnTop = document.getElementById('copyKeyBtnTop');
         const closeModalBtn = document.getElementById('closeModalBtn');
 
         function showApiKeyModal(apiKey) {
-            apiKeyDisplay.textContent = apiKey;
+            apiKeyDisplay.querySelector('div').textContent = apiKey;
             apiKeyModal.classList.add('active');
         }
 
-        function hideApiKeyModal() {
-            apiKeyModal.classList.remove('active');
-            copyKeyBtn.textContent = 'Copy Key';
-            copyKeyBtn.classList.remove('copied');
+        async function copyDeviceKey() {
+            const apiKey = apiKeyDisplay.querySelector('div').textContent;
+            await copyToClipboard(apiKey);
+            showAlert('API key copied to clipboard', 'success');
         }
 
-        copyKeyBtn.addEventListener('click', async () => {
-            const apiKey = apiKeyDisplay.textContent;
-            await copyToClipboard(apiKey, copyKeyBtn);
+        copyKeyBtn.addEventListener('click', copyDeviceKey);
+        copyKeyBtnTop.addEventListener('click', copyDeviceKey);
+
+        closeModalBtn.addEventListener('click', () => {
+            apiKeyModal.classList.remove('active');
         });
 
-        closeModalBtn.addEventListener('click', hideApiKeyModal);
-
-        // Copy to clipboard helper
-        async function copyToClipboard(text, button) {
+        // Copy to clipboard
+        async function copyToClipboard(text) {
             try {
                 await navigator.clipboard.writeText(text);
-                button.textContent = '✓ Copied!';
-                button.classList.add('copied');
-                setTimeout(() => {
-                    button.textContent = 'Copy Key';
-                    button.classList.remove('copied');
-                }, 2000);
             } catch (error) {
-                // Fallback for older browsers
                 const textarea = document.createElement('textarea');
                 textarea.value = text;
                 textarea.style.position = 'fixed';
@@ -979,26 +1622,21 @@
                 textarea.select();
                 document.execCommand('copy');
                 document.body.removeChild(textarea);
-                button.textContent = '✓ Copied!';
-                button.classList.add('copied');
             }
         }
 
         // Close modals on overlay click
-        masterKeyModal.addEventListener('click', (e) => {
-            if (e.target === masterKeyModal) {
-                hideMasterKeyModal();
-            }
-        });
-
-        apiKeyModal.addEventListener('click', (e) => {
-            if (e.target === apiKeyModal) {
-                hideApiKeyModal();
-            }
+        [masterKeyModal, apiKeyModal, registerModal, editModal].forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
         });
 
         // Utility functions
         function escapeHtml(text) {
+            if (!text) return '';
             const map = {
                 '&': '&amp;',
                 '<': '&lt;',
@@ -1006,7 +1644,7 @@
                 '"': '&quot;',
                 "'": '&#039;'
             };
-            return text.replace(/[&<>"']/g, m => map[m]);
+            return String(text).replace(/[&<>"']/g, m => map[m]);
         }
 
         function formatTime(timestamp) {
@@ -1014,7 +1652,8 @@
             const diff = now - new Date(timestamp).getTime();
             const seconds = Math.floor(diff / 1000);
             
-            if (seconds < 60) return 'just now';
+            if (seconds < 10) return 'just now';
+            if (seconds < 60) return `${seconds}s ago`;
             if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
             if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
             return `${Math.floor(seconds / 86400)}d ago`;
