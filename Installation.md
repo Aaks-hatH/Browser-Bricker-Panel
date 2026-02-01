@@ -47,7 +47,7 @@ Complete step-by-step instructions for installing and configuring BrowserBricker
 
 ```bash
 # Clone the repository
-git clone https://github.com/aakshathariharan/browserbricker.git
+git clone https://github.com/Aaks-hatH/browserbricker.git
 
 # Navigate to directory
 cd browserbricker
