@@ -171,9 +171,9 @@
         .view-container { 
             flex: 1; 
             padding: 40px; 
-            overflow-y: auto;
+            overflow-y: auto; 
+            display: none;
             height: calc(100vh - var(--header-height));
-            display: none; 
         }
         .view-container.active { 
             display: block; 
@@ -569,9 +569,36 @@
             border: var(--border);
         }
 
+        .geofence-split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .location-feed-item {
+            background: var(--zinc-50);
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border-left: 4px solid var(--status-info);
+        }
+
+        .coordinates-display {
+            font-family: var(--mono);
+            font-size: 0.85rem;
+            color: var(--zinc-600);
+            background: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-top: 8px;
+        }
+
         @media (max-width: 768px) {
             .grid-stats {
                 grid-template-columns: repeat(2, 1fr);
+            }
+            .geofence-split {
+                grid-template-columns: 1fr;
             }
         }
 
