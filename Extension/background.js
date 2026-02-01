@@ -397,9 +397,9 @@ async function checkDeviceState() {
 
         const result = await response.json();
         
-        // IMPORTANT: The server returns "armed" or "quarantined". 
-        // If either is true, the device must lock.
-        const shouldBeLocked = result.data.armed || result.data.quarantined;
+        // --- FIX IS HERE ---
+        // Access properties directly from result, not result.data
+        const shouldBeLocked = result.armed || result.quarantined;
 
         if (shouldBeLocked !== isArmed) {
             console.log(`[Lockdown] State Transition: ${isArmed} -> ${shouldBeLocked}`);
@@ -411,6 +411,7 @@ async function checkDeviceState() {
         consecutiveErrors = 0;
     } catch (error) {
         consecutiveErrors++;
+        // console.warn to reduce noise, but keep error visible
         console.warn(`[Lockdown] Heartbeat Link Error (${consecutiveErrors}):`, error.message);
         
         // Security Feature: If link is lost while armed, stay armed.
