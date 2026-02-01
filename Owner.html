@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BrowserBricker Admin | Ultimate Control Center</title>
+    <title>BrowserBricker Owner | Ultimate Control Center</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><defs><linearGradient id='g' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' style='stop-color:%230f172a' /><stop offset='100%' style='stop-color:%23334155' /></linearGradient></defs><circle cx='50' cy='50' r='45' fill='url(%23g)' /><path d='M50 20 L35 35 V50 C35 60 50 75 50 75 C50 75 65 60 65 50 V35 L50 20Z' fill='white' opacity='0.9' /></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -619,9 +619,9 @@
                     <path d="M12 8v4M12 16h.01"/>
                 </svg>
             </div>
-            <h2 style="font-weight: 800; margin-bottom: 12px; font-size: 1.8rem;">Admin Authorization</h2>
+            <h2 style="font-weight: 800; margin-bottom: 12px; font-size: 1.8rem;">Owner Authorization</h2>
             <p style="color: var(--zinc-500); font-size: 0.95rem; margin-bottom: 35px; line-height: 1.6;">
-                Access restricted to BrowserBricker administrators with valid API credentials.
+                Access restricted to BrowserBricker system owners with valid API credentials.
             </p>
             
             <div style="background: var(--zinc-50); padding: 12px; border-radius: 10px; margin-bottom: 25px; display: flex; align-items: center; justify-content: center; gap: 8px;">
@@ -634,7 +634,7 @@
             
             <div style="display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 2px solid var(--zinc-100);">
                 <button type="button" class="auth-tab active" onclick="switchAuthTab('login')" id="loginTab" style="flex: 1; padding: 12px; background: transparent; border: none; border-bottom: 3px solid transparent; font-weight: 700; font-size: 0.85rem; color: var(--zinc-400); cursor: pointer; margin-bottom: -2px; transition: 0.2s;">
-                    Admin Login
+                    Owner Login
                 </button>
                 <button type="button" class="auth-tab" onclick="switchAuthTab('generate')" id="generateTab" style="flex: 1; padding: 12px; background: transparent; border: none; border-bottom: 3px solid transparent; font-weight: 700; font-size: 0.85rem; color: var(--zinc-400); cursor: pointer; margin-bottom: -2px; transition: 0.2s;">
                     Generate Key
@@ -646,9 +646,9 @@
                     <div class="field-group">
                         <input 
                             type="password" 
-                            id="adminKeyInput" 
+                            id="ownerKeyInput" 
                             class="input-control" 
-                            placeholder="Enter Admin API Key (64 characters)" 
+                            placeholder="Enter Owner API Key (64 characters)" 
                             style="text-align: center; font-family: var(--mono); letter-spacing: 1px;"
                             autocomplete="off"
                             required>
@@ -661,14 +661,14 @@
                 
                 <div style="background: rgba(251, 146, 60, 0.1); border: 1px solid rgba(251, 146, 60, 0.3); border-radius: 8px; padding: 14px; margin-top: 20px;">
                     <p style="font-size: 0.75rem; color: #ea580c; margin: 0;">
-                        <strong>Warning:</strong> Admin access grants full control over all devices and users. Only use on trusted devices.
+                        <strong>Warning:</strong> Owner access grants absolute control over the entire system. Only use on trusted devices.
                     </p>
                 </div>
             </div>
             
             <div id="generateForm" class="auth-form-container" style="display: none;">
                 <p style="color: var(--zinc-500); margin-bottom: 20px; line-height: 1.6; font-size: 0.9rem; text-align: left;">
-                    Generate a new admin API key using the system secret code. This code should only be known by authorized administrators.
+                    Generate a new owner API key using the system secret code. This code should only be known by the system owner.
                 </p>
                 <form onsubmit="handleGenerate(event)" id="generateKeyForm">
                     <div class="field-group">
@@ -682,7 +682,7 @@
                             required>
                     </div>
                     <button type="submit" class="btn btn-primary" style="width: 100%; height: 55px; position: relative;" id="generateBtn">
-                        <span id="generateBtnText">Generate Admin Key</span>
+                        <span id="generateBtnText">Generate Owner Key</span>
                         <div class="spinner" id="generateSpinner" style="display: none;"></div>
                     </button>
                 </form>
@@ -724,7 +724,7 @@
                         <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                     </svg>
                 </div>
-                <div class="brand-text">BROWSERBRICKER <span style="font-weight: 300; opacity: 0.5;">ADMIN</span></div>
+                <div class="brand-text">BROWSERBRICKER <span style="font-weight: 300; opacity: 0.5;">OWNER</span></div>
             </div>
             
             <div class="sidebar-nav">
@@ -732,6 +732,9 @@
                     <div class="nav-label">Main Operations</div>
                     <div class="nav-item active" onclick="switchView('overview')">
                         <i data-lucide="layout-dashboard" size="18"></i> Overview
+                    </div>
+                    <div class="nav-item" onclick="switchView('system-admins')">
+                        <i data-lucide="shield" size="18"></i> System Admins
                     </div>
                     <div class="nav-item" onclick="switchView('devices')">
                         <i data-lucide="monitor" size="18"></i> All Devices
@@ -806,7 +809,7 @@
             <header class="top-bar">
                 <div class="search-box">
                     <i data-lucide="search" size="16" style="color: var(--zinc-400);"></i>
-                    <input type="text" placeholder="Search devices, users, or IPs..." id="globalSearch">
+                    <input type="text" placeholder="Search devices, users, admins, or IPs..." id="globalSearch">
                 </div>
                 
                 <div style="display: flex; align-items: center; gap: 20px;">
@@ -819,7 +822,7 @@
                 </div>
             </header>
 
-            <!-- All view containers will be populated by admin-script.js -->
+            <!-- All view containers will be populated by owner-script.js -->
             <div id="dynamicViews"></div>
         </main>
     </div>
@@ -853,9 +856,17 @@
         </div>
     </div>
 
+    <div class="modal-overlay" id="adminDetailsModal">
+        <div class="modal">
+            <h2>System Admin Details</h2>
+            <div id="adminDetailsContent"></div>
+            <button type="button" class="btn btn-ghost" onclick="closeAdminDetails()" style="width: 100%; margin-top: 20px;">Close</button>
+        </div>
+    </div>
+
     <div id="toastContainer"></div>
 
     <!-- Load the JavaScript file -->
-    <script src="admin-script.js"></script>
+    <script src="owner-script.js"></script>
 </body>
 </html>
