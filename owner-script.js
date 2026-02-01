@@ -972,37 +972,41 @@ async function saveSettings(event) {
 async function createSystemAdmin(event) {
     event.preventDefault();
     
-    // 1. Grab all three values now
-    const groupName = document.getElementById('newAdminGroupName').value.trim();
+    // Get values from inputs
+    // Note: Ensure you have an input with id="newAdminGroupName" in your generateSystemAdminsHTML
+    const groupName = document.getElementById('newAdminGroupName') ? document.getElementById('newAdminGroupName').value.trim() : "";
     const name = document.getElementById('newAdminName').value.trim();
     const email = document.getElementById('newAdminEmail').value.trim();
 
-    // 2. Validate Group Name (since server requires it)
+    // The server WILL reject the request if groupName is empty
     if (!groupName) {
         showToast('Error', 'Group Name is required', 'error');
         return;
     }
 
     try {
-        // 3. Include groupName in the API body
         const data = await apiCall('/api/admin/system-admins/create', 'POST', { 
             groupName, 
             name, 
             email 
         });
         
-        showToast('Success', 'Registration code generated successfully', 'success');
-        logTerminal(`System admin registration code created for group: ${groupName}`, 'info');
+        showToast('Success', 'Registration code generated', 'success');
+        logTerminal(`Registration code created for group: ${groupName}`, 'info');
         
+        // Reset the form
         document.getElementById('createAdminForm').reset();
         
-        // Updated alert to show more details
-        alert(`Registration Code Generated!\n\nGroup: ${groupName}\nCode: ${data.registrationCode}\n\nShare this code to complete registration.`);
+        // Show the code to the owner immediately
+        alert(`CODE GENERATED\n\nGroup: ${groupName}\nCode: ${data.registrationCode}\n\nExpires: ${new Date(data.expiresAt).toLocaleString()}`);
         
+        // Refresh the lists to show the new code in the side panel
         await loadSystemAdmins();
         await loadStats();
     } catch (error) {
+        console.error('Create admin error:', error);
         showToast('Error', error.message, 'error');
+        logTerminal(`Admin creation failed: ${error.message}`, 'error');
     }
 }
 
