@@ -1,35 +1,37 @@
-// BrowserBricker Admin Panel - Enhanced JavaScript
-// Features: Geofencing, Live Location Tracking, Auto-Refresh (5s)
+// BrowserBricker Owner Panel - Complete Enhanced JavaScript
+// Version: 4.2.0 - Hierarchical Edition
+// Features: System Admins, Registration Codes, Geofencing, Live Tracking, Bulk Operations
 
 lucide.createIcons();
 
 const API_URL = 'https://browserbricker.onrender.com';
-let adminApiKey = null;
+let ownerApiKey = null;
 let refreshInterval = null;
 let locationRefreshInterval = null;
 let sessionStartTime = Date.now();
 let activityChart = null;
+let searchTimeout = null;
 
 // ========== INITIALIZATION ==========
 window.onload = function() {
-    const storedKey = sessionStorage.getItem('adminKey');
+    const storedKey = sessionStorage.getItem('ownerKey');
     if (storedKey) {
-        adminApiKey = storedKey;
+        ownerApiKey = storedKey;
         fetch(`${API_URL}/api/admin/stats`, {
             headers: { 'Authorization': `Bearer ${storedKey}` }
         }).then(res => {
             if (res.ok) {
                 revealDashboard();
             } else {
-                sessionStorage.removeItem('adminKey');
+                sessionStorage.removeItem('ownerKey');
             }
         }).catch(() => {
-            sessionStorage.removeItem('adminKey');
+            sessionStorage.removeItem('ownerKey');
         });
     }
     
-    // Initialize views
     initializeAllViews();
+    setupSearchHandler();
 };
 
 // ========== AUTH FUNCTIONS ==========
@@ -75,14 +77,14 @@ async function handleGenerate(event) {
             btnText.textContent = 'Key Generated!';
             btnText.style.display = 'inline';
             spinner.style.display = 'none';
-            showToast('Success', 'Admin key generated successfully!', 'success');
+            showToast('Success', 'Owner key generated successfully!', 'success');
             
             setTimeout(() => {
                 switchAuthTab('login');
-                document.getElementById('adminKeyInput').value = data.adminKey;
-                document.getElementById('adminKeyInput').type = 'text';
+                document.getElementById('ownerKeyInput').value = data.adminKey;
+                document.getElementById('ownerKeyInput').type = 'text';
                 setTimeout(() => {
-                    document.getElementById('adminKeyInput').type = 'password';
+                    document.getElementById('ownerKeyInput').type = 'password';
                 }, 3000);
             }, 800);
         } else {
@@ -97,7 +99,7 @@ async function handleGenerate(event) {
         });
     } finally {
         btn.disabled = false;
-        btnText.textContent = 'Generate Admin Key';
+        btnText.textContent = 'Generate Owner Key';
         btnText.style.display = 'inline';
         spinner.style.display = 'none';
     }
@@ -105,13 +107,13 @@ async function handleGenerate(event) {
 
 async function handleAuth(event) {
     event.preventDefault();
-    const key = document.getElementById('adminKeyInput').value.trim();
+    const key = document.getElementById('ownerKeyInput').value.trim();
     const btn = document.getElementById('authBtn');
     const btnText = document.getElementById('authBtnText');
     const spinner = document.getElementById('authSpinner');
     
     if (!key || key.length !== 64) {
-        showAuthError('Admin key must be exactly 64 characters');
+        showAuthError('Owner key must be exactly 64 characters');
         return;
     }
     
@@ -125,8 +127,8 @@ async function handleAuth(event) {
         });
         
         if (response.ok) {
-            adminApiKey = key;
-            sessionStorage.setItem('adminKey', key);
+            ownerApiKey = key;
+            sessionStorage.setItem('ownerKey', key);
             btnText.textContent = 'Access Granted!';
             btnText.style.display = 'inline';
             spinner.style.display = 'none';
@@ -135,7 +137,7 @@ async function handleAuth(event) {
             throw new Error('Unauthorized');
         }
     } catch (err) {
-        showAuthError('Invalid admin API key. Access denied.');
+        showAuthError('Invalid owner API key. Access denied.');
         gsap.fromTo(".auth-card", { x: -10 }, { 
             x: 10, repeat: 5, yoyo: true, duration: 0.05, 
             onComplete: () => gsap.set('.auth-card', { x: 0 })
@@ -162,14 +164,14 @@ function revealDashboard() {
         document.getElementById('authOverlay').style.display = 'none';
         document.getElementById('adminMain').style.display = 'flex';
         initDashboard();
-        showToast("Access Granted", "Welcome to BrowserBricker Ultimate Admin", "success");
-        logTerminal("Administrator authenticated successfully", "success");
+        showToast("Access Granted", "Welcome to BrowserBricker Ultimate Owner Panel", "success");
+        logTerminal("Owner authenticated successfully", "success");
     }});
 }
 
 function logout() {
     if (!confirm('Are you sure you want to sign out?')) return;
-    sessionStorage.removeItem('adminKey');
+    sessionStorage.removeItem('ownerKey');
     clearInterval(refreshInterval);
     clearInterval(locationRefreshInterval);
     setTimeout(() => location.reload(), 300);
@@ -178,27 +180,26 @@ function logout() {
 // ========== DASHBOARD INIT ==========
 async function initDashboard() {
     await loadStats();
+    await loadSystemAdmins();
     await loadDevices();
     await loadUsers();
     await loadActivity();
     initChart();
     updateSessionTimer();
     
-    // Main refresh interval: 5 seconds for stats and online status
     refreshInterval = setInterval(async () => {
         await loadStats();
         updateSessionTimer();
         
-        // Refresh active view data if needed
         const activeView = document.querySelector('.view-container.active');
         if (activeView) {
             const viewId = activeView.id.replace('view-', '');
             if (viewId === 'devices') await loadDevices();
             if (viewId === 'locations') await loadLocations();
+            if (viewId === 'system-admins') await loadSystemAdmins();
         }
     }, 5000);
     
-    // Location tracking specific refresh: every 5 seconds when on locations view
     locationRefreshInterval = setInterval(async () => {
         const locationsView = document.getElementById('view-locations');
         if (locationsView && locationsView.classList.contains('active')) {
@@ -221,7 +222,7 @@ async function apiCall(endpoint, method = 'GET', body = null) {
         method,
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${adminApiKey}`
+            'Authorization': `Bearer ${ownerApiKey}`
         }
     };
 
@@ -237,6 +238,36 @@ async function apiCall(endpoint, method = 'GET', body = null) {
     return data;
 }
 
+// ========== SEARCH HANDLER ==========
+function setupSearchHandler() {
+    const searchInput = document.getElementById('globalSearch');
+    if (!searchInput) return;
+    
+    searchInput.addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        const query = e.target.value.toLowerCase().trim();
+        
+        if (!query) {
+            clearSearchHighlights();
+            return;
+        }
+        
+        searchTimeout = setTimeout(() => {
+            performSearch(query);
+        }, 300);
+    });
+}
+
+function performSearch(query) {
+    console.log('Searching for:', query);
+    // Implement search logic across all data
+    showToast('Search', `Searching for: ${query}`, 'info');
+}
+
+function clearSearchHighlights() {
+    // Clear any search highlights
+}
+
 // ========== LOAD DATA FUNCTIONS ==========
 async function loadStats() {
     try {
@@ -250,6 +281,11 @@ async function loadStats() {
         document.getElementById('geofencedDevices').textContent = data.devices?.geofenced || 0;
         document.getElementById('breachCount').textContent = data.statistics?.breachAttempts || 0;
         document.getElementById('blockedIPCount').textContent = data.security?.blockedIPs || 0;
+        
+        if (data.systemAdmins) {
+            document.getElementById('totalSystemAdmins').textContent = data.systemAdmins.total || 0;
+            document.getElementById('activeSystemAdmins').textContent = data.systemAdmins.active || 0;
+        }
 
         if (data.system) {
             const memUsed = data.system.memory?.used || 0;
@@ -276,13 +312,103 @@ async function loadStats() {
     }
 }
 
+async function loadSystemAdmins() {
+    try {
+        const data = await apiCall('/api/admin/system-admins');
+        const tbody = document.querySelector('#systemAdminsTable tbody');
+        const codesList = document.getElementById('registrationCodesList');
+        
+        if (!data.systemAdmins || data.systemAdmins.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 40px; color: var(--zinc-400);">No system administrators found</td></tr>';
+        } else {
+            tbody.innerHTML = data.systemAdmins.map(admin => {
+                const statusBadge = admin.active ? 
+                    '<span class="badge badge-safe">Active</span>' :
+                    '<span class="badge badge-warn">Inactive</span>';
+                
+                return `
+                    <tr>
+                        <td style="font-family: var(--mono); font-size: 0.8rem;">${admin.id}</td>
+                        <td style="font-weight: 600;">${escapeHtml(admin.name || 'N/A')}</td>
+                        <td style="font-family: var(--mono); font-size: 0.75rem;">${escapeHtml(admin.email || 'N/A')}</td>
+                        <td>${new Date(admin.createdAt).toLocaleDateString()}</td>
+                        <td>${formatTime(admin.lastActive)}</td>
+                        <td><span class="badge badge-info">${admin.deviceCount || 0}</span></td>
+                        <td><span class="badge badge-info">${admin.userCount || 0}</span></td>
+                        <td>${statusBadge}</td>
+                        <td>
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <button class="btn btn-ghost" style="padding: 6px 12px; font-size: 0.75rem;" onclick="showAdminDetails('${admin.id}')">
+                                    <i data-lucide="info" size="12"></i>
+                                </button>
+                                ${admin.active ? 
+                                    `<button class="btn btn-warn" style="padding: 6px 12px; font-size: 0.75rem;" onclick="deactivateSystemAdmin('${admin.id}', '${escapeHtml(admin.name)}')"><i data-lucide="pause" size="12"></i></button>` :
+                                    `<button class="btn btn-success" style="padding: 6px 12px; font-size: 0.75rem;" onclick="activateSystemAdmin('${admin.id}', '${escapeHtml(admin.name)}')"><i data-lucide="play" size="12"></i></button>`
+                                }
+                                <button class="btn btn-ghost" style="padding: 6px 12px; font-size: 0.75rem; color: var(--status-danger);" onclick="deleteSystemAdmin('${admin.id}', '${escapeHtml(admin.name)}')">
+                                    <i data-lucide="trash-2" size="12"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        if (data.registrationCodes && codesList) {
+            if (data.registrationCodes.length === 0) {
+                codesList.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--zinc-400);">No registration codes generated</div>';
+            } else {
+                codesList.innerHTML = data.registrationCodes.map(code => {
+                    const isExpired = Date.now() > code.expiresAt;
+                    const statusBadge = code.used ? 
+                        '<span class="badge badge-safe">Used</span>' :
+                        isExpired ?
+                        '<span class="badge badge-danger">Expired</span>' :
+                        '<span class="badge badge-info">Active</span>';
+                    
+                    return `
+                        <div style="background: var(--zinc-50); padding: 16px; border-radius: 12px; margin-bottom: 12px; border-left: 4px solid ${code.used ? 'var(--status-safe)' : isExpired ? 'var(--status-danger)' : 'var(--status-info)'};">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                                <div>
+                                    <div style="font-family: var(--mono); font-weight: 700; font-size: 1.1rem; letter-spacing: 2px; margin-bottom: 4px;">${code.code}</div>
+                                    <div style="font-size: 0.85rem; color: var(--zinc-600);">
+                                        Created: ${new Date(code.createdAt).toLocaleString()}
+                                    </div>
+                                    <div style="font-size: 0.85rem; color: var(--zinc-600);">
+                                        Expires: ${new Date(code.expiresAt).toLocaleString()}
+                                    </div>
+                                    ${code.used ? `<div style="font-size: 0.85rem; color: var(--zinc-600);">Used: ${new Date(code.usedAt).toLocaleString()}</div>` : ''}
+                                    ${code.systemAdminId ? `<div style="font-size: 0.85rem; color: var(--zinc-600);">Admin ID: ${code.systemAdminId}</div>` : ''}
+                                </div>
+                                <div style="display: flex; gap: 8px;">
+                                    ${statusBadge}
+                                    ${!code.used && !isExpired ? 
+                                        `<button class="btn btn-ghost" style="padding: 4px 8px; font-size: 0.7rem;" onclick="copyToClipboard('${code.code}')"><i data-lucide="copy" size="10"></i></button>` : ''
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+        
+        lucide.createIcons();
+    } catch (error) {
+        console.error('System admins error:', error);
+        showToast('Error', 'Failed to load system administrators', 'error');
+    }
+}
+
+
 async function loadDevices() {
     try {
         const data = await apiCall('/api/admin/devices');
         const tbody = document.querySelector('#devicesTable tbody');
         
         if (!data.devices || data.devices.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: var(--zinc-400);">No devices found</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: var(--zinc-400);">No devices found</td></tr>';
             updateQuarantineView([]);
             return;
         }
@@ -303,11 +429,16 @@ async function loadDevices() {
             if (!securityBadges) securityBadges = '<span class="badge badge-safe">Secure</span>';
             
             const lastSeen = device.lastHeartbeat ? formatTime(device.lastHeartbeat) : 'Never';
+            
+            const ownerInfo = device.systemAdminId ? 
+                `<span class="badge badge-info" style="font-size: 0.65rem;">SysAdmin</span>` :
+                `<span class="badge badge-safe" style="font-size: 0.65rem;">User</span>`;
 
             return `
                 <tr>
                     <td style="font-weight: 600;">${escapeHtml(device.deviceName)}</td>
                     <td style="font-family: var(--mono); font-size: 0.75rem; color: var(--zinc-500);">${device.deviceId.substring(0, 16)}...</td>
+                    <td>${ownerInfo}</td>
                     <td>${statusBadge}</td>
                     <td>${lockBadge}</td>
                     <td>${securityBadges}</td>
@@ -376,7 +507,7 @@ async function loadUsers() {
         const tbody = document.querySelector('#usersTable tbody');
         
         if (!data.users || data.users.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 40px; color: var(--zinc-400);">No master keys found</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 40px; color: var(--zinc-400);">No master keys found</td></tr>';
             return;
         }
 
@@ -384,10 +515,15 @@ async function loadUsers() {
             const statusBadge = user.revoked ?
                 '<span class="badge badge-danger">Revoked</span>' :
                 '<span class="badge badge-safe">Active</span>';
+            
+            const ownerBadge = user.systemAdminId ?
+                `<span class="badge badge-info" title="Managed by System Admin">SysAdmin</span>` :
+                `<span class="badge badge-safe" title="Independent User">User</span>`;
 
             return `
                 <tr>
                     <td style="font-family: var(--mono); font-size: 0.8rem;">${user.keyHash}</td>
+                    <td>${ownerBadge}</td>
                     <td>${new Date(user.created).toLocaleDateString()}</td>
                     <td>${formatTime(user.lastUsed)}</td>
                     <td><span class="badge badge-info">${user.uses || 0}</span></td>
@@ -630,10 +766,8 @@ async function createNewGeofence(event) {
         showToast('Success', 'Geofence created successfully', 'success');
         logTerminal(`Geofence created for device ${deviceId.substring(0, 8)}...`, 'info');
         
-        // Clear form
         document.getElementById('createGeofenceForm').reset();
         
-        // Reload geofences
         await loadGeofences();
         await loadStats();
     } catch (error) {
@@ -670,7 +804,7 @@ async function loadLocations() {
 
         list.innerHTML = data.locations.map(loc => {
             const timeDiff = Date.now() - new Date(loc.timestamp).getTime();
-            const isRecent = timeDiff < 10000; // Less than 10 seconds = live
+            const isRecent = timeDiff < 10000;
             
             return `
                 <div class="location-feed-item" style="border-left-color: ${isRecent ? 'var(--status-safe)' : 'var(--status-info)'};">
@@ -830,6 +964,133 @@ async function saveSettings(event) {
     }
 }
 
+// ========== SYSTEM ADMIN OPERATIONS ==========
+async function createSystemAdmin(event) {
+    event.preventDefault();
+    
+    const name = document.getElementById('newAdminName').value.trim();
+    const email = document.getElementById('newAdminEmail').value.trim();
+
+    if (!name) {
+        showToast('Error', 'Please enter an administrator name', 'error');
+        return;
+    }
+
+    try {
+        const data = await apiCall('/api/admin/system-admins/create', 'POST', { name, email });
+        
+        showToast('Success', 'Registration code generated successfully', 'success');
+        logTerminal(`System admin registration code created for ${name}`, 'info');
+        
+        document.getElementById('createAdminForm').reset();
+        
+        alert(`Registration Code Generated!\n\nCode: ${data.code}\n\nThis code expires in 7 days. Share it with ${name} to complete registration.`);
+        
+        await loadSystemAdmins();
+        await loadStats();
+    } catch (error) {
+        showToast('Error', error.message, 'error');
+    }
+}
+
+async function deactivateSystemAdmin(adminId, adminName) {
+    if (!confirm(`Deactivate system administrator "${adminName}"?\n\nThis will prevent them from accessing the system.`)) return;
+
+    try {
+        await apiCall(`/api/admin/system-admins/${adminId}/deactivate`, 'POST');
+        
+        showToast('Success', 'System administrator deactivated', 'success');
+        logTerminal(`System admin ${adminName} deactivated`, 'warn');
+        await loadSystemAdmins();
+        await loadStats();
+    } catch (error) {
+        showToast('Error', error.message, 'error');
+    }
+}
+
+async function activateSystemAdmin(adminId, adminName) {
+    if (!confirm(`Activate system administrator "${adminName}"?`)) return;
+
+    try {
+        await apiCall(`/api/admin/system-admins/${adminId}/activate`, 'POST');
+        
+        showToast('Success', 'System administrator activated', 'success');
+        logTerminal(`System admin ${adminName} activated`, 'info');
+        await loadSystemAdmins();
+        await loadStats();
+    } catch (error) {
+        showToast('Error', error.message, 'error');
+    }
+}
+
+async function deleteSystemAdmin(adminId, adminName) {
+    if (!confirm(`DELETE system administrator "${adminName}"?\n\nThis will also delete all their users and devices. This action cannot be undone.`)) return;
+
+    const confirmation = prompt(`Type "${adminName}" to confirm deletion:`);
+    if (confirmation !== adminName) {
+        showToast('Error', 'Deletion cancelled - name did not match', 'error');
+        return;
+    }
+
+    try {
+        await apiCall(`/api/admin/system-admins/${adminId}`, 'DELETE');
+        
+        showToast('Success', 'System administrator deleted', 'success');
+        logTerminal(`System admin ${adminName} and all associated data deleted`, 'error');
+        await loadSystemAdmins();
+        await loadStats();
+    } catch (error) {
+        showToast('Error', error.message, 'error');
+    }
+}
+
+async function showAdminDetails(adminId) {
+    try {
+        const data = await apiCall('/api/admin/system-admins');
+        const admin = data.systemAdmins.find(a => a.id === adminId);
+        
+        if (!admin) {
+            showToast('Error', 'System administrator not found', 'error');
+            return;
+        }
+
+        let html = `
+            <div style="margin-bottom: 20px;">
+                <h3 style="font-weight: 700; margin-bottom: 4px;">${escapeHtml(admin.name)}</h3>
+                <div style="font-family: var(--mono); font-size: 0.75rem; color: var(--zinc-500);">${admin.id}</div>
+            </div>
+            
+            <div style="background: var(--zinc-50); padding: 16px; border-radius: 12px; margin-bottom: 16px;">
+                <div style="font-weight: 700; margin-bottom: 12px;">Information</div>
+                <div style="font-size: 0.85rem; line-height: 1.8;">
+                    Email: ${escapeHtml(admin.email || 'N/A')}<br>
+                    Status: ${admin.active ? '✅ Active' : '❌ Inactive'}<br>
+                    Created: ${new Date(admin.createdAt).toLocaleString()}<br>
+                    Last Active: ${formatTime(admin.lastActive)}<br>
+                </div>
+            </div>
+            
+            <div style="background: var(--zinc-50); padding: 16px; border-radius: 12px; margin-bottom: 16px;">
+                <div style="font-weight: 700; margin-bottom: 12px;">Statistics</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 0.85rem;">
+                    <div>Total Devices: ${admin.deviceCount || 0}</div>
+                    <div>Total Users: ${admin.userCount || 0}</div>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('adminDetailsContent').innerHTML = html;
+        document.getElementById('adminDetailsModal').classList.add('active');
+    } catch (error) {
+        showToast('Error', error.message, 'error');
+    }
+}
+
+function closeAdminDetails() {
+    document.getElementById('adminDetailsModal').classList.remove('active');
+}
+
+
 // ========== DEVICE OPERATIONS ==========
 async function toggleDevice(deviceId, arm) {
     try {
@@ -917,6 +1178,14 @@ async function showDeviceDetails(deviceId) {
             </div>
             
             <div style="background: var(--zinc-50); padding: 16px; border-radius: 12px; margin-bottom: 16px;">
+                <div style="font-weight: 700; margin-bottom: 12px;">Ownership</div>
+                <div style="font-size: 0.85rem; line-height: 1.8;">
+                    ${device.systemAdminId ? `System Admin ID: ${device.systemAdminId}<br>` : 'Owner Type: Independent User<br>'}
+                    Master Key Hash: ${device.masterKeyHash.substring(0, 16)}...
+                </div>
+            </div>
+            
+            <div style="background: var(--zinc-50); padding: 16px; border-radius: 12px; margin-bottom: 16px;">
                 <div style="font-weight: 700; margin-bottom: 12px;">Metadata</div>
                 <div style="font-size: 0.85rem; line-height: 1.8;">
                     ${device.metadata?.browser ? `Browser: ${device.metadata.browser}<br>` : ''}
@@ -954,7 +1223,7 @@ function closeDeviceDetails() {
 
 // ========== BULK OPERATIONS ==========
 async function armAllDevices() {
-    const reason = document.getElementById('armAllReason')?.value || 'Admin bulk lock';
+    const reason = document.getElementById('armAllReason')?.value || 'Owner bulk lock';
     
     if (!confirm(`Lock ALL devices in the system?\n\nReason: ${reason}\n\nThis will immediately activate the lockdown screen on all devices.`)) return;
 
@@ -972,7 +1241,7 @@ async function armAllDevices() {
 }
 
 async function disarmAllDevices() {
-    const reason = document.getElementById('disarmAllReason')?.value || 'Admin bulk unlock';
+    const reason = document.getElementById('disarmAllReason')?.value || 'Owner bulk unlock';
     
     if (!confirm(`Unlock ALL devices in the system?\n\nReason: ${reason}\n\nThis will release all active locks.`)) return;
 
@@ -992,7 +1261,7 @@ async function disarmAllDevices() {
 // ========== QUARANTINE OPERATIONS ==========
 async function quarantineDevice() {
     const deviceId = document.getElementById('quarantineDeviceId').value.trim();
-    const reason = document.getElementById('quarantineReason').value.trim() || 'Admin quarantine';
+    const reason = document.getElementById('quarantineReason').value.trim() || 'Owner quarantine';
 
     if (!deviceId) {
         showToast('Error', 'Please enter a device ID', 'error');
@@ -1101,7 +1370,7 @@ async function clearActivityLog() {
     try {
         await apiCall('/api/admin/activity/clear', 'DELETE');
         showToast('Success', 'Activity log cleared', 'success');
-        logTerminal('Activity log cleared by admin', 'warn');
+        logTerminal('Activity log cleared by owner', 'warn');
         await loadActivity();
     } catch (error) {
         showToast('Error', error.message, 'error');
@@ -1125,6 +1394,7 @@ function switchView(viewId) {
     logTerminal(`Switched to ${viewId} view`, 'info');
     
     // Load data for specific views
+    if (viewId === 'system-admins') loadSystemAdmins();
     if (viewId === 'devices') loadDevices();
     if (viewId === 'users') loadUsers();
     if (viewId === 'activity') loadActivity();
@@ -1144,6 +1414,7 @@ function switchView(viewId) {
 async function refreshAllData() {
     showToast('Refreshing', 'Updating all data...', 'info');
     await loadStats();
+    await loadSystemAdmins();
     await loadDevices();
     await loadUsers();
     await loadActivity();
@@ -1182,6 +1453,8 @@ function showToast(title, msg, type = 'success') {
 
 function logTerminal(msg, type = 'info') {
     const term = document.getElementById('terminalLogs');
+    if (!term) return;
+    
     const line = document.createElement('div');
     line.className = `log-line log-${type}`;
     const ts = new Date().toLocaleTimeString('en-GB', { hour12: false });
@@ -1191,7 +1464,10 @@ function logTerminal(msg, type = 'info') {
 }
 
 function clearTerminal() {
-    document.getElementById('terminalLogs').innerHTML = '<div class="log-line log-info">Logs cleared.</div>';
+    const term = document.getElementById('terminalLogs');
+    if (term) {
+        term.innerHTML = '<div class="log-line log-info">Logs cleared.</div>';
+    }
 }
 
 function escapeHtml(text) {
@@ -1206,6 +1482,8 @@ function escapeHtml(text) {
 }
 
 function formatTime(timestamp) {
+    if (!timestamp) return 'Never';
+    
     const now = Date.now();
     const diff = now - new Date(timestamp).getTime();
     const seconds = Math.floor(diff / 1000);
@@ -1218,6 +1496,8 @@ function formatTime(timestamp) {
 }
 
 function formatUptime(seconds) {
+    if (!seconds) return '0m';
+    
     const days = Math.floor(seconds / 86400);
     const hours = Math.floor((seconds % 86400) / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
@@ -1225,6 +1505,14 @@ function formatUptime(seconds) {
     if (days > 0) return `${days}d ${hours}h`;
     if (hours > 0) return `${hours}h ${mins}m`;
     return `${mins}m`;
+}
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        showToast('Copied', 'Registration code copied to clipboard', 'success');
+    }).catch(() => {
+        showToast('Error', 'Failed to copy to clipboard', 'error');
+    });
 }
 
 function initChart() {
@@ -1260,528 +1548,689 @@ function initChart() {
 // ========== INITIALIZE ALL VIEWS ==========
 function initializeAllViews() {
     const container = document.getElementById('dynamicViews');
+    if (!container) return;
     
-    container.innerHTML = `
+    container.innerHTML = generateAllViewsHTML();
+    lucide.createIcons();
+}
+
+function generateAllViewsHTML() {
+    return `
         <!-- VIEW: OVERVIEW -->
         <div id="view-overview" class="view-container active">
-            <div class="session-banner">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <i data-lucide="user-check" size="20"></i>
-                    <div>
-                        <div style="font-weight: 700; font-size: 0.9rem;">Administrator Session Active</div>
-                        <div style="opacity: 0.9; font-size: 0.75rem;" id="sessionInfo">Full system access granted</div>
-                    </div>
-                </div>
-                <button class="btn" style="background: rgba(255,255,255,0.2); color: white; font-size: 0.75rem; padding: 8px 14px;" onclick="refreshAllData()">
-                    <i data-lucide="refresh-cw" size="14"></i> Refresh
-                </button>
-            </div>
+            ${generateOverviewHTML()}
+        </div>
 
-            <div class="quick-actions">
-                <div class="quick-action-btn" onclick="armAllDevices()">
-                    <div class="quick-action-icon">
-                        <i data-lucide="lock" size="24" style="color: var(--status-danger);"></i>
-                    </div>
-                    <div style="font-weight: 700; font-size: 0.85rem;">Lock All Devices</div>
-                    <div style="font-size: 0.7rem; color: var(--zinc-500); margin-top: 4px;">Emergency lockdown</div>
-                </div>
-                
-                <div class="quick-action-btn" onclick="disarmAllDevices()">
-                    <div class="quick-action-icon">
-                        <i data-lucide="unlock" size="24" style="color: var(--status-safe);"></i>
-                    </div>
-                    <div style="font-weight: 700; font-size: 0.85rem;">Unlock All</div>
-                    <div style="font-size: 0.7rem; color: var(--zinc-500); margin-top: 4px;">Release all locks</div>
-                </div>
-                
-                <div class="quick-action-btn" onclick="switchView('breaches')">
-                    <div class="quick-action-icon">
-                        <i data-lucide="shield-alert" size="24" style="color: var(--status-warn);"></i>
-                    </div>
-                    <div style="font-weight: 700; font-size: 0.85rem;">Breach Monitor</div>
-                    <div style="font-size: 0.7rem; color: var(--zinc-500); margin-top: 4px;">Security events</div>
-                </div>
-                
-                <div class="quick-action-btn" onclick="switchView('locations')">
-                    <div class="quick-action-icon">
-                        <i data-lucide="map" size="24" style="color: var(--status-info);"></i>
-                    </div>
-                    <div style="font-weight: 700; font-size: 0.85rem;">Live Locations</div>
-                    <div style="font-size: 0.7rem; color: var(--zinc-500); margin-top: 4px;">Device tracking</div>
-                </div>
-            </div>
-
-            <div class="grid-stats">
-                <div class="stat-card">
-                    <h4>Total Devices</h4>
-                    <div class="stat-value" id="totalDevices">--</div>
-                    <div class="stat-trend trend-up">
-                        <i data-lucide="arrow-up-right" size="12"></i> System Active
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <h4>Master Keys</h4>
-                    <div class="stat-value" id="totalUsers">--</div>
-                    <div class="stat-trend trend-up">
-                        <i data-lucide="users" size="12"></i> Registered Users
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <h4>Armed Devices</h4>
-                    <div class="stat-value" style="color: var(--status-danger)" id="armedDevices">--</div>
-                    <div class="stat-trend">
-                        <i data-lucide="lock" size="12"></i> Currently Locked
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <h4>Online Now</h4>
-                    <div class="stat-value" style="color: var(--status-safe)" id="onlineDevices">--</div>
-                    <div class="stat-trend trend-up">
-                        <i data-lucide="wifi" size="12"></i> Active Connections
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <h4>Quarantined</h4>
-                    <div class="stat-value" style="color: var(--status-warn)" id="quarantinedDevices">--</div>
-                    <div class="stat-trend">
-                        <i data-lucide="shield-alert" size="12"></i> Security Hold
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <h4>Geofenced</h4>
-                    <div class="stat-value" style="color: var(--status-info)" id="geofencedDevices">--</div>
-                    <div class="stat-trend">
-                        <i data-lucide="map-pin" size="12"></i> Location Limited
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <h4>Breach Attempts</h4>
-                    <div class="stat-value" style="color: var(--status-danger)" id="breachCount">--</div>
-                    <div class="stat-trend trend-down">
-                        <i data-lucide="shield-off" size="12"></i> Security Events
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <h4>Blocked IPs</h4>
-                    <div class="stat-value" id="blockedIPCount">--</div>
-                    <div class="stat-trend">
-                        <i data-lucide="ban" size="12"></i> IP Protection
-                    </div>
-                </div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
-                <div class="card-main">
-                    <h3 class="card-title"><i data-lucide="bar-chart-3"></i> System Activity</h3>
-                    <div class="chart-container">
-                        <canvas id="activityChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="card-main">
-                    <h3 class="card-title"><i data-lucide="cpu"></i> System Health</h3>
-                    <div id="systemHealth">
-                        <div style="margin-bottom: 20px;">
-                            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 8px;">
-                                <span>Requests</span><span id="reqVal">--</span>
-                            </div>
-                            <div style="height: 6px; background: var(--zinc-100); border-radius: 100px; overflow: hidden;">
-                                <div id="reqBar" style="width: 0%; height: 100%; background: var(--brand-primary); transition: 0.5s;"></div>
-                            </div>
-                        </div>
-                        <div style="margin-bottom: 20px;">
-                            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 8px;">
-                                <span>Memory</span><span id="memVal">--</span>
-                            </div>
-                            <div style="height: 6px; background: var(--zinc-100); border-radius: 100px; overflow: hidden;">
-                                <div id="memBar" style="width: 0%; height: 100%; background: var(--brand-primary); transition: 0.5s;"></div>
-                            </div>
-                        </div>
-                        <div>
-                            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 8px;">
-                                <span>Uptime</span><span id="uptimeVal">--</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <!-- VIEW: SYSTEM ADMINS -->
+        <div id="view-system-admins" class="view-container">
+            ${generateSystemAdminsHTML()}
         </div>
 
         <!-- VIEW: ALL DEVICES -->
         <div id="view-devices" class="view-container">
-            <div class="card-main">
-                <div class="card-header">
-                    <h3 class="card-title"><i data-lucide="monitor"></i> All Devices</h3>
-                    <button class="btn btn-ghost" onclick="loadDevices()">
-                        <i data-lucide="refresh-cw" size="16"></i> Refresh
-                    </button>
-                </div>
-                <div class="table-wrapper">
-                    <table id="devicesTable">
-                        <thead>
-                            <tr>
-                                <th>Device Name</th>
-                                <th>Device ID</th>
-                                <th>Status</th>
-                                <th>Lock State</th>
-                                <th>Security</th>
-                                <th>Last Seen</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr><td colspan="7" style="text-align: center; padding: 40px;">Loading devices...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            ${generateDevicesHTML()}
         </div>
 
         <!-- VIEW: USERS -->
         <div id="view-users" class="view-container">
-            <div class="card-main">
-                <div class="card-header">
-                    <h3 class="card-title"><i data-lucide="users"></i> Master Keys</h3>
-                    <button class="btn btn-ghost" onclick="loadUsers()">
-                        <i data-lucide="refresh-cw" size="16"></i> Refresh
-                    </button>
-                </div>
-                <div class="table-wrapper">
-                    <table id="usersTable">
-                        <thead>
-                            <tr>
-                                <th>Key Hash</th>
-                                <th>Created</th>
-                                <th>Last Used</th>
-                                <th>Total Uses</th>
-                                <th>Devices</th>
-                                <th>Armed</th>
-                                <th>Online</th>
-                                <th>Quarantined</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr><td colspan="10" style="text-align: center; padding: 40px;">Loading users...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            ${generateUsersHTML()}
         </div>
 
         <!-- VIEW: ACTIVITY -->
         <div id="view-activity" class="view-container">
-            <div class="card-main">
-                <div class="card-header">
-                    <h3 class="card-title"><i data-lucide="activity"></i> Activity Log</h3>
-                    <div style="display: flex; gap: 10px;">
-                        <select id="activityFilter" class="input-control" style="width: 150px; padding: 8px 12px; font-size: 0.8rem;" onchange="loadActivity()">
-                            <option value="">All Types</option>
-                            <option value="system">System</option>
-                            <option value="device">Device</option>
-                            <option value="admin">Admin</option>
-                            <option value="security">Security</option>
-                            <option value="scheduler">Scheduler</option>
-                            <option value="automation">Automation</option>
-                        </select>
-                        <button class="btn btn-ghost" onclick="loadActivity()">
-                            <i data-lucide="refresh-cw" size="16"></i>
-                        </button>
-                        <button class="btn btn-danger" onclick="clearActivityLog()">
-                            <i data-lucide="trash-2" size="16"></i> Clear
-                        </button>
-                    </div>
-                </div>
-                <div class="activity-timeline" id="activityTimeline">
-                    <div style="text-align: center; padding: 40px; color: var(--zinc-400);">Loading activity...</div>
-                </div>
-            </div>
+            ${generateActivityHTML()}
         </div>
 
         <!-- VIEW: BULK OPERATIONS -->
         <div id="view-bulk-ops" class="view-container">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
-                <div class="card-main">
-                    <h3 class="card-title" style="color: var(--status-danger);"><i data-lucide="lock"></i> Arm All Devices</h3>
-                    <p style="color: var(--zinc-500); margin-bottom: 20px; line-height: 1.6;">
-                        Lock all devices in the system simultaneously. This is an emergency operation that will activate the lockdown screen on every registered device.
-                    </p>
-                    <div class="field-group">
-                        <label class="field-label">Lock Reason</label>
-                        <input type="text" id="armAllReason" class="input-control" placeholder="e.g., Emergency security lockdown">
-                    </div>
-                    <button class="btn btn-danger" style="width: 100%;" onclick="armAllDevices()">
-                        <i data-lucide="lock" size="16"></i> Execute Emergency Lockdown
-                    </button>
-                </div>
-
-                <div class="card-main">
-                    <h3 class="card-title" style="color: var(--status-safe);"><i data-lucide="unlock"></i> Disarm All Devices</h3>
-                    <p style="color: var(--zinc-500); margin-bottom: 20px; line-height: 1.6;">
-                        Release all device locks simultaneously. This will restore normal functionality to all locked devices in the system.
-                    </p>
-                    <div class="field-group">
-                        <label class="field-label">Unlock Reason</label>
-                        <input type="text" id="disarmAllReason" class="input-control" placeholder="e.g., All clear - normal operations">
-                    </div>
-                    <button class="btn btn-success" style="width: 100%;" onclick="disarmAllDevices()">
-                        <i data-lucide="unlock" size="16"></i> Release All Locks
-                    </button>
-                </div>
-            </div>
+            ${generateBulkOpsHTML()}
         </div>
 
         <!-- VIEW: QUARANTINE -->
         <div id="view-quarantine" class="view-container">
-            <div class="card-main">
-                <div class="card-header">
-                    <h3 class="card-title"><i data-lucide="shield-alert"></i> Quarantined Devices</h3>
-                    <button class="btn btn-ghost" onclick="loadDevices()">
-                        <i data-lucide="refresh-cw" size="16"></i> Refresh
-                    </button>
-                </div>
-                <div id="quarantineList"></div>
-            </div>
-
-            <div class="card-main" style="max-width: 600px;">
-                <h3 class="card-title"><i data-lucide="shield-alert"></i> Quarantine Device</h3>
-                <p style="color: var(--zinc-500); margin-bottom: 20px;">
-                    Place a device in security quarantine. This will lock the device and prevent it from being unlocked until released.
-                </p>
-                <div class="field-group">
-                    <label class="field-label">Device ID</label>
-                    <input type="text" id="quarantineDeviceId" class="input-control" placeholder="Enter device ID">
-                </div>
-                <div class="field-group">
-                    <label class="field-label">Reason</label>
-                    <input type="text" id="quarantineReason" class="input-control" placeholder="e.g., Suspicious activity detected">
-                </div>
-                <button class="btn btn-danger" style="width: 100%;" onclick="quarantineDevice()">
-                    <i data-lucide="shield-alert" size="16"></i> Quarantine Device
-                </button>
-            </div>
+            ${generateQuarantineHTML()}
         </div>
 
         <!-- VIEW: BREACHES -->
         <div id="view-breaches" class="view-container">
-            <div class="card-main">
-                <div class="card-header">
-                    <h3 class="card-title"><i data-lucide="shield-off"></i> Security Breach Detection</h3>
-                    <button class="btn btn-ghost" onclick="loadBreaches()">
-                        <i data-lucide="refresh-cw" size="16"></i> Refresh
-                    </button>
-                </div>
-                <div id="breachesList"></div>
-            </div>
+            ${generateBreachesHTML()}
         </div>
 
         <!-- VIEW: BLOCKED IPS -->
         <div id="view-blocked-ips" class="view-container">
-            <div class="card-main">
-                <div class="card-header">
-                    <h3 class="card-title"><i data-lucide="ban"></i> Blocked IP Addresses</h3>
-                    <button class="btn btn-ghost" onclick="loadBlockedIPs()">
-                        <i data-lucide="refresh-cw" size="16"></i> Refresh
-                    </button>
-                </div>
-                <div id="blockedIPsList"></div>
-            </div>
-
-            <div class="card-main" style="max-width: 600px;">
-                <h3 class="card-title"><i data-lucide="unlock"></i> Unblock IP Address</h3>
-                <div class="field-group">
-                    <label class="field-label">IP Address</label>
-                    <input type="text" id="unblockIPInput" class="input-control" placeholder="Enter IP to unblock">
-                </div>
-                <button class="btn btn-primary" style="width: 100%;" onclick="unblockIP()">
-                    <i data-lucide="unlock" size="16"></i> Unblock IP Address
-                </button>
-            </div>
-
-            <div class="card-main">
-                <h3 class="card-title"><i data-lucide="alert-triangle"></i> Failed Attempts</h3>
-                <div id="failedAttemptsList"></div>
-            </div>
+            ${generateBlockedIPsHTML()}
         </div>
 
         <!-- VIEW: SESSIONS -->
         <div id="view-sessions" class="view-container">
-            <div class="card-main">
-                <div class="card-header">
-                    <h3 class="card-title"><i data-lucide="clock"></i> Active Sessions</h3>
-                    <button class="btn btn-ghost" onclick="loadSessions()">
-                        <i data-lucide="refresh-cw" size="16"></i> Refresh
-                    </button>
-                </div>
-                <div id="sessionsList"></div>
-            </div>
+            ${generateSessionsHTML()}
         </div>
 
         <!-- VIEW: GEOFENCING -->
         <div id="view-geofencing" class="view-container">
-            <div class="geofence-split">
-                <div class="card-main">
-                    <div class="card-header">
-                        <h3 class="card-title"><i data-lucide="map-pin"></i> Active Geofences</h3>
-                        <button class="btn btn-ghost" onclick="loadGeofences()">
-                            <i data-lucide="refresh-cw" size="16"></i> Refresh
-                        </button>
-                    </div>
-                    <div id="geofencesList"></div>
-                </div>
-
-                <div class="card-main">
-                    <h3 class="card-title"><i data-lucide="plus-circle"></i> Create New Geofence</h3>
-                    <p style="color: var(--zinc-500); margin-bottom: 20px; line-height: 1.6;">
-                        Set up a geographic perimeter for a device. The device will be locked when it leaves this area.
-                    </p>
-                    <form id="createGeofenceForm" onsubmit="createNewGeofence(event)">
-                        <div class="field-group">
-                            <label class="field-label">Device ID</label>
-                            <input 
-                                type="text" 
-                                id="geofenceDeviceId" 
-                                class="input-control" 
-                                placeholder="Enter device ID"
-                                required>
-                        </div>
-                        
-                        <div class="field-group">
-                            <label class="field-label">Latitude</label>
-                            <input 
-                                type="number" 
-                                id="geofenceLat" 
-                                class="input-control" 
-                                step="any"
-                                placeholder="e.g., 40.712776"
-                                required>
-                        </div>
-                        
-                        <div class="field-group">
-                            <label class="field-label">Longitude</label>
-                            <input 
-                                type="number" 
-                                id="geofenceLon" 
-                                class="input-control" 
-                                step="any"
-                                placeholder="e.g., -74.005974"
-                                required>
-                        </div>
-                        
-                        <div class="field-group">
-                            <label class="field-label">Radius (meters)</label>
-                            <input 
-                                type="number" 
-                                id="geofenceRadius" 
-                                class="input-control" 
-                                min="10"
-                                max="100000"
-                                placeholder="e.g., 1000"
-                                required>
-                        </div>
-                        
-                        <button type="submit" class="btn btn-primary" style="width: 100%;">
-                            <i data-lucide="map-pin" size="16"></i> Create Geofence
-                        </button>
-                    </form>
-                    
-                    <div style="background: var(--zinc-50); padding: 14px; border-radius: 8px; margin-top: 20px; border-left: 4px solid var(--status-info);">
-                        <p style="font-size: 0.75rem; color: var(--zinc-600); margin: 0; line-height: 1.6;">
-                            <strong>Tip:</strong> Get coordinates from Google Maps by right-clicking a location and selecting the coordinates. Format: Latitude, Longitude.
-                        </p>
-                    </div>
-                </div>
-            </div>
+            ${generateGeofencingHTML()}
         </div>
 
         <!-- VIEW: LOCATIONS -->
         <div id="view-locations" class="view-container">
-            <div class="card-main">
-                <div class="card-header">
-                    <h3 class="card-title"><i data-lucide="map"></i> Live Device Locations</h3>
-                    <button class="btn btn-ghost" onclick="loadLocations()">
-                        <i data-lucide="refresh-cw" size="16"></i> Refresh
-                    </button>
-                </div>
-                <div style="background: var(--zinc-50); padding: 12px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
-                    <div style="width: 8px; height: 8px; background: var(--status-safe); border-radius: 50%; animation: pulse 2s infinite;"></div>
-                    <span style="font-size: 0.75rem; font-weight: 600; color: var(--zinc-600);">Auto-refreshing every 5 seconds</span>
-                </div>
-                <div id="locationsList"></div>
-            </div>
+            ${generateLocationsHTML()}
         </div>
 
         <!-- VIEW: NOTIFICATIONS -->
         <div id="view-notifications" class="view-container">
-            <div class="card-main">
-                <div class="card-header">
-                    <h3 class="card-title"><i data-lucide="bell"></i> System Notifications</h3>
-                    <button class="btn btn-ghost" onclick="loadNotifications()">
-                        <i data-lucide="refresh-cw" size="16"></i> Refresh
-                    </button>
-                </div>
-                <div id="notificationsList"></div>
-            </div>
+            ${generateNotificationsHTML()}
         </div>
 
         <!-- VIEW: AUDIT -->
         <div id="view-audit" class="view-container">
-            <div class="card-main">
-                <div class="card-header">
-                    <h3 class="card-title"><i data-lucide="file-text"></i> Audit Trail</h3>
-                    <div style="display: flex; gap: 10px;">
-                        <select id="auditFilter" class="input-control" style="width: 200px; padding: 8px 12px; font-size: 0.8rem;" onchange="loadAudit()">
-                            <option value="">All Actions</option>
-                        </select>
-                        <button class="btn btn-ghost" onclick="loadAudit()">
-                            <i data-lucide="refresh-cw" size="16"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="table-wrapper">
-                    <table id="auditTable">
-                        <thead>
-                            <tr>
-                                <th>Timestamp</th>
-                                <th>Action</th>
-                                <th>Actor</th>
-                                <th>Target</th>
-                                <th>Details</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr><td colspan="5" style="text-align: center; padding: 40px;">Loading audit trail...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            ${generateAuditHTML()}
         </div>
 
         <!-- VIEW: SETTINGS -->
         <div id="view-settings" class="view-container">
-            <div class="card-main">
-                <h3 class="card-title"><i data-lucide="settings"></i> System Settings</h3>
-                <div id="settingsForm"></div>
-            </div>
+            ${generateSettingsHTML()}
         </div>
 
         <!-- VIEW: LOGS -->
         <div id="view-logs" class="view-container">
-            <div class="card-main">
-                <div class="card-header">
-                    <h3 class="card-title"><i data-lucide="terminal"></i> System Logs</h3>
-                    <button class="btn btn-ghost" onclick="clearTerminal()">
-                        Clear Logs
-                    </button>
+            ${generateLogsHTML()}
+        </div>
+    `;
+}
+
+function generateOverviewHTML() {
+    return `
+        <div class="session-banner">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <i data-lucide="crown" size="20"></i>
+                <div>
+                    <div style="font-weight: 700; font-size: 0.9rem;">Owner Session Active</div>
+                    <div style="opacity: 0.9; font-size: 0.75rem;">Full system control granted</div>
                 </div>
-                <div class="log-terminal" id="terminalLogs">
-                    <div class="log-line log-info">BrowserBricker Ultimate Admin Panel initialized...</div>
-                    <div class="log-line log-success">All API endpoints connected. Ready for operations.</div>
+            </div>
+            <button class="btn" style="background: rgba(255,255,255,0.2); color: white; font-size: 0.75rem; padding: 8px 14px;" onclick="refreshAllData()">
+                <i data-lucide="refresh-cw" size="14"></i> Refresh
+            </button>
+        </div>
+
+        <div class="quick-actions">
+            <div class="quick-action-btn" onclick="switchView('system-admins')">
+                <div class="quick-action-icon">
+                    <i data-lucide="shield" size="24" style="color: var(--brand-primary);"></i>
+                </div>
+                <div style="font-weight: 700; font-size: 0.85rem;">System Admins</div>
+                <div style="font-size: 0.7rem; color: var(--zinc-500); margin-top: 4px;">Manage administrators</div>
+            </div>
+            
+            <div class="quick-action-btn" onclick="armAllDevices()">
+                <div class="quick-action-icon">
+                    <i data-lucide="lock" size="24" style="color: var(--status-danger);"></i>
+                </div>
+                <div style="font-weight: 700; font-size: 0.85rem;">Lock All Devices</div>
+                <div style="font-size: 0.7rem; color: var(--zinc-500); margin-top: 4px;">Emergency lockdown</div>
+            </div>
+            
+            <div class="quick-action-btn" onclick="disarmAllDevices()">
+                <div class="quick-action-icon">
+                    <i data-lucide="unlock" size="24" style="color: var(--status-safe);"></i>
+                </div>
+                <div style="font-weight: 700; font-size: 0.85rem;">Unlock All</div>
+                <div style="font-size: 0.7rem; color: var(--zinc-500); margin-top: 4px;">Release all locks</div>
+            </div>
+            
+            <div class="quick-action-btn" onclick="switchView('breaches')">
+                <div class="quick-action-icon">
+                    <i data-lucide="shield-alert" size="24" style="color: var(--status-warn);"></i>
+                </div>
+                <div style="font-weight: 700; font-size: 0.85rem;">Breach Monitor</div>
+                <div style="font-size: 0.7rem; color: var(--zinc-500); margin-top: 4px;">Security events</div>
+            </div>
+            
+            <div class="quick-action-btn" onclick="switchView('locations')">
+                <div class="quick-action-icon">
+                    <i data-lucide="map" size="24" style="color: var(--status-info);"></i>
+                </div>
+                <div style="font-weight: 700; font-size: 0.85rem;">Live Locations</div>
+                <div style="font-size: 0.7rem; color: var(--zinc-500); margin-top: 4px;">Device tracking</div>
+            </div>
+        </div>
+
+        <div class="grid-stats">
+            <div class="stat-card">
+                <h4>Total Devices</h4>
+                <div class="stat-value" id="totalDevices">--</div>
+                <div class="stat-trend trend-up">
+                    <i data-lucide="arrow-up-right" size="12"></i> System Active
+                </div>
+            </div>
+            <div class="stat-card">
+                <h4>Master Keys</h4>
+                <div class="stat-value" id="totalUsers">--</div>
+                <div class="stat-trend trend-up">
+                    <i data-lucide="users" size="12"></i> Registered Users
+                </div>
+            </div>
+            <div class="stat-card">
+                <h4>System Admins</h4>
+                <div class="stat-value" id="totalSystemAdmins">--</div>
+                <div class="stat-trend">
+                    <i data-lucide="shield" size="12"></i> Administrators
+                </div>
+            </div>
+            <div class="stat-card">
+                <h4>Active Admins</h4>
+                <div class="stat-value" style="color: var(--status-safe)" id="activeSystemAdmins">--</div>
+                <div class="stat-trend trend-up">
+                    <i data-lucide="check-circle" size="12"></i> Currently Active
+                </div>
+            </div>
+            <div class="stat-card">
+                <h4>Armed Devices</h4>
+                <div class="stat-value" style="color: var(--status-danger)" id="armedDevices">--</div>
+                <div class="stat-trend">
+                    <i data-lucide="lock" size="12"></i> Currently Locked
+                </div>
+            </div>
+            <div class="stat-card">
+                <h4>Online Now</h4>
+                <div class="stat-value" style="color: var(--status-safe)" id="onlineDevices">--</div>
+                <div class="stat-trend trend-up">
+                    <i data-lucide="wifi" size="12"></i> Active Connections
+                </div>
+            </div>
+            <div class="stat-card">
+                <h4>Quarantined</h4>
+                <div class="stat-value" style="color: var(--status-warn)" id="quarantinedDevices">--</div>
+                <div class="stat-trend">
+                    <i data-lucide="shield-alert" size="12"></i> Security Hold
+                </div>
+            </div>
+            <div class="stat-card">
+                <h4>Geofenced</h4>
+                <div class="stat-value" style="color: var(--status-info)" id="geofencedDevices">--</div>
+                <div class="stat-trend">
+                    <i data-lucide="map-pin" size="12"></i> Location Limited
+                </div>
+            </div>
+            <div class="stat-card">
+                <h4>Breach Attempts</h4>
+                <div class="stat-value" style="color: var(--status-danger)" id="breachCount">--</div>
+                <div class="stat-trend trend-down">
+                    <i data-lucide="shield-off" size="12"></i> Security Events
+                </div>
+            </div>
+            <div class="stat-card">
+                <h4>Blocked IPs</h4>
+                <div class="stat-value" id="blockedIPCount">--</div>
+                <div class="stat-trend">
+                    <i data-lucide="ban" size="12"></i> IP Protection
+                </div>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+            <div class="card-main">
+                <h3 class="card-title"><i data-lucide="bar-chart-3"></i> System Activity</h3>
+                <div class="chart-container">
+                    <canvas id="activityChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card-main">
+                <h3 class="card-title"><i data-lucide="cpu"></i> System Health</h3>
+                <div>
+                    <div style="margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 8px;">
+                            <span>Requests</span><span id="reqVal">--</span>
+                        </div>
+                        <div style="height: 6px; background: var(--zinc-100); border-radius: 100px; overflow: hidden;">
+                            <div id="reqBar" style="width: 0%; height: 100%; background: var(--brand-primary); transition: 0.5s;"></div>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 8px;">
+                            <span>Memory</span><span id="memVal">--</span>
+                        </div>
+                        <div style="height: 6px; background: var(--zinc-100); border-radius: 100px; overflow: hidden;">
+                            <div id="memBar" style="width: 0%; height: 100%; background: var(--brand-primary); transition: 0.5s;"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 8px;">
+                            <span>Uptime</span><span id="uptimeVal">--</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     `;
-    
-    lucide.createIcons();
 }
+
+
+function generateSystemAdminsHTML() {
+    return `
+        <div class="card-main">
+            <div class="card-header">
+                <h3 class="card-title"><i data-lucide="shield"></i> System Administrators</h3>
+                <button class="btn btn-ghost" onclick="loadSystemAdmins()">
+                    <i data-lucide="refresh-cw" size="16"></i> Refresh
+                </button>
+            </div>
+            <div class="table-wrapper">
+                <table id="systemAdminsTable">
+                    <thead>
+                        <tr>
+                            <th>Admin ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Created</th>
+                            <th>Last Active</th>
+                            <th>Devices</th>
+                            <th>Users</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="9" style="text-align: center; padding: 40px;">Loading system administrators...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px;">
+            <div class="card-main">
+                <h3 class="card-title"><i data-lucide="plus-circle"></i> Create System Administrator</h3>
+                <p style="color: var(--zinc-500); margin-bottom: 20px;">
+                    Generate a registration code for a new system administrator. They will use this code to complete their registration.
+                </p>
+                <form id="createAdminForm" onsubmit="createSystemAdmin(event)">
+                    <div class="field-group">
+                        <label class="field-label">Administrator Name</label>
+                        <input type="text" id="newAdminName" class="input-control" placeholder="Enter full name" required>
+                    </div>
+                    
+                    <div class="field-group">
+                        <label class="field-label">Email (Optional)</label>
+                        <input type="email" id="newAdminEmail" class="input-control" placeholder="admin@example.com">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                        <i data-lucide="key" size="16"></i> Generate Registration Code
+                    </button>
+                </form>
+            </div>
+
+            <div class="card-main">
+                <h3 class="card-title"><i data-lucide="key"></i> Registration Codes</h3>
+                <div id="registrationCodesList" style="max-height: 400px; overflow-y: auto;">
+                    <div style="text-align: center; padding: 40px; color: var(--zinc-400);">Loading registration codes...</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function generateDevicesHTML() {
+    return `
+        <div class="card-main">
+            <div class="card-header">
+                <h3 class="card-title"><i data-lucide="monitor"></i> All Devices</h3>
+                <button class="btn btn-ghost" onclick="loadDevices()">
+                    <i data-lucide="refresh-cw" size="16"></i> Refresh
+                </button>
+            </div>
+            <div class="table-wrapper">
+                <table id="devicesTable">
+                    <thead>
+                        <tr>
+                            <th>Device Name</th>
+                            <th>Device ID</th>
+                            <th>Owner Type</th>
+                            <th>Status</th>
+                            <th>Lock State</th>
+                            <th>Security</th>
+                            <th>Last Seen</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="8" style="text-align: center; padding: 40px;">Loading devices...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+}
+
+function generateUsersHTML() {
+    return `
+        <div class="card-main">
+            <div class="card-header">
+                <h3 class="card-title"><i data-lucide="users"></i> Master Keys</h3>
+                <button class="btn btn-ghost" onclick="loadUsers()">
+                    <i data-lucide="refresh-cw" size="16"></i> Refresh
+                </button>
+            </div>
+            <div class="table-wrapper">
+                <table id="usersTable">
+                    <thead>
+                        <tr>
+                            <th>Key Hash</th>
+                            <th>Owner Type</th>
+                            <th>Created</th>
+                            <th>Last Used</th>
+                            <th>Total Uses</th>
+                            <th>Devices</th>
+                            <th>Armed</th>
+                            <th>Online</th>
+                            <th>Quarantined</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="11" style="text-align: center; padding: 40px;">Loading users...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+}
+
+function generateActivityHTML() {
+    return `
+        <div class="card-main">
+            <div class="card-header">
+                <h3 class="card-title"><i data-lucide="activity"></i> Activity Log</h3>
+                <div style="display: flex; gap: 10px;">
+                    <select id="activityFilter" class="input-control" style="width: 150px; padding: 8px 12px; font-size: 0.8rem;" onchange="loadActivity()">
+                        <option value="">All Types</option>
+                        <option value="system">System</option>
+                        <option value="device">Device</option>
+                        <option value="admin">Admin</option>
+                        <option value="security">Security</option>
+                    </select>
+                    <button class="btn btn-ghost" onclick="loadActivity()">
+                        <i data-lucide="refresh-cw" size="16"></i>
+                    </button>
+                    <button class="btn btn-danger" onclick="clearActivityLog()">
+                        <i data-lucide="trash-2" size="16"></i> Clear
+                    </button>
+                </div>
+            </div>
+            <div class="activity-timeline" id="activityTimeline">
+                <div style="text-align: center; padding: 40px; color: var(--zinc-400);">Loading activity...</div>
+            </div>
+        </div>
+    `;
+}
+
+function generateBulkOpsHTML() {
+    return `
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+            <div class="card-main">
+                <h3 class="card-title" style="color: var(--status-danger);"><i data-lucide="lock"></i> Arm All Devices</h3>
+                <p style="color: var(--zinc-500); margin-bottom: 20px;">
+                    Lock all devices in the system simultaneously. This is an emergency operation.
+                </p>
+                <div class="field-group">
+                    <label class="field-label">Lock Reason</label>
+                    <input type="text" id="armAllReason" class="input-control" placeholder="e.g., Emergency security lockdown">
+                </div>
+                <button class="btn btn-danger" style="width: 100%;" onclick="armAllDevices()">
+                    <i data-lucide="lock" size="16"></i> Execute Emergency Lockdown
+                </button>
+            </div>
+
+            <div class="card-main">
+                <h3 class="card-title" style="color: var(--status-safe);"><i data-lucide="unlock"></i> Disarm All Devices</h3>
+                <p style="color: var(--zinc-500); margin-bottom: 20px;">
+                    Release all device locks simultaneously. This will restore normal functionality.
+                </p>
+                <div class="field-group">
+                    <label class="field-label">Unlock Reason</label>
+                    <input type="text" id="disarmAllReason" class="input-control" placeholder="e.g., All clear">
+                </div>
+                <button class="btn btn-success" style="width: 100%;" onclick="disarmAllDevices()">
+                    <i data-lucide="unlock" size="16"></i> Release All Locks
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+function generateQuarantineHTML() {
+    return `
+        <div class="card-main">
+            <div class="card-header">
+                <h3 class="card-title"><i data-lucide="shield-alert"></i> Quarantined Devices</h3>
+                <button class="btn btn-ghost" onclick="loadDevices()">
+                    <i data-lucide="refresh-cw" size="16"></i> Refresh
+                </button>
+            </div>
+            <div id="quarantineList"></div>
+        </div>
+
+        <div class="card-main" style="max-width: 600px;">
+            <h3 class="card-title"><i data-lucide="shield-alert"></i> Quarantine Device</h3>
+            <p style="color: var(--zinc-500); margin-bottom: 20px;">
+                Place a device in security quarantine.
+            </p>
+            <div class="field-group">
+                <label class="field-label">Device ID</label>
+                <input type="text" id="quarantineDeviceId" class="input-control" placeholder="Enter device ID">
+            </div>
+            <div class="field-group">
+                <label class="field-label">Reason</label>
+                <input type="text" id="quarantineReason" class="input-control" placeholder="e.g., Suspicious activity">
+            </div>
+            <button class="btn btn-danger" style="width: 100%;" onclick="quarantineDevice()">
+                <i data-lucide="shield-alert" size="16"></i> Quarantine Device
+            </button>
+        </div>
+    `;
+}
+
+function generateBreachesHTML() {
+    return `
+        <div class="card-main">
+            <div class="card-header">
+                <h3 class="card-title"><i data-lucide="shield-off"></i> Security Breach Detection</h3>
+                <button class="btn btn-ghost" onclick="loadBreaches()">
+                    <i data-lucide="refresh-cw" size="16"></i> Refresh
+                </button>
+            </div>
+            <div id="breachesList"></div>
+        </div>
+    `;
+}
+
+function generateBlockedIPsHTML() {
+    return `
+        <div class="card-main">
+            <div class="card-header">
+                <h3 class="card-title"><i data-lucide="ban"></i> Blocked IP Addresses</h3>
+                <button class="btn btn-ghost" onclick="loadBlockedIPs()">
+                    <i data-lucide="refresh-cw" size="16"></i> Refresh
+                </button>
+            </div>
+            <div id="blockedIPsList"></div>
+        </div>
+
+        <div class="card-main" style="max-width: 600px;">
+            <h3 class="card-title"><i data-lucide="unlock"></i> Unblock IP Address</h3>
+            <div class="field-group">
+                <label class="field-label">IP Address</label>
+                <input type="text" id="unblockIPInput" class="input-control" placeholder="Enter IP to unblock">
+            </div>
+            <button class="btn btn-primary" style="width: 100%;" onclick="unblockIP()">
+                <i data-lucide="unlock" size="16"></i> Unblock IP Address
+            </button>
+        </div>
+
+        <div class="card-main">
+            <h3 class="card-title"><i data-lucide="alert-triangle"></i> Failed Attempts</h3>
+            <div id="failedAttemptsList"></div>
+        </div>
+    `;
+}
+
+function generateSessionsHTML() {
+    return `
+        <div class="card-main">
+            <div class="card-header">
+                <h3 class="card-title"><i data-lucide="clock"></i> Active Sessions</h3>
+                <button class="btn btn-ghost" onclick="loadSessions()">
+                    <i data-lucide="refresh-cw" size="16"></i> Refresh
+                </button>
+            </div>
+            <div id="sessionsList"></div>
+        </div>
+    `;
+}
+
+function generateGeofencingHTML() {
+    return `
+        <div class="geofence-split">
+            <div class="card-main">
+                <div class="card-header">
+                    <h3 class="card-title"><i data-lucide="map-pin"></i> Active Geofences</h3>
+                    <button class="btn btn-ghost" onclick="loadGeofences()">
+                        <i data-lucide="refresh-cw" size="16"></i> Refresh
+                    </button>
+                </div>
+                <div id="geofencesList"></div>
+            </div>
+
+            <div class="card-main">
+                <h3 class="card-title"><i data-lucide="plus-circle"></i> Create New Geofence</h3>
+                <p style="color: var(--zinc-500); margin-bottom: 20px;">
+                    Set up a geographic perimeter for a device.
+                </p>
+                <form id="createGeofenceForm" onsubmit="createNewGeofence(event)">
+                    <div class="field-group">
+                        <label class="field-label">Device ID</label>
+                        <input type="text" id="geofenceDeviceId" class="input-control" placeholder="Enter device ID" required>
+                    </div>
+                    
+                    <div class="field-group">
+                        <label class="field-label">Latitude</label>
+                        <input type="number" id="geofenceLat" class="input-control" step="any" placeholder="e.g., 40.712776" required>
+                    </div>
+                    
+                    <div class="field-group">
+                        <label class="field-label">Longitude</label>
+                        <input type="number" id="geofenceLon" class="input-control" step="any" placeholder="e.g., -74.005974" required>
+                    </div>
+                    
+                    <div class="field-group">
+                        <label class="field-label">Radius (meters)</label>
+                        <input type="number" id="geofenceRadius" class="input-control" min="10" max="100000" placeholder="e.g., 1000" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                        <i data-lucide="map-pin" size="16"></i> Create Geofence
+                    </button>
+                </form>
+            </div>
+        </div>
+    `;
+}
+
+function generateLocationsHTML() {
+    return `
+        <div class="card-main">
+            <div class="card-header">
+                <h3 class="card-title"><i data-lucide="map"></i> Live Device Locations</h3>
+                <button class="btn btn-ghost" onclick="loadLocations()">
+                    <i data-lucide="refresh-cw" size="16"></i> Refresh
+                </button>
+            </div>
+            <div style="background: var(--zinc-50); padding: 12px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+                <div style="width: 8px; height: 8px; background: var(--status-safe); border-radius: 50%; animation: pulse 2s infinite;"></div>
+                <span style="font-size: 0.75rem; font-weight: 600; color: var(--zinc-600);">Auto-refreshing every 5 seconds</span>
+            </div>
+            <div id="locationsList"></div>
+        </div>
+    `;
+}
+
+function generateNotificationsHTML() {
+    return `
+        <div class="card-main">
+            <div class="card-header">
+                <h3 class="card-title"><i data-lucide="bell"></i> System Notifications</h3>
+                <button class="btn btn-ghost" onclick="loadNotifications()">
+                    <i data-lucide="refresh-cw" size="16"></i> Refresh
+                </button>
+            </div>
+            <div id="notificationsList"></div>
+        </div>
+    `;
+}
+
+function generateAuditHTML() {
+    return `
+        <div class="card-main">
+            <div class="card-header">
+                <h3 class="card-title"><i data-lucide="file-text"></i> Audit Trail</h3>
+                <div style="display: flex; gap: 10px;">
+                    <select id="auditFilter" class="input-control" style="width: 200px; padding: 8px 12px; font-size: 0.8rem;" onchange="loadAudit()">
+                        <option value="">All Actions</option>
+                    </select>
+                    <button class="btn btn-ghost" onclick="loadAudit()">
+                        <i data-lucide="refresh-cw" size="16"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <table id="auditTable">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Action</th>
+                            <th>Actor</th>
+                            <th>Target</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="5" style="text-align: center; padding: 40px;">Loading audit trail...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+}
+
+function generateSettingsHTML() {
+    return `
+        <div class="card-main">
+            <h3 class="card-title"><i data-lucide="settings"></i> System Settings</h3>
+            <div id="settingsForm"></div>
+        </div>
+    `;
+}
+
+function generateLogsHTML() {
+    return `
+        <div class="card-main">
+            <div class="card-header">
+                <h3 class="card-title"><i data-lucide="terminal"></i> System Logs</h3>
+                <button class="btn btn-ghost" onclick="clearTerminal()">
+                    Clear Logs
+                </button>
+            </div>
+            <div class="log-terminal" id="terminalLogs">
+                <div class="log-line log-info">BrowserBricker Ultimate Owner Panel initialized...</div>
+                <div class="log-line log-success">All API endpoints connected. Ready for operations.</div>
+            </div>
+        </div>
+    `;
+}
+
+// ========== INITIALIZATION COMPLETE ==========
+console.log('BrowserBricker Owner Panel v4.2.0 - Loaded Successfully');
+console.log('Total Functions:', Object.keys(window).filter(k => typeof window[k] === 'function').length);
+console.log('Features: System Admins, Geofencing, Live Tracking, Hierarchical Control');
