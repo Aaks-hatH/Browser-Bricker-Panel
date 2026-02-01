@@ -1,0 +1,49 @@
+{
+  "manifest_version": 3,
+  "name": "Device Lockdown",
+  "version": "4.1.0",
+  "description": "Advanced remote browser lockdown with geofencing, breach detection, and automated security",
+
+  "permissions": [
+    "storage",
+    "tabs",
+    "webNavigation",
+    "alarms",
+    "notifications",
+    "geolocation",
+    "offscreen",
+    "webRequest"
+  ],
+
+  "host_permissions": [
+    "<all_urls>"
+  ],
+
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Device Lockdown v4.1",
+    "default_icon": {
+      "16": "icon.png",
+      "48": "icon.png",
+      "128": "icon.png"
+    }
+  },
+
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  },
+
+  "web_accessible_resources": [
+    {
+      "resources": ["lock.html"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

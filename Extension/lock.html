@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DEVICE LOCKED — SECURITY ENFORCEMENT</title>
+
+<style>
+/* ===============================
+   GLOBAL HARD LOCK STYLES
+   =============================== */
+html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    overflow: hidden;
+}
+
+body {
+    color: #e6e6e6;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+    cursor: none;
+}
+
+* {
+    user-select: none !important;
+    -webkit-user-drag: none !important;
+    -webkit-touch-callout: none !important;
+}
+
+/* ===============================
+   MAIN CONTAINER
+   =============================== */
+#root {
+    width: 100%;
+    max-width: 1100px;
+    border: 1px solid #2a2a2a;
+    padding: 40px;
+    box-sizing: border-box;
+    background: radial-gradient(circle at top, #050505, #000);
+    animation: pulse 4s infinite;
+}
+
+/* ===============================
+   HEADER
+   =============================== */
+h1 {
+    margin: 0 0 30px 0;
+    color: #ff0000;
+    font-size: 3.6rem;
+    font-weight: 900;
+    text-align: center;
+    letter-spacing: -1px;
+    text-transform: uppercase;
+    text-shadow: 0 0 12px rgba(255,0,0,0.5);
+}
+
+/* ===============================
+   LAYOUT
+   =============================== */
+.content {
+    display: flex;
+    gap: 40px;
+}
+
+.left {
+    flex: 2;
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+.right {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+/* ===============================
+   TEXT BLOCKS
+   =============================== */
+.block {
+    margin-bottom: 22px;
+}
+
+.block strong {
+    color: #ffffff;
+}
+
+.dim {
+    color: #9a9a9a;
+    font-size: 0.9rem;
+}
+
+/* ===============================
+   VIOLATION LIST
+   =============================== */
+.violation {
+    margin: 15px 0;
+    padding-left: 18px;
+    border-left: 3px solid #ff0000;
+}
+
+.violation span {
+    color: #ff4d4d;
+    font-weight: bold;
+}
+
+/* ===============================
+   SECURITY SEAL
+   =============================== */
+.seal {
+    width: 280px;
+    height: 280px;
+    border-radius: 50%;
+    border: 8px solid #c9a227;
+    background: linear-gradient(135deg, #001a33, #003366);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 0 35px rgba(201,162,39,0.25);
+    text-align: center;
+}
+
+.seal-top {
+    color: #c9a227;
+    font-weight: bold;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.seal-icon {
+    font-size: 4.8rem;
+    color: #ffffff;
+    margin: 10px 0;
+}
+
+.seal-bottom {
+    color: #c9a227;
+    font-size: 0.85rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* ===============================
+   FOOTER WARNING
+   =============================== */
+.footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #222;
+    text-align: center;
+    color: #ff0000;
+    font-weight: bold;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+}
+
+/* ===============================
+   ANIMATIONS
+   =============================== */
+@keyframes pulse {
+    0% { filter: none; }
+    50% { filter: brightness(1.08); }
+    100% { filter: none; }
+}
+</style>
+</head>
+
+<body>
+<div id="root">
+
+    <h1>DEVICE LOCKED</h1>
+
+    <div class="content">
+        <div class="left">
+
+            <div class="block">
+                This device has been <strong>remotely secured</strong> by the
+                registered owner or an authorized administrator.
+            </div>
+
+            <div class="block dim">
+                Enforcement Protocol: MDM-REMOTE-LOCK<br>
+                Trigger Source: Theft / Loss / Security Violation
+            </div>
+
+            <div class="violation">
+                <span>UNAUTHORIZED ACCESS DETECTED</span><br>
+                This device is currently operating outside its authorized security state.
+            </div>
+
+            <div class="violation">
+                <span>DATA PROTECTION MODE ACTIVE</span><br>
+                Local access has been restricted to prevent data exfiltration.
+            </div>
+
+            <div class="violation">
+                <span>CONTINUOUS MONITORING ENABLED</span><br>
+                Network status and device signals are being reported.
+            </div>
+
+            <div class="block">
+                Any attempt to bypass, modify, or interfere with this lock
+                may result in permanent data loss.
+            </div>
+
+        </div>
+
+        <div class="right">
+            <div class="seal">
+                <div class="seal-top">Department of</div>
+                <div class="seal-icon">🛡️</div>
+                <div class="seal-bottom">
+                    Device Security<br>
+                    Enforcement Division
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        Return this device to its rightful owner or contact the system administrator
+    </div>
+
+</div>
+
+<script>
+/* ===============================
+   INTERACTION SUPPRESSION
+   =============================== */
+
+// Break out of iframes
+if (window.top !== window.self) {
+    window.top.location = window.location;
+}
+
+// Block common interactions
+[
+ "contextmenu","copy","cut","paste","dragstart",
+ "selectstart","mousedown","mouseup","wheel","touchstart","touchend"
+].forEach(e =>
+    document.addEventListener(e, ev => ev.preventDefault(), true)
+);
+
+// Keyboard suppression
+document.addEventListener("keydown", e => {
+    if (
+        e.ctrlKey || e.altKey || e.metaKey ||
+        ["Escape","Tab","F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12"].includes(e.key)
+    ) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return false;
+    }
+}, true);
+
+// History trap
+history.pushState(null, "", location.href);
+window.addEventListener("popstate", () => {
+    history.pushState(null, "", location.href);
+});
+
+// Scroll lock
+window.addEventListener("scroll", () => {
+    window.scrollTo(0, 0);
+});
+
+// Blur when tab loses focus
+document.addEventListener("visibilitychange", () => {
+    document.body.style.filter = document.hidden ? "blur(10px)" : "none";
+});
+
+// DOM self-heal
+const snapshot = document.body.innerHTML;
+setInterval(() => {
+    if (document.body.innerHTML !== snapshot) {
+        document.body.innerHTML = snapshot;
+    }
+}, 1000);
+
+// DevTools annoyance (visual only)
+setInterval(() => {
+    if (window.outerWidth - window.innerWidth > 200) {
+        console.clear();
+        console.warn("SECURITY ENFORCEMENT ACTIVE");
+    }
+}, 500);
+
+// Console noise
+setInterval(() => {
+    console.error("DEVICE LOCKED — UNAUTHORIZED ACCESS");
+}, 2000);
+</script>
+</body>
+</html>

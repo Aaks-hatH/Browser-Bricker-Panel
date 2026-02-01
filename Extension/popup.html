@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 400px;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #ffffff;
+            color: #1e293b;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            padding: 24px 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .header-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header-icon svg {
+            width: 24px;
+            height: 24px;
+            stroke: white;
+            stroke-width: 2;
+        }
+
+        .header h1 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .header p {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .status-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .status-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .status-label {
+            font-size: 13px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .status-value {
+            font-size: 13px;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-armed {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .badge-disarmed {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .badge-online {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .badge-offline {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        .badge-warning {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .setup-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px 12px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            color: #0f172a;
+            font-size: 13px;
+            font-family: 'SF Mono', 'Courier New', monospace;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .btn-secondary {
+            background: #f8fafc;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+        }
+
+        .btn-secondary:hover {
+            background: #f1f5f9;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-bottom: 16px;
+            border-left: 3px solid;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            border-color: #dc2626;
+            color: #991b1b;
+        }
+
+        .alert-success {
+            background: #dcfce7;
+            border-color: #16a34a;
+            color: #166534;
+        }
+
+        .info-text {
+            font-size: 12px;
+            color: #64748b;
+            line-height: 1.5;
+            margin-top: 12px;
+        }
+
+        #setupScreen, #statusScreen {
+            display: none;
+        }
+
+        .divider {
+            height: 1px;
+            background: #e2e8f0;
+            margin: 16px 0;
+        }
+
+        /* NEW: Advanced status displays */
+        .mini-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .mini-card-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .location-display {
+            font-size: 12px;
+            color: #0f172a;
+            font-family: 'SF Mono', monospace;
+        }
+
+        .battery-bar {
+            width: 100%;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+
+        .battery-fill {
+            height: 100%;
+            transition: width 0.3s, background 0.3s;
+        }
+
+        .battery-high {
+            background: #10b981;
+        }
+
+        .battery-medium {
+            background: #f59e0b;
+        }
+
+        .battery-low {
+            background: #ef4444;
+        }
+
+        .feature-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 13px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 40px;
+            height: 20px;
+            background: #cbd5e1;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .toggle-switch.active {
+            background: #3b82f6;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.2s;
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(20px);
+        }
+
+        .security-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: #dcfce7;
+            border: 1px solid #16a34a;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #166534;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .security-indicator.warning {
+            background: #fef3c7;
+            border-color: #d97706;
+            color: #92400e;
+        }
+
+        .security-indicator svg {
+            width: 16px;
+            height: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-icon">
+            <svg viewBox="0 0 24 24" fill="none">
+                <rect x="5" y="11" width="14" height="10" rx="2"/>
+                <path d="M8 11V7a4 4 0 018 0v4" stroke-linecap="round"/>
+            </svg>
+        </div>
+        <h1>Device Lockdown</h1>
+        <p>Advanced Protection v4.0</p>
+    </div>
+
+    <div class="content">
+        <div id="alertContainer"></div>
+
+        <!-- Setup Screen -->
+        <div id="setupScreen">
+            <div class="status-card">
+                <p style="margin-bottom: 16px; font-size: 14px; color: #475569;">
+                    Configure this extension with your device API key to enable remote protection.
+                </p>
+                <form class="setup-form" id="setupForm">
+                    <div class="input-group">
+                        <label>Device API Key</label>
+                        <input 
+                            type="password" 
+                            id="apiKeyInput" 
+                            placeholder="Enter 64-character API key"
+                            required
+                        >
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        Activate Protection
+                    </button>
+                </form>
+                <p class="info-text">
+                    Get your device API key from the control panel by registering this device.
+                </p>
+            </div>
+        </div>
+
+        <!-- Status Screen -->
+        <div id="statusScreen">
+            <!-- Security Status -->
+            <div id="securityIndicator" class="security-indicator">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                <span id="securityText">All systems secure</span>
+            </div>
+
+            <!-- Main Status -->
+            <div class="status-card">
+                <div class="status-row">
+                    <span class="status-label">Lock Status</span>
+                    <span id="statusBadge" class="badge">-</span>
+                </div>
+                <div class="status-row">
+                    <span class="status-label">Connection</span>
+                    <span id="onlineBadge" class="badge">-</span>
+                </div>
+                <div class="status-row">
+                    <span class="status-label">Device Name</span>
+                    <span id="deviceName" class="status-value">-</span>
+                </div>
+            </div>
+
+            <!-- NEW: Location Display -->
+            <div id="locationCard" class="mini-card" style="display: none;">
+                <div class="mini-card-title">📍 Location</div>
+                <div class="location-display" id="locationDisplay">
+                    Waiting for GPS...
+                </div>
+                <div class="feature-toggle" style="margin-top: 8px;">
+                    <span style="font-size: 11px; color: #64748b;">Enable Tracking</span>
+                    <div class="toggle-switch" id="locationToggle"></div>
+                </div>
+            </div>
+
+            <!-- NEW: Battery Display -->
+            <div id="batteryCard" class="mini-card" style="display: none;">
+                <div class="mini-card-title">🔋 Battery</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <span style="font-size: 13px; font-weight: 600;" id="batteryLevel">--</span>
+                    <span style="font-size: 11px; color: #64748b;" id="batteryStatus">--</span>
+                </div>
+                <div class="battery-bar">
+                    <div class="battery-fill battery-high" id="batteryFill" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <!-- NEW: Network Display -->
+            <div id="networkCard" class="mini-card" style="display: none;">
+                <div class="mini-card-title">📡 Network</div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 13px; font-weight: 600;" id="networkType">--</span>
+                    <span style="font-size: 11px; color: #64748b;" id="networkSpeed">--</span>
+                </div>
+            </div>
+
+            <!-- NEW: Security Info -->
+            <div class="mini-card">
+                <div class="mini-card-title">🔐 Security</div>
+                <div style="font-size: 11px; color: #64748b; line-height: 1.4;">
+                    <div style="margin-bottom: 4px;">
+                        Fingerprint: <span id="fingerprintDisplay" style="font-family: 'SF Mono', monospace; color: #0f172a;">Loading...</span>
+                    </div>
+                    <div>
+                        Features: Location, Battery, Network, Breach Detection
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-secondary" id="refreshBtn" style="margin-bottom: 12px;">
+                🔄 Refresh Status
+            </button>
+
+            <button class="btn btn-secondary" id="reconfigureBtn">
+                ⚙️ Reconfigure Device
+            </button>
+
+            <p class="info-text">
+                Control this device remotely from the control panel. Advanced security features include geofencing, breach detection, and automated responses.
+            </p>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>
