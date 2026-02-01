@@ -724,6 +724,37 @@ Before deploying BrowserBricker, ensure:
 
 ---
 
+# Security Policy
+
+## Reporting a Vulnerability
+
+**DO NOT** open a public issue for security vulnerabilities.
+
+Email: browserbricker@gmail.com
+
+Include:
+- Description of vulnerability
+- Steps to reproduce
+- Potential impact
+- Suggested fix (if any)
+
+## Response Timeline
+
+- Acknowledgment: 24-48 hours
+- Initial assessment: 3-5 days
+- Fix development: Varies by severity
+- Public disclosure: After fix deployed
+
+## Supported Versions
+
+| Version | Supported |
+|---------|-----------|
+| 4.1.x   | Yes       |
+| 4.0.x   | Yes       |
+| < 4.0   | No        |
+
+---
+
 **Security Documentation v4.1** • Last Updated: January 2026 • By Aakshat Hariharan
 
 For security inquiries: browserbricker@gmail.com
