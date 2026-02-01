@@ -318,8 +318,9 @@ async function loadSystemAdmins() {
         const tbody = document.querySelector('#systemAdminsTable tbody');
         const codesList = document.getElementById('registrationCodesList');
         
+        // 1. Update the Table of Active System Admins
         if (!data.systemAdmins || data.systemAdmins.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 40px; color: var(--zinc-400);">No system administrators found</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 40px; color: var(--zinc-400);">No system administrators found</td></tr>';
         } else {
             tbody.innerHTML = data.systemAdmins.map(admin => {
                 const statusBadge = admin.active ? 
@@ -329,6 +330,7 @@ async function loadSystemAdmins() {
                 return `
                     <tr>
                         <td style="font-family: var(--mono); font-size: 0.8rem;">${admin.id}</td>
+                        <td style="font-weight: 700; color: var(--brand-primary);">${escapeHtml(admin.groupName || 'Default')}</td>
                         <td style="font-weight: 600;">${escapeHtml(admin.name || 'N/A')}</td>
                         <td style="font-family: var(--mono); font-size: 0.75rem;">${escapeHtml(admin.email || 'N/A')}</td>
                         <td>${new Date(admin.createdAt).toLocaleDateString()}</td>
@@ -355,6 +357,7 @@ async function loadSystemAdmins() {
             }).join('');
         }
         
+        // 2. Update the Registration Codes List (Crucial for seeing which group the code is for)
         if (data.registrationCodes && codesList) {
             if (data.registrationCodes.length === 0) {
                 codesList.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--zinc-400);">No registration codes generated</div>';
@@ -371,20 +374,21 @@ async function loadSystemAdmins() {
                         <div style="background: var(--zinc-50); padding: 16px; border-radius: 12px; margin-bottom: 12px; border-left: 4px solid ${code.used ? 'var(--status-safe)' : isExpired ? 'var(--status-danger)' : 'var(--status-info)'};">
                             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
                                 <div>
-                                    <div style="font-family: var(--mono); font-weight: 700; font-size: 1.1rem; letter-spacing: 2px; margin-bottom: 4px;">${code.code}</div>
-                                    <div style="font-size: 0.85rem; color: var(--zinc-600);">
-                                        Created: ${new Date(code.createdAt).toLocaleString()}
+                                    <div style="font-size: 0.7rem; font-weight: 800; color: var(--zinc-400); text-transform: uppercase; margin-bottom: 4px;">Group Name</div>
+                                    <div style="font-weight: 800; color: var(--zinc-900); margin-bottom: 8px; font-size: 1rem;">${escapeHtml(code.groupName || 'No Group Specified')}</div>
+                                    
+                                    <div style="font-family: var(--mono); font-weight: 700; font-size: 1.1rem; letter-spacing: 2px; color: var(--brand-primary); margin-bottom: 8px;">${code.code}</div>
+                                    
+                                    <div style="font-size: 0.8rem; color: var(--zinc-600); display: grid; grid-template-columns: auto 1fr; gap: x 10px;">
+                                        <span>Created:</span> <span>${new Date(code.createdAt).toLocaleString()}</span>
+                                        <span>Expires:</span> <span>${new Date(code.expiresAt).toLocaleString()}</span>
+                                        ${code.name ? `<span>For:</span> <span>${escapeHtml(code.name)}</span>` : ''}
                                     </div>
-                                    <div style="font-size: 0.85rem; color: var(--zinc-600);">
-                                        Expires: ${new Date(code.expiresAt).toLocaleString()}
-                                    </div>
-                                    ${code.used ? `<div style="font-size: 0.85rem; color: var(--zinc-600);">Used: ${new Date(code.usedAt).toLocaleString()}</div>` : ''}
-                                    ${code.systemAdminId ? `<div style="font-size: 0.85rem; color: var(--zinc-600);">Admin ID: ${code.systemAdminId}</div>` : ''}
                                 </div>
-                                <div style="display: flex; gap: 8px;">
+                                <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
                                     ${statusBadge}
                                     ${!code.used && !isExpired ? 
-                                        `<button class="btn btn-ghost" style="padding: 4px 8px; font-size: 0.7rem;" onclick="copyToClipboard('${code.code}')"><i data-lucide="copy" size="10"></i></button>` : ''
+                                        `<button class="btn btn-primary" style="padding: 6px 12px; font-size: 0.75rem;" onclick="copyToClipboard('${code.code}')"><i data-lucide="copy" size="12"></i> Copy Code</button>` : ''
                                     }
                                 </div>
                             </div>
@@ -968,23 +972,32 @@ async function saveSettings(event) {
 async function createSystemAdmin(event) {
     event.preventDefault();
     
+    // 1. Grab all three values now
+    const groupName = document.getElementById('newAdminGroupName').value.trim();
     const name = document.getElementById('newAdminName').value.trim();
     const email = document.getElementById('newAdminEmail').value.trim();
 
-    if (!name) {
-        showToast('Error', 'Please enter an administrator name', 'error');
+    // 2. Validate Group Name (since server requires it)
+    if (!groupName) {
+        showToast('Error', 'Group Name is required', 'error');
         return;
     }
 
     try {
-        const data = await apiCall('/api/admin/system-admins/create', 'POST', { name, email });
+        // 3. Include groupName in the API body
+        const data = await apiCall('/api/admin/system-admins/create', 'POST', { 
+            groupName, 
+            name, 
+            email 
+        });
         
         showToast('Success', 'Registration code generated successfully', 'success');
-        logTerminal(`System admin registration code created for ${name}`, 'info');
+        logTerminal(`System admin registration code created for group: ${groupName}`, 'info');
         
         document.getElementById('createAdminForm').reset();
         
-        alert(`Registration Code Generated!\n\nCode: ${data.code}\n\nThis code expires in 7 days. Share it with ${name} to complete registration.`);
+        // Updated alert to show more details
+        alert(`Registration Code Generated!\n\nGroup: ${groupName}\nCode: ${data.registrationCode}\n\nShare this code to complete registration.`);
         
         await loadSystemAdmins();
         await loadStats();
@@ -1821,6 +1834,7 @@ function generateSystemAdminsHTML() {
                     <thead>
                         <tr>
                             <th>Admin ID</th>
+                            <th>Group</th>
                             <th>Name</th>
                             <th>Email</th>
                             <th>Created</th>
@@ -1845,6 +1859,10 @@ function generateSystemAdminsHTML() {
                     Generate a registration code for a new system administrator. They will use this code to complete their registration.
                 </p>
                 <form id="createAdminForm" onsubmit="createSystemAdmin(event)">
+                <div class="field-group">
+    <label class="field-label">Group Name (Required)</label>
+    <input type="text" id="newAdminGroupName" class="input-control" placeholder="e.g. North Division / Tech Team" required>
+</div>
                     <div class="field-group">
                         <label class="field-label">Administrator Name</label>
                         <input type="text" id="newAdminName" class="input-control" placeholder="Enter full name" required>
