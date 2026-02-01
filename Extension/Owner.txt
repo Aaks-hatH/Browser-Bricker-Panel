@@ -1,0 +1,19 @@
+Owner & Author Declaration
+
+Project Name:
+BrowserBricker Tools & BrowserBricker Extension
+
+Author:
+Aakshat Hariharan
+
+Description:
+BrowserBricker Tools and the BrowserBricker browser extension were created, designed, and developed by Aakshat Hariharan. This includes all related source code, assets, configuration files, and supporting tooling unless otherwise explicitly stated.
+
+Ownership:
+All original code and project architecture associated with BrowserBricker are the intellectual property of Aakshat Hariharan.
+
+Date Created:
+2026
+
+Contact:
+hariharanaakshat@gmail.com
