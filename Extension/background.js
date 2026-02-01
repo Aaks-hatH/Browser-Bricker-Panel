@@ -450,10 +450,9 @@ async function enforceBlockade() {
  * Detects if a URL is a browser system page that should not be redirected
  */
 function isSystemPage(url) {
-    const sysPrefixes = ['chrome://', 'chrome-extension://', 'edge://', 'about:', 'brave://'];
+    const sysPrefixes = [`chrome-extension://${chrome.runtime.id}/lock.html`, `chrome-extension://${chrome.runtime.id}/offscreen.html`];
     return sysPrefixes.some(prefix => url.startsWith(prefix));
 }
-
 /**
  * Handles notifications and visual updates when state changes
  */
