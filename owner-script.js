@@ -972,37 +972,44 @@ async function saveSettings(event) {
 async function createSystemAdmin(event) {
     event.preventDefault();
     
-    // Get values from inputs
-    // Note: Ensure you have an input with id="newAdminGroupName" in your generateSystemAdminsHTML
-    const groupName = document.getElementById('newAdminGroupName') ? document.getElementById('newAdminGroupName').value.trim() : "";
+    // 1. Get values from inputs
+    const groupNameInput = document.getElementById('newAdminGroupName');
+    const groupName = groupNameInput ? groupNameInput.value.trim() : "";
     const name = document.getElementById('newAdminName').value.trim();
     const email = document.getElementById('newAdminEmail').value.trim();
 
-    // The server WILL reject the request if groupName is empty
     if (!groupName) {
         showToast('Error', 'Group Name is required', 'error');
         return;
     }
 
     try {
+        // 2. Call the API
         const data = await apiCall('/api/admin/system-admins/create', 'POST', { 
             groupName, 
             name, 
             email 
         });
         
-        showToast('Success', 'Registration code generated', 'success');
-        logTerminal(`Registration code created for group: ${groupName}`, 'info');
+        const regCode = data.registrationCode;
+
+        // 3. Automatically copy the code to the clipboard for convenience
+        if (navigator.clipboard) {
+            await navigator.clipboard.writeText(regCode);
+            showToast('Success', 'Code copied to clipboard!', 'success');
+        }
+
+        // 4. Show the code in a Toast notification instead of an alert
+        showToast('Code Generated', `Group: ${groupName} | Code: ${regCode}`, 'success');
         
-        // Reset the form
+        // 5. Log it to the internal terminal
+        logTerminal(`Registration code [${regCode}] created for ${groupName}`, 'success');
+        
+        // 6. Reset the form and refresh the UI lists
         document.getElementById('createAdminForm').reset();
-        
-        // Show the code to the owner immediately
-        alert(`CODE GENERATED\n\nGroup: ${groupName}\nCode: ${data.registrationCode}\n\nExpires: ${new Date(data.expiresAt).toLocaleString()}`);
-        
-        // Refresh the lists to show the new code in the side panel
         await loadSystemAdmins();
         await loadStats();
+        
     } catch (error) {
         console.error('Create admin error:', error);
         showToast('Error', error.message, 'error');
