@@ -1,5 +1,15 @@
 // Enhanced Popup Script for Device Lockdown Extension v4.0
 
+chrome.storage.local.get(['isArmed'], (result) => {
+    if (result.isArmed) {
+        // Option A: Redirect the popup to the lock screen (Best)
+        window.location.href = "lock.html";
+        
+        // Option B: Just close the popup immediately
+        // window.close(); 
+    }
+});
+
 const setupScreen = document.getElementById('setupScreen');
 const statusScreen = document.getElementById('statusScreen');
 const setupForm = document.getElementById('setupForm');
