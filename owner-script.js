@@ -1394,6 +1394,35 @@ async function clearActivityLog() {
     }
 }
 
+async function exportSystemState() {
+    try {
+        const data = await apiCall('/api/admin/system/export');
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `browserbricker-state-${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        showToast('Success', 'System backup downloaded', 'success');
+    } catch (error) { showToast('Error', 'Export failed', 'error'); }
+}
+
+async function importSystemState(event) {
+    const file = event.target.files[0];
+    if (!file || !confirm("CRITICAL: Overwrite ALL current data with this backup?")) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        try {
+            const json = JSON.parse(e.target.result);
+            await apiCall('/api/admin/system/import', 'POST', json);
+            showToast('Success', 'System Restored!', 'success');
+            setTimeout(() => location.reload(), 1000);
+        } catch (error) { showToast('Error', 'Restoration failed', 'error'); }
+    };
+    reader.readAsText(file);
+}
+
 // ========== UI UTILITIES ==========
 function switchView(viewId) {
     document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
@@ -2230,7 +2259,38 @@ function generateSettingsHTML() {
     return `
         <div class="card-main">
             <h3 class="card-title"><i data-lucide="settings"></i> System Settings</h3>
-            <div id="settingsForm"></div>
+            <p style="color: var(--zinc-500); margin-bottom: 20px; font-size: 0.9rem;">
+                Configure global system behavior and security limits.
+            </p>
+            <div id="settingsForm">
+                <div style="text-align: center; padding: 20px; color: var(--zinc-400);">Loading settings...</div>
+            </div>
+        </div>
+
+        <div class="card-main" style="border: 1px solid var(--brand-primary); background: rgba(59, 130, 246, 0.03);">
+            <div style="display: flex; align-items: flex-start; gap: 16px;">
+                <div style="background: var(--brand-primary); color: white; padding: 12px; border-radius: 12px;">
+                    <i data-lucide="database" size="24"></i>
+                </div>
+                <div style="flex: 1;">
+                    <h3 class="card-title" style="margin-bottom: 4px;">System State Persistence</h3>
+                    <p style="font-size: 0.85rem; color: var(--zinc-600); margin-bottom: 20px; line-height: 1.5;">
+                        Because BrowserBricker uses <strong>In-Memory Storage</strong>, all data is lost if the server process restarts. 
+                        Download a backup file regularly and upload it after a restart to restore your system state.
+                    </p>
+                    
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                        <button class="btn btn-primary" onclick="exportSystemState()">
+                            <i data-lucide="download" size="16"></i> Export System State (.json)
+                        </button>
+                        
+                        <label class="btn btn-ghost" style="cursor: pointer; background: white;">
+                            <i data-lucide="upload" size="16"></i> Import System State
+                            <input type="file" id="importFileInput" style="display: none;" onchange="importSystemState(event)" accept=".json">
+                        </label>
+                    </div>
+                </div>
+            </div>
         </div>
     `;
 }
