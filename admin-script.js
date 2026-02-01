@@ -1,11 +1,12 @@
-// BrowserBricker Admin Panel - Complete JavaScript
-// This file contains all the logic for interacting with the API
+// BrowserBricker Admin Panel - Enhanced JavaScript
+// Features: Geofencing, Live Location Tracking, Auto-Refresh (5s)
 
 lucide.createIcons();
 
 const API_URL = 'https://browserbricker.onrender.com';
 let adminApiKey = null;
 let refreshInterval = null;
+let locationRefreshInterval = null;
 let sessionStartTime = Date.now();
 let activityChart = null;
 
@@ -170,6 +171,7 @@ function logout() {
     if (!confirm('Are you sure you want to sign out?')) return;
     sessionStorage.removeItem('adminKey');
     clearInterval(refreshInterval);
+    clearInterval(locationRefreshInterval);
     setTimeout(() => location.reload(), 300);
 }
 
@@ -182,10 +184,27 @@ async function initDashboard() {
     initChart();
     updateSessionTimer();
     
+    // Main refresh interval: 5 seconds for stats and online status
     refreshInterval = setInterval(async () => {
         await loadStats();
         updateSessionTimer();
-    }, 10000);
+        
+        // Refresh active view data if needed
+        const activeView = document.querySelector('.view-container.active');
+        if (activeView) {
+            const viewId = activeView.id.replace('view-', '');
+            if (viewId === 'devices') await loadDevices();
+            if (viewId === 'locations') await loadLocations();
+        }
+    }, 5000);
+    
+    // Location tracking specific refresh: every 5 seconds when on locations view
+    locationRefreshInterval = setInterval(async () => {
+        const locationsView = document.getElementById('view-locations');
+        if (locationsView && locationsView.classList.contains('active')) {
+            await loadLocations();
+        }
+    }, 5000);
 }
 
 function updateSessionTimer() {
@@ -538,6 +557,7 @@ async function loadSessions() {
     }
 }
 
+// ========== GEOFENCING FUNCTIONS ==========
 async function loadGeofences() {
     try {
         const data = await apiCall('/api/admin/geofences');
@@ -549,23 +569,95 @@ async function loadGeofences() {
         }
 
         list.innerHTML = data.geofences.map(geo => `
-            <div style="background: var(--zinc-50); padding: 16px; border-radius: 12px; margin-bottom: 12px;">
-                <div style="font-weight: 700; margin-bottom: 4px;">${escapeHtml(geo.deviceName)}</div>
-                <div style="font-family: var(--mono); font-size: 0.75rem; color: var(--zinc-500); margin-bottom: 8px;">${geo.deviceId}</div>
-                <div style="font-size: 0.85rem; color: var(--zinc-600);">
-                    Center: ${geo.lat.toFixed(6)}, ${geo.lon.toFixed(6)} | 
-                    Radius: ${geo.radius}m | 
-                    Status: ${geo.enabled ? 'Active' : 'Disabled'}
+            <div style="background: var(--zinc-50); padding: 16px; border-radius: 12px; margin-bottom: 12px; border-left: 4px solid var(--status-info);">
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                    <div>
+                        <div style="font-weight: 700; margin-bottom: 4px;">${escapeHtml(geo.deviceName)}</div>
+                        <div style="font-family: var(--mono); font-size: 0.75rem; color: var(--zinc-500);">${geo.deviceId}</div>
+                    </div>
+                    <span class="badge badge-${geo.enabled ? 'safe' : 'warn'}">${geo.enabled ? 'Active' : 'Disabled'}</span>
                 </div>
+                <div style="background: white; padding: 12px; border-radius: 8px; border: var(--border); margin-bottom: 12px;">
+                    <div class="coordinates-display">
+                        📍 Center: ${geo.lat.toFixed(6)}, ${geo.lon.toFixed(6)}<br>
+                        📏 Radius: ${geo.radius} meters
+                    </div>
+                </div>
+                <button class="btn btn-danger" style="padding: 6px 12px; font-size: 0.75rem; width: 100%;" onclick="removeGeofence('${geo.deviceId}')">
+                    <i data-lucide="trash-2" size="12"></i> Remove Geofence
+                </button>
             </div>
         `).join('');
         
         lucide.createIcons();
     } catch (error) {
         console.error('Geofences error:', error);
+        showToast('Error', 'Failed to load geofences', 'error');
     }
 }
 
+async function createNewGeofence(event) {
+    event.preventDefault();
+    
+    const deviceId = document.getElementById('geofenceDeviceId').value.trim();
+    const lat = parseFloat(document.getElementById('geofenceLat').value);
+    const lon = parseFloat(document.getElementById('geofenceLon').value);
+    const radius = parseInt(document.getElementById('geofenceRadius').value);
+
+    if (!deviceId) {
+        showToast('Error', 'Please enter a device ID', 'error');
+        return;
+    }
+
+    if (isNaN(lat) || isNaN(lon)) {
+        showToast('Error', 'Invalid coordinates', 'error');
+        return;
+    }
+
+    if (isNaN(radius) || radius < 10 || radius > 100000) {
+        showToast('Error', 'Radius must be between 10 and 100,000 meters', 'error');
+        return;
+    }
+
+    try {
+        await apiCall('/api/device/geofence', 'POST', {
+            deviceId,
+            lat,
+            lon,
+            radius
+        });
+
+        showToast('Success', 'Geofence created successfully', 'success');
+        logTerminal(`Geofence created for device ${deviceId.substring(0, 8)}...`, 'info');
+        
+        // Clear form
+        document.getElementById('createGeofenceForm').reset();
+        
+        // Reload geofences
+        await loadGeofences();
+        await loadStats();
+    } catch (error) {
+        showToast('Error', error.message, 'error');
+    }
+}
+
+async function removeGeofence(deviceId) {
+    if (!confirm('Remove geofence for this device?\n\nThe device will no longer be restricted by location.')) return;
+
+    try {
+        await apiCall('/api/device/geofence', 'DELETE', { deviceId });
+        
+        showToast('Success', 'Geofence removed successfully', 'success');
+        logTerminal(`Geofence removed for device ${deviceId.substring(0, 8)}...`, 'info');
+        
+        await loadGeofences();
+        await loadStats();
+    } catch (error) {
+        showToast('Error', error.message, 'error');
+    }
+}
+
+// ========== LOCATION TRACKING ==========
 async function loadLocations() {
     try {
         const data = await apiCall('/api/admin/locations');
@@ -576,25 +668,36 @@ async function loadLocations() {
             return;
         }
 
-        list.innerHTML = data.locations.map(loc => `
-            <div style="background: var(--zinc-50); padding: 16px; border-radius: 12px; margin-bottom: 12px;">
-                <div style="display: flex; justify-content: space-between; align-items: start;">
-                    <div>
-                        <div style="font-weight: 700; margin-bottom: 4px;">${escapeHtml(loc.deviceName)}</div>
-                        <div style="font-family: var(--mono); font-size: 0.75rem; color: var(--zinc-500); margin-bottom: 8px;">${loc.deviceId}</div>
-                        <div style="font-size: 0.85rem; color: var(--zinc-600);">
-                            📍 ${loc.location.lat.toFixed(6)}, ${loc.location.lon.toFixed(6)}<br>
-                            Last updated: ${formatTime(loc.timestamp)}
+        list.innerHTML = data.locations.map(loc => {
+            const timeDiff = Date.now() - new Date(loc.timestamp).getTime();
+            const isRecent = timeDiff < 10000; // Less than 10 seconds = live
+            
+            return `
+                <div class="location-feed-item" style="border-left-color: ${isRecent ? 'var(--status-safe)' : 'var(--status-info)'};">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                        <div>
+                            <div style="font-weight: 700; margin-bottom: 4px;">${escapeHtml(loc.deviceName)}</div>
+                            <div style="font-family: var(--mono); font-size: 0.75rem; color: var(--zinc-500);">${loc.deviceId}</div>
+                        </div>
+                        <div style="display: flex; gap: 6px;">
+                            ${isRecent ? '<span class="badge badge-safe"><i data-lucide="radio" size="10"></i> LIVE</span>' : ''}
+                            ${loc.geofenced ? '<span class="badge badge-info"><i data-lucide="map-pin" size="10"></i> Geofenced</span>' : ''}
                         </div>
                     </div>
-                    ${loc.geofenced ? '<span class="badge badge-info">Geofenced</span>' : ''}
+                    <div class="coordinates-display">
+                        📍 ${loc.location.lat.toFixed(6)}, ${loc.location.lon.toFixed(6)}
+                    </div>
+                    <div style="font-size: 0.75rem; color: var(--zinc-400); margin-top: 8px;">
+                        Last updated: ${formatTime(loc.timestamp)}
+                    </div>
                 </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
         
         lucide.createIcons();
     } catch (error) {
         console.error('Locations error:', error);
+        showToast('Error', 'Failed to load locations', 'error');
     }
 }
 
@@ -1517,14 +1620,78 @@ function initializeAllViews() {
 
         <!-- VIEW: GEOFENCING -->
         <div id="view-geofencing" class="view-container">
-            <div class="card-main">
-                <div class="card-header">
-                    <h3 class="card-title"><i data-lucide="map-pin"></i> Geofence Management</h3>
-                    <button class="btn btn-ghost" onclick="loadGeofences()">
-                        <i data-lucide="refresh-cw" size="16"></i> Refresh
-                    </button>
+            <div class="geofence-split">
+                <div class="card-main">
+                    <div class="card-header">
+                        <h3 class="card-title"><i data-lucide="map-pin"></i> Active Geofences</h3>
+                        <button class="btn btn-ghost" onclick="loadGeofences()">
+                            <i data-lucide="refresh-cw" size="16"></i> Refresh
+                        </button>
+                    </div>
+                    <div id="geofencesList"></div>
                 </div>
-                <div id="geofencesList"></div>
+
+                <div class="card-main">
+                    <h3 class="card-title"><i data-lucide="plus-circle"></i> Create New Geofence</h3>
+                    <p style="color: var(--zinc-500); margin-bottom: 20px; line-height: 1.6;">
+                        Set up a geographic perimeter for a device. The device will be locked when it leaves this area.
+                    </p>
+                    <form id="createGeofenceForm" onsubmit="createNewGeofence(event)">
+                        <div class="field-group">
+                            <label class="field-label">Device ID</label>
+                            <input 
+                                type="text" 
+                                id="geofenceDeviceId" 
+                                class="input-control" 
+                                placeholder="Enter device ID"
+                                required>
+                        </div>
+                        
+                        <div class="field-group">
+                            <label class="field-label">Latitude</label>
+                            <input 
+                                type="number" 
+                                id="geofenceLat" 
+                                class="input-control" 
+                                step="any"
+                                placeholder="e.g., 40.712776"
+                                required>
+                        </div>
+                        
+                        <div class="field-group">
+                            <label class="field-label">Longitude</label>
+                            <input 
+                                type="number" 
+                                id="geofenceLon" 
+                                class="input-control" 
+                                step="any"
+                                placeholder="e.g., -74.005974"
+                                required>
+                        </div>
+                        
+                        <div class="field-group">
+                            <label class="field-label">Radius (meters)</label>
+                            <input 
+                                type="number" 
+                                id="geofenceRadius" 
+                                class="input-control" 
+                                min="10"
+                                max="100000"
+                                placeholder="e.g., 1000"
+                                required>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">
+                            <i data-lucide="map-pin" size="16"></i> Create Geofence
+                        </button>
+                    </form>
+                    
+                    <div style="background: var(--zinc-50); padding: 14px; border-radius: 8px; margin-top: 20px; border-left: 4px solid var(--status-info);">
+                        <p style="font-size: 0.75rem; color: var(--zinc-600); margin: 0; line-height: 1.6;">
+                            <strong>Tip:</strong> Get coordinates from Google Maps by right-clicking a location and selecting the coordinates. Format: Latitude, Longitude.
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -1532,10 +1699,14 @@ function initializeAllViews() {
         <div id="view-locations" class="view-container">
             <div class="card-main">
                 <div class="card-header">
-                    <h3 class="card-title"><i data-lucide="map"></i> Device Locations</h3>
+                    <h3 class="card-title"><i data-lucide="map"></i> Live Device Locations</h3>
                     <button class="btn btn-ghost" onclick="loadLocations()">
                         <i data-lucide="refresh-cw" size="16"></i> Refresh
                     </button>
+                </div>
+                <div style="background: var(--zinc-50); padding: 12px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 8px; height: 8px; background: var(--status-safe); border-radius: 50%; animation: pulse 2s infinite;"></div>
+                    <span style="font-size: 0.75rem; font-weight: 600; color: var(--zinc-600);">Auto-refreshing every 5 seconds</span>
                 </div>
                 <div id="locationsList"></div>
             </div>
