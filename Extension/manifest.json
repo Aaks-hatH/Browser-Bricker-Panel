@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Device Lockdown",
-  "version": "4.1.0",
+  "version": "4.2.1",
   "description": "Advanced remote browser lockdown with geofencing, breach detection, and automated security",
 
   "permissions": [
