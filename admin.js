@@ -1,10 +1,13 @@
-// System Administrator Panel JavaScript
+// System Administrator Panel JavaScript - Complete Version
+// Version: 4.2.0 - Full Feature Set
+
 const API_URL = 'https://browserbricker.onrender.com';
 
 let systemAdminKey = null;
 let refreshInterval = null;
+let locationRefreshInterval = null;
 
-// Initialize
+// ========== INITIALIZATION ==========
 document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
 });
@@ -15,11 +18,21 @@ function checkAuth() {
         document.getElementById('authOverlay').style.display = 'none';
         document.getElementById('adminMain').style.display = 'flex';
         loadDashboard();
+        
         // Auto-refresh every 5 seconds
-        refreshInterval = setInterval(loadDashboard, 5000);
+        refreshInterval = setInterval(() => {
+            loadDashboard();
+            
+            // Refresh locations if on locations view
+            const locationsView = document.getElementById('locationsView');
+            if (locationsView && locationsView.classList.contains('active')) {
+                loadLocations();
+            }
+        }, 5000);
     }
 }
 
+// ========== AUTH FUNCTIONS ==========
 function switchAuthTab(tab) {
     const loginTab = document.getElementById('loginTab');
     const registerTab = document.getElementById('registerTab');
@@ -126,13 +139,14 @@ function logout() {
     if (confirm('Are you sure you want to logout?')) {
         localStorage.removeItem('systemAdminKey');
         if (refreshInterval) clearInterval(refreshInterval);
+        if (locationRefreshInterval) clearInterval(locationRefreshInterval);
         location.reload();
     }
 }
 
+// ========== DASHBOARD LOADING ==========
 async function loadDashboard() {
     try {
-        // Load stats
         const statsRes = await fetch(`${API_URL}/api/system/stats`, {
             headers: { 'Authorization': `Bearer ${systemAdminKey}` }
         });
@@ -156,17 +170,15 @@ async function loadDashboard() {
         document.getElementById('statOnline').textContent = stats.devices.online;
         document.getElementById('statArmed').textContent = stats.devices.armed;
         document.getElementById('statUsers').textContent = stats.users.total;
+        document.getElementById('statQuarantined').textContent = stats.devices.quarantined || 0;
+        document.getElementById('statGeofenced').textContent = stats.devices.geofenced || 0;
         
-        // Load devices if on devices view
-        const devicesView = document.getElementById('devicesView');
-        if (devicesView.classList.contains('active')) {
-            await loadDevices();
-        }
-        
-        // Load users if on users view
-        const usersView = document.getElementById('usersView');
-        if (usersView.classList.contains('active')) {
-            await loadUsers();
+        // Load data for active view
+        const activeView = document.querySelector('.view-container.active');
+        if (activeView) {
+            const viewId = activeView.id.replace('View', '');
+            if (viewId === 'devices') await loadDevices();
+            if (viewId === 'users') await loadUsers();
         }
         
     } catch (error) {
@@ -174,6 +186,7 @@ async function loadDashboard() {
     }
 }
 
+// ========== DATA LOADING FUNCTIONS ==========
 async function loadDevices() {
     try {
         const response = await fetch(`${API_URL}/api/system/devices`, {
@@ -204,6 +217,67 @@ async function loadUsers() {
     }
 }
 
+async function loadGeofences() {
+    try {
+        const response = await fetch(`${API_URL}/api/system/geofences`, {
+            headers: { 'Authorization': `Bearer ${systemAdminKey}` }
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            renderGeofences(data.geofences);
+        }
+    } catch (error) {
+        console.error('Load geofences error:', error);
+    }
+}
+
+async function loadLocations() {
+    try {
+        const response = await fetch(`${API_URL}/api/system/locations`, {
+            headers: { 'Authorization': `Bearer ${systemAdminKey}` }
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            renderLocations(data.locations);
+        }
+    } catch (error) {
+        console.error('Load locations error:', error);
+    }
+}
+
+async function loadBreaches() {
+    try {
+        const response = await fetch(`${API_URL}/api/system/breaches`, {
+            headers: { 'Authorization': `Bearer ${systemAdminKey}` }
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            renderBreaches(data.breaches);
+        }
+    } catch (error) {
+        console.error('Load breaches error:', error);
+    }
+}
+
+async function loadActivity() {
+    try {
+        const response = await fetch(`${API_URL}/api/system/activity?limit=50`, {
+            headers: { 'Authorization': `Bearer ${systemAdminKey}` }
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            renderActivity(data.logs);
+        }
+    } catch (error) {
+        console.error('Load activity error:', error);
+    }
+}
+
+// ========== RENDERING FUNCTIONS ==========
 function renderDevices(devices) {
     const container = document.getElementById('devicesTable');
     
@@ -225,6 +299,7 @@ function renderDevices(devices) {
                     <th>Device</th>
                     <th>Status</th>
                     <th>State</th>
+                    <th>Security</th>
                     <th>Last Seen</th>
                     <th>Actions</th>
                 </tr>
@@ -239,15 +314,19 @@ function renderDevices(devices) {
         const stateBadge = device.armed ? 
             '<span class="badge badge-armed">ARMED</span>' : 
             '<span class="badge badge-disarmed">DISARMED</span>';
-        const quarantinedBadge = device.quarantined ? 
-            '<span class="badge badge-danger">QUARANTINED</span>' : '';
+        
+        let securityBadges = '';
+        if (device.quarantined) securityBadges += '<span class="badge badge-danger">QUARANTINED</span> ';
+        if (device.geofenced) securityBadges += '<span class="badge badge-info">GEOFENCED</span> ';
+        if (device.breachCount > 0) securityBadges += `<span class="badge badge-warn">${device.breachCount} BREACH${device.breachCount !== 1 ? 'ES' : ''}</span>`;
+        if (!securityBadges) securityBadges = '<span class="badge badge-safe">SECURE</span>';
         
         const lastSeen = device.lastHeartbeat > 0 ? 
             timeSince(device.lastHeartbeat) : 'Never';
         
         const armBtn = device.armed ? 
-            `<button class="btn btn-success" style="padding: 8px 16px; font-size: 0.8rem;" onclick="disarmDevice('${device.deviceId}')"><i data-lucide="unlock" size="14"></i> Disarm</button>` :
-            `<button class="btn btn-danger" style="padding: 8px 16px; font-size: 0.8rem;" onclick="armDevice('${device.deviceId}')"><i data-lucide="lock" size="14"></i> Arm</button>`;
+            `<button class="btn btn-success" style="padding: 8px 16px; font-size: 0.8rem;" onclick="disarmDevice('${device.deviceId}')"><i data-lucide="unlock" size="14"></i></button>` :
+            `<button class="btn btn-danger" style="padding: 8px 16px; font-size: 0.8rem;" onclick="armDevice('${device.deviceId}')"><i data-lucide="lock" size="14"></i></button>`;
         
         html += `
             <tr>
@@ -255,8 +334,9 @@ function renderDevices(devices) {
                     <div style="font-weight: 700; margin-bottom: 4px;">${escapeHtml(device.deviceName)}</div>
                     <div style="font-family: var(--mono); font-size: 0.75rem; color: var(--zinc-400);">${device.deviceId.substring(0, 12)}...</div>
                 </td>
-                <td>${onlineBadge} ${quarantinedBadge}</td>
+                <td>${onlineBadge}</td>
                 <td>${stateBadge}</td>
+                <td>${securityBadges}</td>
                 <td style="font-family: var(--mono); font-size: 0.85rem;">${lastSeen}</td>
                 <td>
                     <div style="display: flex; gap: 8px; flex-wrap: wrap;">
@@ -271,11 +351,7 @@ function renderDevices(devices) {
     
     html += '</tbody></table>';
     container.innerHTML = html;
-    
-    // Reinitialize Lucide icons
-    if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
-    }
+    lucide.createIcons();
 }
 
 function renderUsers(users) {
@@ -293,9 +369,7 @@ function renderUsers(users) {
                 </button>
             </div>
         `;
-        if (typeof lucide !== 'undefined') {
-            lucide.createIcons();
-        }
+        lucide.createIcons();
         return;
     }
     
@@ -307,6 +381,7 @@ function renderUsers(users) {
                     <th>Devices</th>
                     <th>Status</th>
                     <th>Created</th>
+                    <th>Last Used</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -319,6 +394,7 @@ function renderUsers(users) {
             '<span class="badge badge-safe">ACTIVE</span>';
         
         const created = new Date(user.created).toLocaleDateString();
+        const lastUsed = user.lastUsed ? timeSince(user.lastUsed) : 'Never';
         
         html += `
             <tr>
@@ -329,6 +405,7 @@ function renderUsers(users) {
                 </td>
                 <td>${statusBadge}</td>
                 <td style="font-size: 0.85rem;">${created}</td>
+                <td style="font-size: 0.85rem; font-family: var(--mono);">${lastUsed}</td>
                 <td>
                     ${user.revoked ? '<span style="color: var(--zinc-400); font-size: 0.8rem;">—</span>' : `
                         <button class="btn btn-danger" style="padding: 8px 16px; font-size: 0.8rem;" onclick="revokeUser('${user.fullHash}', '${user.keyHash}')">
@@ -342,13 +419,179 @@ function renderUsers(users) {
     
     html += '</tbody></table>';
     container.innerHTML = html;
-    
-    // Reinitialize Lucide icons
-    if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
-    }
+    lucide.createIcons();
 }
 
+function renderGeofences(geofences) {
+    const container = document.getElementById('geofencesList');
+    
+    if (geofences.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 60px 20px;">
+                <div style="font-size: 3rem; margin-bottom: 16px; opacity: 0.3;">📍</div>
+                <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 8px;">No geofences configured</h3>
+                <p style="color: var(--zinc-500); font-size: 0.9rem;">Create geofences to restrict device locations</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    geofences.forEach(geo => {
+        const statusBadge = geo.enabled ? 
+            '<span class="badge badge-safe">ACTIVE</span>' : 
+            '<span class="badge badge-warn">DISABLED</span>';
+        
+        html += `
+            <div style="background: var(--zinc-50); padding: 16px; border-radius: 12px; margin-bottom: 12px; border-left: 4px solid var(--status-info);">
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                    <div>
+                        <div style="font-weight: 700; margin-bottom: 4px;">${escapeHtml(geo.deviceName)}</div>
+                        <div style="font-family: var(--mono); font-size: 0.75rem; color: var(--zinc-500);">${geo.deviceId}</div>
+                    </div>
+                    ${statusBadge}
+                </div>
+                <div class="coordinates-display">
+                    📍 Center: ${geo.lat.toFixed(6)}, ${geo.lon.toFixed(6)}<br>
+                    📏 Radius: ${geo.radius} meters
+                </div>
+                <button class="btn btn-danger" style="padding: 6px 12px; font-size: 0.75rem; width: 100%; margin-top: 12px;" onclick="removeGeofence('${geo.deviceId}')">
+                    <i data-lucide="trash-2" size="12"></i> Remove Geofence
+                </button>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+    lucide.createIcons();
+}
+
+function renderLocations(locations) {
+    const container = document.getElementById('locationsList');
+    
+    if (locations.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 60px 20px;">
+                <div style="font-size: 3rem; margin-bottom: 16px; opacity: 0.3;">🗺️</div>
+                <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 8px;">No location data available</h3>
+                <p style="color: var(--zinc-500); font-size: 0.9rem;">Location data will appear when devices report their positions</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    locations.forEach(loc => {
+        const timeDiff = Date.now() - new Date(loc.timestamp).getTime();
+        const isRecent = timeDiff < 30000; // Less than 30 seconds
+        
+        html += `
+            <div class="location-item">
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                    <div>
+                        <div style="font-weight: 700; margin-bottom: 4px;">${escapeHtml(loc.deviceName)}</div>
+                        <div style="font-family: var(--mono); font-size: 0.75rem; color: var(--zinc-500);">${loc.deviceId}</div>
+                    </div>
+                    <div style="display: flex; gap: 6px;">
+                        ${isRecent ? '<span class="badge badge-safe"><i data-lucide="radio" size="10"></i> LIVE</span>' : ''}
+                        ${loc.geofenced ? '<span class="badge badge-info"><i data-lucide="map-pin" size="10"></i> GEOFENCED</span>' : ''}
+                    </div>
+                </div>
+                <div class="coordinates-display">
+                    📍 ${loc.location.lat.toFixed(6)}, ${loc.location.lon.toFixed(6)}
+                </div>
+                <div style="font-size: 0.75rem; color: var(--zinc-400); margin-top: 8px;">
+                    Last updated: ${timeSince(loc.timestamp)}
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+    lucide.createIcons();
+}
+
+function renderBreaches(breaches) {
+    const container = document.getElementById('breachesList');
+    
+    if (breaches.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 60px 20px;">
+                <div style="font-size: 3rem; margin-bottom: 16px; opacity: 0.3;">🛡️</div>
+                <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 8px;">No security breaches detected</h3>
+                <p style="color: var(--zinc-500); font-size: 0.9rem;">All devices are secure</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    breaches.forEach(breach => {
+        html += `
+            <div style="background: var(--zinc-50); padding: 16px; border-radius: 12px; margin-bottom: 12px; border-left: 4px solid var(--status-danger);">
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                    <div>
+                        <div style="font-weight: 700; margin-bottom: 4px;">${escapeHtml(breach.deviceName)}</div>
+                        <div style="font-family: var(--mono); font-size: 0.75rem; color: var(--zinc-500);">${breach.deviceId}</div>
+                    </div>
+                    <span class="badge badge-danger">${breach.count} Breach${breach.count !== 1 ? 'es' : ''}</span>
+                </div>
+                <div style="background: white; padding: 12px; border-radius: 8px; border: var(--border);">
+                    ${breach.breaches.map(b => `
+                        <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--zinc-100);">
+                            <div style="font-weight: 600; font-size: 0.85rem; margin-bottom: 4px;">
+                                ${b.type ? b.type.replace(/_/g, ' ').toUpperCase() : 'SECURITY EVENT'}
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--zinc-400);">
+                                ${new Date(b.timestamp).toLocaleString()}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+function renderActivity(logs) {
+    const container = document.getElementById('activityList');
+    
+    if (logs.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 60px 20px;">
+                <div style="font-size: 3rem; margin-bottom: 16px; opacity: 0.3;">📋</div>
+                <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 8px;">No activity logged</h3>
+                <p style="color: var(--zinc-500); font-size: 0.9rem;">Activity will appear here as actions are performed</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '<div style="position: relative; padding-left: 30px;">';
+    
+    logs.forEach((log, index) => {
+        const isLast = index === logs.length - 1;
+        
+        html += `
+            <div style="position: relative; padding-bottom: 30px;">
+                <div style="position: absolute; left: -22px; top: 8px; width: 8px; height: 8px; background: var(--zinc-300); border-radius: 50%;"></div>
+                ${!isLast ? '<div style="position: absolute; left: -18.5px; top: 16px; width: 1px; height: calc(100% - 8px); background: var(--zinc-200);"></div>' : ''}
+                <div style="font-size: 0.75rem; color: var(--zinc-400); margin-bottom: 4px;">${new Date(log.timestamp).toLocaleString()}</div>
+                <div style="font-weight: 600; margin-bottom: 4px;">${escapeHtml(log.description)}</div>
+                <div style="font-size: 0.85rem; color: var(--zinc-500);">
+                    Type: <span class="badge badge-info">${log.type}</span>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+// ========== VIEW SWITCHING ==========
 function switchView(viewName) {
     // Update nav items
     document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
@@ -361,7 +604,11 @@ function switchView(viewName) {
         'overview': 'overviewView',
         'devices': 'devicesView',
         'users': 'usersView',
-        'bulk-ops': 'bulkOpsView'
+        'geofencing': 'geofencingView',
+        'locations': 'locationsView',
+        'breaches': 'breachesView',
+        'bulk-ops': 'bulkOpsView',
+        'activity': 'activityView'
     };
     
     const targetView = document.getElementById(viewMap[viewName]);
@@ -373,19 +620,25 @@ function switchView(viewName) {
             'overview': 'Overview',
             'devices': 'Devices',
             'users': 'Master Keys',
-            'bulk-ops': 'Bulk Operations'
+            'geofencing': 'Geofencing',
+            'locations': 'Live Locations',
+            'breaches': 'Security Breaches',
+            'bulk-ops': 'Bulk Operations',
+            'activity': 'Activity Log'
         };
         document.getElementById('pageTitle').textContent = titles[viewName];
         
         // Load data for specific views
-        if (viewName === 'devices') {
-            loadDevices();
-        } else if (viewName === 'users') {
-            loadUsers();
-        }
+        if (viewName === 'devices') loadDevices();
+        else if (viewName === 'users') loadUsers();
+        else if (viewName === 'geofencing') loadGeofences();
+        else if (viewName === 'locations') loadLocations();
+        else if (viewName === 'breaches') loadBreaches();
+        else if (viewName === 'activity') loadActivity();
     }
 }
 
+// ========== DEVICE OPERATIONS ==========
 async function armDevice(deviceId) {
     const reason = prompt('Enter reason for arming (optional):') || 'Admin action';
     
@@ -404,6 +657,7 @@ async function armDevice(deviceId) {
         if (response.ok) {
             showToast('Success', 'Device armed successfully', 'success');
             loadDevices();
+            loadDashboard();
         } else {
             showToast('Error', data.error || 'Failed to arm device', 'error');
         }
@@ -431,6 +685,7 @@ async function disarmDevice(deviceId) {
         if (response.ok) {
             showToast('Success', 'Device disarmed successfully', 'success');
             loadDevices();
+            loadDashboard();
         } else {
             showToast('Error', data.error || 'Failed to disarm device', 'error');
         }
@@ -440,6 +695,72 @@ async function disarmDevice(deviceId) {
     }
 }
 
+function editDevice(deviceId, currentName) {
+    document.getElementById('editDeviceId').value = deviceId;
+    document.getElementById('editDeviceName').value = currentName;
+    document.getElementById('editDeviceModal').classList.add('active');
+}
+
+async function saveDeviceEdit(event) {
+    event.preventDefault();
+    
+    const deviceId = document.getElementById('editDeviceId').value;
+    const deviceName = document.getElementById('editDeviceName').value.trim();
+    
+    try {
+        const response = await fetch(`${API_URL}/api/system/device/update`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${systemAdminKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ deviceId, deviceName })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            closeModal('editDeviceModal');
+            showToast('Success', 'Device updated successfully', 'success');
+            loadDevices();
+        } else {
+            showToast('Error', data.error || 'Failed to update device', 'error');
+        }
+    } catch (error) {
+        console.error('Update device error:', error);
+        showToast('Error', 'Failed to update device', 'error');
+    }
+}
+
+async function deleteDevice(deviceId, deviceName) {
+    if (!confirm(`⚠️ Are you sure you want to delete "${deviceName}"?\n\nThis action cannot be undone.`)) return;
+    
+    try {
+        const response = await fetch(`${API_URL}/api/system/device/delete`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${systemAdminKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ deviceId })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            showToast('Success', 'Device deleted successfully', 'success');
+            loadDevices();
+            loadDashboard();
+        } else {
+            showToast('Error', data.error || 'Failed to delete device', 'error');
+        }
+    } catch (error) {
+        console.error('Delete device error:', error);
+        showToast('Error', 'Failed to delete device', 'error');
+    }
+}
+
+// ========== BULK OPERATIONS ==========
 async function armAll() {
     const reason = prompt('Enter reason for arming all devices (optional):') || 'Group lockdown';
     
@@ -498,6 +819,7 @@ async function disarmAll() {
     }
 }
 
+// ========== USER MANAGEMENT ==========
 async function createUser() {
     if (!confirm('Create a new master key for a user?\n\nThis will allow them to register and manage devices under your group.')) return;
     
@@ -529,10 +851,6 @@ function copyUserKey() {
     showToast('Copied', 'Master key copied to clipboard', 'success');
 }
 
-function closeModal(modalId) {
-    document.getElementById(modalId).classList.remove('active');
-}
-
 async function revokeUser(keyHash, displayHash) {
     if (!confirm(`⚠️ Are you sure you want to revoke this user (${displayHash})?\n\nThey will no longer be able to access their devices.`)) return;
     
@@ -560,39 +878,46 @@ async function revokeUser(keyHash, displayHash) {
     }
 }
 
-async function editDevice(deviceId, currentName) {
-    const newName = prompt('Enter new device name:', currentName);
-    if (!newName || newName === currentName) return;
+// ========== GEOFENCING ==========
+async function createGeofence(event) {
+    event.preventDefault();
+    
+    const deviceId = document.getElementById('geofenceDeviceId').value.trim();
+    const lat = parseFloat(document.getElementById('geofenceLat').value);
+    const lon = parseFloat(document.getElementById('geofenceLon').value);
+    const radius = parseInt(document.getElementById('geofenceRadius').value);
     
     try {
-        const response = await fetch(`${API_URL}/api/system/device/update`, {
-            method: 'PUT',
+        const response = await fetch(`${API_URL}/api/system/geofence`, {
+            method: 'POST',
             headers: {
                 'Authorization': `Bearer ${systemAdminKey}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ deviceId, deviceName: newName })
+            body: JSON.stringify({ deviceId, lat, lon, radius })
         });
         
         const data = await response.json();
         
         if (response.ok) {
-            showToast('Success', 'Device updated successfully', 'success');
-            loadDevices();
+            showToast('Success', 'Geofence created successfully', 'success');
+            document.getElementById('createGeofenceForm').reset();
+            loadGeofences();
+            loadDashboard();
         } else {
-            showToast('Error', data.error || 'Failed to update device', 'error');
+            showToast('Error', data.error || 'Failed to create geofence', 'error');
         }
     } catch (error) {
-        console.error('Update device error:', error);
-        showToast('Error', 'Failed to update device', 'error');
+        console.error('Create geofence error:', error);
+        showToast('Error', 'Failed to create geofence', 'error');
     }
 }
 
-async function deleteDevice(deviceId, deviceName) {
-    if (!confirm(`⚠️ Are you sure you want to delete "${deviceName}"?\n\nThis action cannot be undone.`)) return;
+async function removeGeofence(deviceId) {
+    if (!confirm('Remove geofence for this device?\n\nThe device will no longer be restricted by location.')) return;
     
     try {
-        const response = await fetch(`${API_URL}/api/system/device/delete`, {
+        const response = await fetch(`${API_URL}/api/system/geofence`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${systemAdminKey}`,
@@ -604,18 +929,37 @@ async function deleteDevice(deviceId, deviceName) {
         const data = await response.json();
         
         if (response.ok) {
-            showToast('Success', 'Device deleted successfully', 'success');
-            loadDevices();
+            showToast('Success', 'Geofence removed successfully', 'success');
+            loadGeofences();
+            loadDashboard();
         } else {
-            showToast('Error', data.error || 'Failed to delete device', 'error');
+            showToast('Error', data.error || 'Failed to remove geofence', 'error');
         }
     } catch (error) {
-        console.error('Delete device error:', error);
-        showToast('Error', 'Failed to delete device', 'error');
+        console.error('Remove geofence error:', error);
+        showToast('Error', 'Failed to remove geofence', 'error');
     }
 }
 
-// UTILITY FUNCTIONS
+// ========== UTILITY FUNCTIONS ==========
+function refreshData() {
+    loadDashboard();
+    const activeView = document.querySelector('.view-container.active');
+    if (activeView) {
+        const viewId = activeView.id.replace('View', '');
+        if (viewId === 'devices') loadDevices();
+        else if (viewId === 'users') loadUsers();
+        else if (viewId === 'geofencing') loadGeofences();
+        else if (viewId === 'locations') loadLocations();
+        else if (viewId === 'breaches') loadBreaches();
+        else if (viewId === 'activity') loadActivity();
+    }
+    showToast('Refreshed', 'Data updated successfully', 'success');
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.remove('active');
+}
 
 function timeSince(timestamp) {
     const seconds = Math.floor((Date.now() - timestamp) / 1000);
