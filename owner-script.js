@@ -760,7 +760,7 @@ async function createNewGeofence(event) {
     }
 
     try {
-        await apiCall('/api/system/geofence', 'POST', {
+        await apiCall('/api/admin/geofence', 'POST', {
             deviceId,
             lat,
             lon,
@@ -783,7 +783,7 @@ async function removeGeofence(deviceId) {
     if (!confirm('Remove geofence for this device?\n\nThe device will no longer be restricted by location.')) return;
 
     try {
-        await apiCall('/api/system/geofence', 'DELETE', { deviceId });
+        await apiCall('/api/admin/geofence', 'DELETE', { deviceId });
         
         showToast('Success', 'Geofence removed successfully', 'success');
         logTerminal(`Geofence removed for device ${deviceId.substring(0, 8)}...`, 'info');
