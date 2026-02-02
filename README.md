@@ -522,7 +522,7 @@ Submit feature requests via GitHub Issues with the `enhancement` label.
 
 If you find BrowserBricker useful, consider supporting its development:
 
-**Buy Me a Coffee**: [https://buymeacoffee.com/hariharanar](https://buymeacoffee.com/hariharanar)
+**Buy Me a Coffee**: [buymeacoffee.com/hariharanar](buymeacoffee.com/hariharanar)
 
 Your support helps maintain and improve BrowserBricker for everyone.
 
