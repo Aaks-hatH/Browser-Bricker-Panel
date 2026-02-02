@@ -17,9 +17,9 @@ const ALARM_NAME = 'keepalive-heartbeat';
 const ALARM_PERIOD_MINUTES = 0.5; // 30 seconds
 
 // NEW: Fail-closed configuration
-const MAX_FAILED_HEARTBEATS = 1; // Lock after 3 consecutive failures (6 seconds)
-const GRACE_PERIOD_MS = 100; // 30-second grace period after startup
-const RECONNECT_UNLOCK_REQUIRED_HEARTBEATS = 1; // Need 2 successful heartbeats to unlock
+const MAX_FAILED_HEARTBEATS = 1; // Lock after 1 consecutive failures (2 seconds)
+const GRACE_PERIOD_MS = 100; // 100-ms grace period after startup
+const RECONNECT_UNLOCK_REQUIRED_HEARTBEATS = 1; // Need 1 successful heartbeats to unlock
 
 let deviceConfig = null;
 let isArmed = false;
