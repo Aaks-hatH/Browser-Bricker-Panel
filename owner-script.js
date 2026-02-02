@@ -524,21 +524,26 @@ async function loadUsers() {
                 `<span class="badge badge-info" title="Managed by System Admin">SysAdmin</span>` :
                 `<span class="badge badge-safe" title="Independent User">User</span>`;
 
+            // Calculate counts from devices array
+            const armedCount = user.devices ? user.devices.filter(d => d.armed).length : 0;
+            const onlineCount = 0; // Not currently tracked
+            const quarantinedCount = user.devices ? user.devices.filter(d => d.quarantined).length : 0;
+
             return `
                 <tr>
-                    <td style="font-family: var(--mono); font-size: 0.8rem;">${user.keyHash}</td>
+                    <td style="font-family: var(--mono); font-size: 0.8rem;">${user.keyHash.substring(0, 16)}...</td>
                     <td>${ownerBadge}</td>
-                    <td>${new Date(user.created).toLocaleDateString()}</td>
+                    <td>${new Date(user.createdAt).toLocaleDateString()}</td>
                     <td>${formatTime(user.lastUsed)}</td>
                     <td><span class="badge badge-info">${user.uses || 0}</span></td>
                     <td><span class="badge badge-info">${user.deviceCount}</span></td>
-                    <td><span class="badge badge-${user.armedCount > 0 ? 'danger' : 'safe'}">${user.armedCount}</span></td>
-                    <td><span class="badge badge-${user.onlineCount > 0 ? 'safe' : 'warn'}">${user.onlineCount}</span></td>
-                    <td><span class="badge badge-${user.quarantinedCount > 0 ? 'danger' : 'safe'}">${user.quarantinedCount}</span></td>
+                    <td><span class="badge badge-${armedCount > 0 ? 'danger' : 'safe'}">${armedCount}</span></td>
+                    <td><span class="badge badge-${onlineCount > 0 ? 'safe' : 'warn'}">${onlineCount}</span></td>
+                    <td><span class="badge badge-${quarantinedCount > 0 ? 'danger' : 'safe'}">${quarantinedCount}</span></td>
                     <td>${statusBadge}</td>
                     <td>
                         ${!user.revoked ? 
-                            `<button class="btn btn-danger" style="padding: 6px 12px; font-size: 0.75rem;" onclick="revokeKey('${user.fullHash}')"><i data-lucide="x-circle" size="12"></i> Revoke</button>` :
+                            `<button class="btn btn-danger" style="padding: 6px 12px; font-size: 0.75rem;" onclick="revokeKey('${user.keyHash}')"><i data-lucide="x-circle" size="12"></i> Revoke</button>` :
                             '<span style="color: var(--zinc-400); font-size: 0.75rem;">Revoked</span>'
                         }
                     </td>
@@ -549,6 +554,7 @@ async function loadUsers() {
         lucide.createIcons();
     } catch (error) {
         console.error('Users error:', error);
+        showToast('Error', 'Failed to load users', 'error');
     }
 }
 
@@ -1376,15 +1382,25 @@ async function unblockIPDirect(ip) {
 }
 
 async function revokeKey(keyHash) {
-    if (!confirm('Revoke this API key?\n\nThis action cannot be undone.')) return;
+    // Validate keyHash
+    if (!keyHash || keyHash === 'undefined' || keyHash === 'null') {
+        showToast('Error', 'Invalid key hash', 'error');
+        console.error('Attempted to revoke invalid keyHash:', keyHash);
+        return;
+    }
+
+    if (!confirm(`Revoke this API key?\n\nKey: ${keyHash.substring(0, 16)}...\n\nThis action cannot be undone.`)) return;
 
     try {
-        await apiCall('/api/admin/revoke-key', 'POST', { keyHash });
-        showToast('Success', 'API key revoked', 'success');
+        // Use correct endpoint from server.js
+        await apiCall('/api/admin/users/revoke', 'POST', { keyHash });
+        showToast('Success', 'API key revoked successfully', 'success');
         logTerminal(`API key revoked: ${keyHash.substring(0, 12)}...`, 'warn');
         await loadUsers();
+        await loadStats();
     } catch (error) {
-        showToast('Error', error.message, 'error');
+        console.error('Revoke error:', error);
+        showToast('Error', error.message || 'Failed to revoke key', 'error');
     }
 }
 
