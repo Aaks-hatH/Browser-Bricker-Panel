@@ -27,7 +27,6 @@
             --zinc-900: #18181b;
             --zinc-950: #09090b;
             
-            /* System Admin specific colors - purple/violet theme */
             --brand-primary: #8b5cf6;
             --brand-dark: #7c3aed;
             --brand-light: #a78bfa;
@@ -534,6 +533,24 @@
         .toast-error { border-left-color: var(--status-danger); }
         .toast-warn { border-left-color: var(--status-warn); }
 
+        .location-item {
+            background: var(--zinc-50);
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border-left: 4px solid var(--status-info);
+        }
+
+        .coordinates-display {
+            font-family: var(--mono);
+            font-size: 0.85rem;
+            color: var(--zinc-600);
+            background: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-top: 8px;
+        }
+
         @media (max-width: 768px) {
             .grid-stats {
                 grid-template-columns: repeat(2, 1fr);
@@ -696,9 +713,25 @@
                 </div>
 
                 <div class="nav-group">
+                    <div class="nav-label">Security</div>
+                    <div class="nav-item" onclick="switchView('geofencing')">
+                        <i data-lucide="map-pin" size="18"></i> Geofencing
+                    </div>
+                    <div class="nav-item" onclick="switchView('locations')">
+                        <i data-lucide="map" size="18"></i> Live Locations
+                    </div>
+                    <div class="nav-item" onclick="switchView('breaches')">
+                        <i data-lucide="shield-alert" size="18"></i> Security Breaches
+                    </div>
+                </div>
+
+                <div class="nav-group">
                     <div class="nav-label">Tools</div>
                     <div class="nav-item" onclick="switchView('bulk-ops')">
                         <i data-lucide="zap" size="18"></i> Bulk Operations
+                    </div>
+                    <div class="nav-item" onclick="switchView('activity')">
+                        <i data-lucide="activity" size="18"></i> Activity Log
                     </div>
                 </div>
             </div>
@@ -720,6 +753,9 @@
                 <div class="page-title" id="pageTitle">Overview</div>
                 
                 <div style="display: flex; align-items: center; gap: 20px;">
+                    <button class="btn btn-ghost" style="padding: 8px 16px; font-size: 0.8rem;" onclick="refreshData()">
+                        <i data-lucide="refresh-cw" size="14"></i> Refresh
+                    </button>
                     <button class="btn btn-ghost" style="padding: 8px 16px; font-size: 0.8rem;" onclick="logout()">
                         <i data-lucide="log-out" size="14"></i> Sign Out
                     </button>
@@ -744,6 +780,14 @@
                     <div class="stat-card">
                         <h4>Master Keys</h4>
                         <div class="stat-value" style="color: var(--status-warn);" id="statUsers">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Quarantined</h4>
+                        <div class="stat-value" style="color: var(--status-danger);" id="statQuarantined">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Geofenced</h4>
+                        <div class="stat-value" style="color: var(--status-info);" id="statGeofenced">0</div>
                     </div>
                 </div>
 
@@ -775,6 +819,20 @@
                         </div>
                         <div style="font-weight: 700; font-size: 0.9rem;">Disarm All</div>
                         <div style="font-size: 0.75rem; color: var(--zinc-500);">Unlock all devices</div>
+                    </div>
+                    <div class="quick-action-btn" onclick="switchView('geofencing')">
+                        <div class="quick-action-icon">
+                            <i data-lucide="map-pin" size="24" style="color: var(--status-info);"></i>
+                        </div>
+                        <div style="font-weight: 700; font-size: 0.9rem;">Geofencing</div>
+                        <div style="font-size: 0.75rem; color: var(--zinc-500);">Location limits</div>
+                    </div>
+                    <div class="quick-action-btn" onclick="switchView('locations')">
+                        <div class="quick-action-icon">
+                            <i data-lucide="map" size="24" style="color: var(--status-info);"></i>
+                        </div>
+                        <div style="font-weight: 700; font-size: 0.9rem;">Live Tracking</div>
+                        <div style="font-size: 0.75rem; color: var(--zinc-500);">Device locations</div>
                     </div>
                 </div>
             </div>
@@ -819,6 +877,92 @@
                 </div>
             </div>
 
+            <!-- GEOFENCING VIEW -->
+            <div class="view-container" id="geofencingView">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                    <div class="card-main">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i data-lucide="map-pin" size="20"></i>
+                                Active Geofences
+                            </h2>
+                        </div>
+                        <div id="geofencesList">
+                            <div style="text-align: center; padding: 40px; color: var(--zinc-400);">
+                                Loading geofences...
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-main">
+                        <h2 class="card-title" style="margin-bottom: 24px;">
+                            <i data-lucide="plus-circle" size="20"></i>
+                            Create Geofence
+                        </h2>
+                        <form id="createGeofenceForm" onsubmit="createGeofence(event)">
+                            <div class="field-group">
+                                <label class="field-label">Device ID</label>
+                                <input type="text" id="geofenceDeviceId" class="input-control" placeholder="dev_..." required>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Latitude</label>
+                                <input type="number" id="geofenceLat" class="input-control" step="any" placeholder="40.712776" required>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Longitude</label>
+                                <input type="number" id="geofenceLon" class="input-control" step="any" placeholder="-74.005974" required>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Radius (meters)</label>
+                                <input type="number" id="geofenceRadius" class="input-control" min="10" max="100000" placeholder="1000" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="width: 100%;">
+                                <i data-lucide="map-pin" size="16"></i>
+                                Create Geofence
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LOCATIONS VIEW -->
+            <div class="view-container" id="locationsView">
+                <div class="card-main">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i data-lucide="map" size="20"></i>
+                            Live Device Locations
+                        </h2>
+                    </div>
+                    <div style="background: var(--zinc-50); padding: 12px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 8px; height: 8px; background: var(--status-safe); border-radius: 50%; animation: pulse 2s infinite;"></div>
+                        <span style="font-size: 0.75rem; font-weight: 600; color: var(--zinc-600);">Auto-refreshing every 5 seconds</span>
+                    </div>
+                    <div id="locationsList">
+                        <div style="text-align: center; padding: 40px; color: var(--zinc-400);">
+                            Loading locations...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BREACHES VIEW -->
+            <div class="view-container" id="breachesView">
+                <div class="card-main">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i data-lucide="shield-alert" size="20"></i>
+                            Security Breaches
+                        </h2>
+                    </div>
+                    <div id="breachesList">
+                        <div style="text-align: center; padding: 40px; color: var(--zinc-400);">
+                            Loading breaches...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- BULK OPS VIEW -->
             <div class="view-container" id="bulkOpsView">
                 <div class="card-main">
@@ -852,6 +996,23 @@
                     </div>
                 </div>
             </div>
+
+            <!-- ACTIVITY VIEW -->
+            <div class="view-container" id="activityView">
+                <div class="card-main">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i data-lucide="activity" size="20"></i>
+                            Activity Log
+                        </h2>
+                    </div>
+                    <div id="activityList">
+                        <div style="text-align: center; padding: 40px; color: var(--zinc-400);">
+                            Loading activity...
+                        </div>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 
@@ -874,11 +1035,27 @@
         </div>
     </div>
 
+    <div class="modal-overlay" id="editDeviceModal">
+        <div class="modal">
+            <h2>Edit Device</h2>
+            <form id="editDeviceForm" onsubmit="saveDeviceEdit(event)">
+                <div class="field-group">
+                    <label class="field-label">Device Name</label>
+                    <input type="text" id="editDeviceName" class="input-control" required>
+                </div>
+                <input type="hidden" id="editDeviceId">
+                <div style="display: flex; gap: 12px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Save</button>
+                    <button type="button" class="btn btn-ghost" onclick="closeModal('editDeviceModal')" style="flex: 1;">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div id="toastContainer"></div>
 
     <script src="admin.js"></script>
     <script>
-        // Initialize Lucide icons
         lucide.createIcons();
     </script>
 </body>
