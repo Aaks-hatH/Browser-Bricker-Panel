@@ -391,12 +391,12 @@ async function checkDeviceState() {
         const stats = await getSystemStats();
         const nonce = crypto.randomUUID();
 
-        const response = await fetch(`${API_URL}/api/device/heartbeat`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${deviceConfig.deviceApiKey}`
-            },
+        const response = await fetch(`${API_URL}/api/heartbeat`, {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${deviceConfig.deviceApiKey}`  // ✅ Added "Bearer "
+    },
             body: JSON.stringify({
                 nonce,
                 location: coords,
