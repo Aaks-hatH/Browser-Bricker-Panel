@@ -978,7 +978,6 @@ async function saveSettings(event) {
 async function createSystemAdmin(event) {
     event.preventDefault();
     
-    // 1. Get values from inputs
     const groupNameInput = document.getElementById('newAdminGroupName');
     const groupName = groupNameInput ? groupNameInput.value.trim() : "";
     const name = document.getElementById('newAdminName').value.trim();
@@ -989,37 +988,52 @@ async function createSystemAdmin(event) {
         return;
     }
 
+    if (!name || !email) {
+        showToast('Error', 'Name and Email are required', 'error');
+        return;
+    }
+
     try {
-        // 2. Call the API
         const data = await apiCall('/api/admin/system-admins/create', 'POST', { 
             groupName, 
             name, 
             email 
         });
         
-        const regCode = data.registrationCode;
+        // Server returns 'code' not 'registrationCode'
+        const regCode = data.code;
 
-        // 3. Automatically copy the code to the clipboard for convenience
-        if (navigator.clipboard) {
-            await navigator.clipboard.writeText(regCode);
-            showToast('Success', 'Code copied to clipboard!', 'success');
+        if (!regCode) {
+            throw new Error('No registration code received');
         }
 
-        // 4. Show the code in a Toast notification instead of an alert
-        showToast('Code Generated', `Group: ${groupName} | Code: ${regCode}`, 'success');
-        
-        // 5. Log it to the internal terminal
-        logTerminal(`Registration code [${regCode}] created for ${groupName}`, 'success');
-        
-        // 6. Reset the form and refresh the UI lists
-        document.getElementById('createAdminForm').reset();
+        // Copy to clipboard
+        if (navigator.clipboard) {
+            await navigator.clipboard.writeText(regCode);
+        }
+
+        // Show success modal with code
+        alert(`✅ System Admin Created Successfully!\n\n` +
+              `Registration Code:\n${regCode}\n\n` +
+              `Group: ${groupName}\n` +
+              `Name: ${name}\n` +
+              `Email: ${email}\n\n` +
+              `Expires: ${new Date(data.expiresAt).toLocaleString()}\n\n` +
+              `📋 Code has been copied to clipboard!`);
+
+        // Reset form
+        document.getElementById('newAdminGroupName').value = '';
+        document.getElementById('newAdminName').value = '';
+        document.getElementById('newAdminEmail').value = '';
+
         await loadSystemAdmins();
         await loadStats();
-        
+
+        logTerminal(`System admin created: ${email}`, 'success');
+        showToast('Success', 'System admin created! Code copied to clipboard.', 'success');
     } catch (error) {
         console.error('Create admin error:', error);
-        showToast('Error', error.message, 'error');
-        logTerminal(`Admin creation failed: ${error.message}`, 'error');
+        showToast('Error', error.message || 'Failed to create system admin', 'error');
     }
 }
 
@@ -1122,18 +1136,20 @@ function closeAdminDetails() {
 
 
 // ========== DEVICE OPERATIONS ==========
-async function toggleDevice(deviceId, arm) {
+async function toggleDevice(deviceId, shouldArm) {
+    const action = shouldArm ? 'arm' : 'disarm';
+    const reason = prompt(`Reason for ${action}ing device:`, `Owner ${action}`);
+    if (!reason) return;
+
     try {
-        const endpoint = arm ? '/api/admin/device/arm' : '/api/admin/device/disarm';
-        await apiCall(endpoint, 'POST', { deviceId });
-        
-        showToast('Success', `Device ${arm ? 'armed' : 'disarmed'} successfully`, 'success');
-        logTerminal(`Device ${deviceId.substring(0, 8)}... ${arm ? 'armed' : 'disarmed'}`, 'info');
-        
-        await loadStats();
+        await apiCall(`/api/admin/device/${action}`, 'POST', { deviceId, reason });
+        showToast('Success', `Device ${action}ed successfully`, 'success');
+        logTerminal(`Device ${deviceId.substring(0, 8)}... ${action}ed`, shouldArm ? 'warn' : 'success');
         await loadDevices();
+        await loadStats();
     } catch (error) {
-        showToast('Error', error.message, 'error');
+        console.error(`${action} error:`, error);
+        showToast('Error', error.message || `Failed to ${action} device`, 'error');
     }
 }
 
@@ -1260,8 +1276,10 @@ async function armAllDevices() {
     try {
         const data = await apiCall('/api/admin/devices/arm-all', 'POST', { reason });
         
-        showToast('Success', `${data.armedCount} devices locked`, 'success');
-        logTerminal(`Bulk operation: Armed ${data.armedCount} devices`, 'warn');
+        // Server returns 'armed' not 'armedCount'
+        const count = data.armed || 0;
+        showToast('Success', `${count} devices locked`, 'success');
+        logTerminal(`Bulk operation: Armed ${count} devices`, 'warn');
         
         await loadStats();
         await loadDevices();
@@ -1278,8 +1296,10 @@ async function disarmAllDevices() {
     try {
         const data = await apiCall('/api/admin/devices/disarm-all', 'POST', { reason });
         
-        showToast('Success', `${data.disarmedCount} devices unlocked`, 'success');
-        logTerminal(`Bulk operation: Disarmed ${data.disarmedCount} devices`, 'success');
+        // Server returns 'disarmed' not 'disarmedCount'
+        const count = data.disarmed || 0;
+        showToast('Success', `${count} devices unlocked`, 'success');
+        logTerminal(`Bulk operation: Disarmed ${count} devices`, 'success');
         
         await loadStats();
         await loadDevices();
@@ -1333,7 +1353,8 @@ async function releaseQuarantine(deviceId) {
     if (!confirm('Release this device from quarantine?')) return;
 
     try {
-        await apiCall('/api/admin/device/quarantine', 'DELETE', { deviceId });
+        // Use correct POST endpoint
+        await apiCall(`/api/admin/device/${deviceId}/release`, 'POST');
         showToast('Success', 'Device released from quarantine', 'success');
         logTerminal(`Device ${deviceId.substring(0, 8)}... released from quarantine`, 'info');
         
@@ -1419,33 +1440,86 @@ async function clearActivityLog() {
 
 async function exportSystemState() {
     try {
-        const data = await apiCall('/api/admin/system/export');
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        showToast('Exporting', 'Generating system backup...', 'info');
+        const response = await apiCall('/api/admin/system/export');
+        
+        // Server wraps data in { success: true, data: {...} }
+        const exportData = response.data || response;
+        
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], { 
+            type: 'application/json' 
+        });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `browserbricker-state-${new Date().toISOString().split('T')[0]}.json`;
+        const timestamp = new Date().toISOString().split('T')[0];
+        a.download = `browserbricker-backup-${timestamp}.json`;
+        document.body.appendChild(a);
         a.click();
-        showToast('Success', 'System backup downloaded', 'success');
-    } catch (error) { showToast('Error', 'Export failed', 'error'); }
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        showToast('Success', 'System backup downloaded successfully', 'success');
+        logTerminal('System state exported', 'info');
+    } catch (error) { 
+        console.error('Export error:', error);
+        showToast('Error', `Export failed: ${error.message}`, 'error'); 
+    }
 }
-
 async function importSystemState(event) {
     const file = event.target.files[0];
-    if (!file || !confirm("CRITICAL: Overwrite ALL current data with this backup?")) return;
+    if (!file) return;
+
+    if (!confirm("⚠️ CRITICAL WARNING ⚠️\n\n" +
+                 "This will COMPLETELY OVERWRITE all current data including:\n" +
+                 "• All devices\n" +
+                 "• All users\n" +
+                 "• All system administrators\n" +
+                 "• All settings\n" +
+                 "• All logs\n\n" +
+                 "Are you ABSOLUTELY SURE you want to proceed?")) {
+        event.target.value = '';
+        return;
+    }
 
     const reader = new FileReader();
     reader.onload = async (e) => {
         try {
+            showToast('Importing', 'Restoring system state...', 'info');
             const json = JSON.parse(e.target.result);
-            await apiCall('/api/admin/system/import', 'POST', json);
-            showToast('Success', 'System Restored!', 'success');
-            setTimeout(() => location.reload(), 1000);
-        } catch (error) { showToast('Error', 'Restoration failed', 'error'); }
+            
+            // Validate backup file
+            if (!json.version) {
+                throw new Error('Invalid backup file format - missing version');
+            }
+            
+            // Use correct endpoint and send the parsed data directly
+            const result = await apiCall('/api/admin/import', 'POST', json);
+            
+            showToast('Success', `System Restored! ${result.stats ? 
+                `Imported ${result.stats.devices || 0} devices, ${result.stats.masterKeys || 0} users` : ''}`, 'success');
+            logTerminal('System state imported successfully', 'success');
+            
+            // Reload page after successful import
+            setTimeout(() => {
+                showToast('Reloading', 'Refreshing page to show restored data...', 'info');
+                location.reload();
+            }, 2000);
+        } catch (error) {
+            console.error('Import error:', error);
+            showToast('Error', `Restoration failed: ${error.message}`, 'error');
+        } finally {
+            event.target.value = ''; // Reset file input
+        }
     };
+    
+    reader.onerror = () => {
+        showToast('Error', 'Failed to read file', 'error');
+        event.target.value = '';
+    };
+    
     reader.readAsText(file);
 }
-
 // ========== UI UTILITIES ==========
 function switchView(viewId) {
     document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
