@@ -534,7 +534,7 @@ Complete step-by-step instructions for installing and configuring BrowserBricker
 
 ```bash
 # Clone the repository
-git clone https://github.com/aakshathariharan/browserbricker.git
+git clone https://github.com/Aaks-hatH/browserbricker.git
 
 # Navigate to directory
 cd browserbricker
@@ -591,7 +591,7 @@ Your master key is the root credential for your account. It controls all devices
 
 1. **Access Control Panel**
    ```
-   https://browserbricker.onrender.com
+   https://browser-bricker-panel.onrender.com
    ```
 
 2. **Generate Master Key**
