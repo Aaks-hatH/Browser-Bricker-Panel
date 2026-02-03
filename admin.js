@@ -195,7 +195,17 @@ async function loadDevices() {
         const data = await response.json();
         
         if (data.success) {
-            renderDevices(data.devices);
+            const devices = data.devices || [];
+            const settings = { heartbeatTimeout: 60000 };
+            const now = Date.now();
+            
+            // Calculate online devices
+            devices.forEach(device => {
+                device.online = device.lastHeartbeat && 
+                               (now - device.lastHeartbeat) < settings.heartbeatTimeout;
+            });
+            
+            renderDevices(devices);
         }
     } catch (error) {
         console.error('Load devices error:', error);
