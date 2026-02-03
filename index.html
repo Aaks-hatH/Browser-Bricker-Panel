@@ -984,88 +984,109 @@
         }
 
         async function loadDevices() {
-            try {
-                const data = await apiCall('/api/devices');
+    try {
+        const response = await fetch(`${API_URL}/api/devices`, {
+            headers: { 'Authorization': `Bearer ${masterApiKey}` }
+        });
+        
+        if (!response.ok) throw new Error('Failed to load devices');
+        
+        const data = await response.json();
+        
+        // Server returns: { success: true, devices: [...] }
+        const devices = data.devices || [];
+        
+        // Calculate stats from devices array
+        const settings = { heartbeatTimeout: 60000 }; // Default 60s timeout
+        const now = Date.now();
+        
+        const online = devices.filter(d => 
+            d.lastHeartbeat && (now - d.lastHeartbeat) < settings.heartbeatTimeout
+        ).length;
+        
+        const armed = devices.filter(d => d.armed).length;
+        const quarantined = devices.filter(d => d.quarantined).length;
 
-                // Update stats
-                document.getElementById('statTotal').textContent = data.total || 0;
-                document.getElementById('statOnline').textContent = data.online || 0;
-                document.getElementById('statArmed').textContent = data.armed || 0;
-                document.getElementById('statQuarantined').textContent = data.quarantined || 0;
+        // Update stats
+        document.getElementById('statTotal').textContent = devices.length;
+        document.getElementById('statOnline').textContent = online;
+        document.getElementById('statArmed').textContent = armed;
+        document.getElementById('statQuarantined').textContent = quarantined;
 
-                const devices = data.devices || [];
-
-                if (devices.length === 0) {
-                    document.getElementById('deviceGrid').style.display = 'none';
-                    document.getElementById('emptyState').style.display = 'block';
-                    if (typeof lucide !== 'undefined') {
-                        lucide.createIcons();
-                    }
-                    return;
-                }
-
-                document.getElementById('deviceGrid').style.display = 'grid';
-                document.getElementById('emptyState').style.display = 'none';
-
-                document.getElementById('deviceGrid').innerHTML = devices.map(device => `
-                    <div class="device-card">
-                        <div class="device-header">
-                            <div>
-                                <h3 class="device-name">${escapeHtml(device.deviceName)}</h3>
-                                <div class="device-status">
-                                    <span class="status-dot ${device.online ? 'status-online' : 'status-offline'}"></span>
-                                    <span>${device.online ? 'Online' : 'Offline'}</span>
-                                </div>
-                            </div>
-                            <span class="badge ${device.armed ? 'badge-armed' : 'badge-disarmed'}">
-                                ${device.armed ? '🔒 ARMED' : '🔓 DISARMED'}
-                            </span>
-                        </div>
-
-                        <div class="device-meta">
-                            <span>ID: ${device.deviceId.substring(0, 8)}...</span>
-                            <span>Last: ${formatTime(device.lastHeartbeat)}</span>
-                        </div>
-
-                        ${device.tags && device.tags.length > 0 ? `
-                            <div class="device-tags">
-                                ${device.tags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('')}
-                            </div>
-                        ` : ''}
-
-                        ${device.quarantined ? `
-                            <div style="background: rgba(245, 158, 11, 0.1); border: 2px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 12px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
-                                <i data-lucide="alert-triangle" size="16" style="color: var(--status-warn);"></i>
-                                <strong style="color: var(--status-warn); font-size: 0.875rem;">QUARANTINED</strong>
-                            </div>
-                        ` : ''}
-
-                        <div class="device-actions">
-                            ${device.armed ? 
-                                `<button class="btn btn-success" onclick="toggleDevice('${device.deviceId}', false)" style="flex: 1;">
-                                    <i data-lucide="unlock" size="18"></i> DISARM
-                                </button>` :
-                                `<button class="btn btn-danger" onclick="toggleDevice('${device.deviceId}', true)" style="flex: 1;">
-                                    <i data-lucide="lock" size="18"></i> ARM
-                                </button>`
-                            }
-                            <button class="btn btn-ghost" onclick="editDevice('${device.deviceId}', '${escapeHtml(device.deviceName)}', '${(device.tags || []).join(',')}')">
-                                <i data-lucide="edit-2" size="18"></i>
-                            </button>
-                            <button class="btn btn-ghost" onclick="deleteDevice('${device.deviceId}', '${escapeHtml(device.deviceName)}')" style="color: var(--status-danger);">
-                                <i data-lucide="trash-2" size="18"></i>
-                            </button>
-                        </div>
-                    </div>
-                `).join('');
-                
-                if (typeof lucide !== 'undefined') {
-                    lucide.createIcons();
-                }
-            } catch (error) {
-                showToast('Error', 'Failed to load devices', 'error');
-            }
+        if (devices.length === 0) {
+            document.getElementById('deviceGrid').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'block';
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            return;
         }
+
+        document.getElementById('deviceGrid').style.display = 'grid';
+        document.getElementById('emptyState').style.display = 'none';
+
+        // Render devices with correct online detection
+        document.getElementById('deviceGrid').innerHTML = devices.map(device => {
+            const isOnline = device.lastHeartbeat && 
+                             (now - device.lastHeartbeat) < settings.heartbeatTimeout;
+            
+            return `
+                <div class="device-card">
+                    <div class="device-header">
+                        <div>
+                            <h3 class="device-name">${escapeHtml(device.deviceName)}</h3>
+                            <div class="device-status">
+                                <span class="status-dot ${isOnline ? 'status-online' : 'status-offline'}"></span>
+                                <span>${isOnline ? 'Online' : 'Offline'}</span>
+                            </div>
+                        </div>
+                        <span class="badge ${device.armed ? 'badge-armed' : 'badge-disarmed'}">
+                            ${device.armed ? '🔒 ARMED' : '🔓 DISARMED'}
+                        </span>
+                    </div>
+
+                    <div class="device-meta">
+                        <span>ID: ${device.deviceId.substring(0, 8)}...</span>
+                        <span>Last: ${formatTime(device.lastHeartbeat)}</span>
+                    </div>
+
+                    ${device.tags && device.tags.length > 0 ? `
+                        <div class="device-tags">
+                            ${device.tags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('')}
+                        </div>
+                    ` : ''}
+
+                    ${device.quarantined ? `
+                        <div style="background: rgba(245, 158, 11, 0.1); border: 2px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 12px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                            <i data-lucide="alert-triangle" size="16" style="color: var(--status-warn);"></i>
+                            <strong style="color: var(--status-warn); font-size: 0.875rem;">QUARANTINED</strong>
+                        </div>
+                    ` : ''}
+
+                    <div class="device-actions">
+                        ${device.armed ? 
+                            `<button class="btn btn-success" onclick="toggleDevice('${device.deviceId}', false)" style="flex: 1;">
+                                <i data-lucide="unlock" size="18"></i> DISARM
+                            </button>` :
+                            `<button class="btn btn-danger" onclick="toggleDevice('${device.deviceId}', true)" style="flex: 1;">
+                                <i data-lucide="lock" size="18"></i> ARM
+                            </button>`
+                        }
+                        <button class="btn btn-ghost" onclick="editDevice('${device.deviceId}', '${escapeHtml(device.deviceName)}', '${(device.tags || []).join(',')}')">
+                            <i data-lucide="edit-2" size="18"></i>
+                        </button>
+                        <button class="btn btn-ghost" onclick="deleteDevice('${device.deviceId}', '${escapeHtml(device.deviceName)}')" style="color: var(--status-danger);">
+                            <i data-lucide="trash-2" size="18"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    } catch (error) {
+        console.error('Load devices error:', error);
+        showToast('Error', 'Failed to load devices', 'error');
+    }
+}
 
         async function toggleDevice(deviceId, arm) {
             try {
