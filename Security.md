@@ -1,435 +1,219 @@
 # Security Documentation
 
-BrowserBricker Security Architecture, Features, and Best Practices
+BrowserBricker Security Architecture, Features, and Reporting
 
 ## Table of Contents
 
 - [Security Overview](#security-overview)
-- [Architecture](#architecture)
-- [Authentication](#authentication)
-- [Encryption](#encryption)
-- [Anti-Bypass Mechanisms](#anti-bypass-mechanisms)
-- [Breach Detection](#breach-detection)
+- [Service Security](#service-security)
+- [User Security](#user-security)
+- [Reporting Security Issues](#reporting-security-issues)
 - [Privacy](#privacy)
 - [Best Practices](#best-practices)
-- [Threat Model](#threat-model)
-- [Security Updates](#security-updates)
+- [FAQ](#faq)
 
 ---
 
 ## Security Overview
 
-BrowserBricker employs multiple layers of security to ensure reliable device protection:
+BrowserBricker employs enterprise-grade security to protect users and their devices:
 
-### Core Principles
+### Core Security Principles
 
 1. **Defense in Depth**: Multiple overlapping security layers
 2. **Zero Trust**: Every request authenticated and validated
 3. **Fail-Secure**: Devices stay locked on connection loss
 4. **Minimal Privilege**: Extensions run with least necessary permissions
-5. **Transparency**: Open-source for security auditing
+5. **Transparency**: Security by design, not obscurity
+6. **Continuous Monitoring**: 24/7 security event tracking
 
 ### Security Layers
 
 ```
 ┌─────────────────────────────────────────┐
-│   Layer 1: Authentication               │ SHA-256 Keys
+│   Layer 1: Authentication               │ 256-bit Keys
 ├─────────────────────────────────────────┤
 │   Layer 2: Device Fingerprinting        │ Hardware ID
 ├─────────────────────────────────────────┤
-│   Layer 3: Network Monitoring            │ IP Tracking
+│   Layer 3: Network Security             │ IP Monitoring
 ├─────────────────────────────────────────┤
-│   Layer 4: Breach Detection              │ Anomaly Detection
+│   Layer 4: Breach Detection             │ Automated Alerts
 ├─────────────────────────────────────────┤
-│   Layer 5: Quarantine System             │ Isolation
+│   Layer 5: Quarantine System            │ Isolation
+├─────────────────────────────────────────┤
+│   Layer 6: Cloud Infrastructure         │ Enterprise-Grade
 └─────────────────────────────────────────┘
 ```
 
 ---
 
-## Architecture
+## Service Security
 
-### Component Security
+### Infrastructure Security
 
-#### Browser Extension
+**Enterprise-Grade Cloud:**
+- High-availability infrastructure
+- Encrypted data transmission (TLS 1.3)
+- Secure data storage
+- Regular security audits
+- Automatic security updates
 
-**Manifest V3 Security:**
-- Service worker architecture (no persistent background pages)
-- Strict Content Security Policy
-- Minimal host permissions
-- No eval() or arbitrary code execution
+**Network Security:**
+- DDoS protection
+- Rate limiting
+- IP-based access controls
+- Intrusion detection
+- Automated threat response
 
-**Permissions Used:**
-```json
-{
-  "permissions": [
-    "storage",        // Local configuration
-    "tabs",           // Tab management
-    "webNavigation",  // Navigation control
-    "alarms",         // Heartbeat timing
-    "notifications",  // User alerts
-    "geolocation",    // GPS tracking
-    "offscreen"       // Location bridge
-  ]
-}
-```
+**Data Protection:**
+- Encrypted connections
+- Secure API key storage
+- Protected user data
+- Regular backups
+- Disaster recovery procedures
 
-#### Server Communication
+### Authentication Security
 
-**HTTPS Only:**
-- All API calls over TLS 1.3
-- Certificate pinning recommended for production
-- No downgrade to HTTP
+**API Key Security:**
+- 64-character keys (256-bit entropy)
+- SHA-256 hashing
+- Never stored in plaintext
+- Impossible to recover if lost
+- Secure generation process
 
-**API Endpoints:**
-```
-https://browserbricker.onrender.com/api/
-├── device/heartbeat     [POST] - Device check-in
-├── device/register      [POST] - New device
-├── device/arm           [POST] - Lock device
-├── device/disarm        [POST] - Unlock device
-├── device/geofence      [POST] - Set boundary
-└── devices              [GET]  - List devices
-```
-
-### Data Flow
-
-```
-Extension → HTTPS → Load Balancer → API Server → Database
-    ↓                                    ↓
- Encrypt                            Hash & Store
-    ↓                                    ↓
-GPS Data                           API Keys
-Metadata                          Device States
-```
-
----
-
-## Authentication
-
-### Master API Keys
-
-**Generation:**
-- 64 characters (256-bit entropy)
-- Cryptographically secure random
-- Generated server-side using `crypto.randomBytes(32)`
-
-**Storage:**
-- Client: User responsibility (password manager)
-- Server: SHA-256 hashed
-- Never transmitted in plaintext after initial generation
-- No recovery mechanism (security by design)
-
-**Usage:**
-```
-Authorization: Bearer <master-api-key>
-```
-
-**Validation:**
-```javascript
-const hash = crypto.createHash('sha256')
-                   .update(providedKey)
-                   .digest('hex');
-
-// Compare with stored hash
-if (hash === storedHash) {
-  // Authenticated
-}
-```
-
-### Device API Keys
-
-**Purpose:**
-- Authenticate individual devices
-- Scoped to single device only
-- Cannot manage other devices
-
-**Generation:**
-- Unique per device
-- Same security as master keys (256-bit)
-- Linked to device record in database
-
-**Rotation:**
-- Manual rotation by deleting and re-registering
-- Recommended every 90 days for high-security environments
-
-### Session Management
-
-**User Sessions:**
-- Stored in sessionStorage (browser-side)
-- Cleared on logout or browser close
+**Session Management:**
+- Secure session handling
+- Automatic timeout
 - No persistent cookies
-- 24-hour timeout recommended
-
-**Extension Sessions:**
-- Persistent in chrome.storage.local
-- Device stays configured until manually reset
-- Encrypted in Chrome's extension storage
+- Browser-based storage only
 
 ---
 
-## Encryption
+## User Security
 
-### Transport Layer
+### Extension Security
 
-**TLS Configuration:**
-- TLS 1.3 minimum
-- Strong cipher suites only:
-  - `TLS_AES_256_GCM_SHA384`
-  - `TLS_CHACHA20_POLY1305_SHA256`
-- Forward secrecy enabled
+**Browser Integration:**
+- Manifest V3 compliance
+- Minimal permissions required
+- Strict Content Security Policy
+- No arbitrary code execution
+- Regular security reviews
 
-**Certificate:**
-- Managed by Render.com hosting
-- Automatic renewal
-- Valid wildcard cert for `*.onrender.com`
+**Lock Screen Protection:**
+- Multiple anti-bypass techniques
+- Keyboard suppression
+- Navigation interception
+- Tab enforcement
+- DOM self-healing
 
-### Data at Rest
+**Known Limitations:**
 
-**Server Database:**
-- API key hashes (SHA-256)
-- Encrypted connection strings
-- No plaintext sensitive data
-
-**Client Storage:**
-- Chrome extension storage (encrypted by browser)
-- Device API key stored locally
-- Location history not stored locally
-
-### Cryptographic Operations
-
-**Fingerprinting:**
-```javascript
-async function generateFingerprint() {
-    const data = navigator.userAgent + 
-                 navigator.hardwareConcurrency + 
-                 navigator.platform + 
-                 navigator.language;
-    
-    const buffer = new TextEncoder().encode(data);
-    const hash = await crypto.subtle.digest('SHA-256', buffer);
-    
-    return Array.from(new Uint8Array(hash))
-                .map(b => b.toString(16).padStart(2, '0'))
-                .join('');
-}
-```
-
-**Nonce Generation:**
-```javascript
-const nonce = crypto.randomUUID(); // v4 UUID
-```
-
----
-
-## Anti-Bypass Mechanisms
-
-### Extension Lock Enforcement
-
-#### 1. Navigation Interception
-
-**webNavigation API:**
-```javascript
-chrome.webNavigation.onBeforeNavigate.addListener((details) => {
-    if (isArmed && details.frameId === 0) {
-        const lockUrl = chrome.runtime.getURL('lock.html');
-        if (!details.url.startsWith(lockUrl)) {
-            chrome.tabs.update(details.tabId, { url: lockUrl });
-        }
-    }
-});
-```
-
-**Coverage:**
-- URL bar navigation
-- Link clicks
-- Form submissions
-- JavaScript redirects
-
-#### 2. Tab Creation Control
-
-**tabs API:**
-```javascript
-chrome.tabs.onCreated.addListener((tab) => {
-    if (isArmed) {
-        setTimeout(() => {
-            chrome.tabs.update(tab.id, { 
-                url: chrome.runtime.getURL('lock.html') 
-            });
-        }, 50);
-    }
-});
-```
-
-#### 3. Lock Screen Hardening
-
-**Keyboard Suppression:**
-```javascript
-document.addEventListener("keydown", (e) => {
-    // Block all modifier keys
-    if (e.ctrlKey || e.altKey || e.metaKey) {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        return false;
-    }
-    
-    // Block function keys
-    if (e.key.startsWith('F')) {
-        e.preventDefault();
-        return false;
-    }
-}, true);
-```
-
-**Interaction Blocking:**
-```javascript
-const blockedEvents = [
-    "contextmenu", "copy", "cut", "paste",
-    "dragstart", "selectstart", "mousedown",
-    "wheel", "touchstart"
-];
-
-blockedEvents.forEach(event => {
-    document.addEventListener(event, 
-        (e) => e.preventDefault(), 
-        true
-    );
-});
-```
-
-**DOM Self-Healing:**
-```javascript
-const snapshot = document.body.innerHTML;
-
-setInterval(() => {
-    if (document.body.innerHTML !== snapshot) {
-        document.body.innerHTML = snapshot;
-    }
-}, 1000);
-```
-
-#### 4. Persistence System
-
-**Multiple Keep-Alive Strategies:**
-
-1. **Chrome Alarms** (30-second interval)
-2. **Port Connection** (long-lived connection)
-3. **Storage Access** (20-second pings)
-4. **Offscreen Document** (maintains worker)
-5. **Web Request Listener** (prevents termination)
-6. **Self-Message Loop** (25-second pings)
-
-**Result:**
-- Service worker stays active indefinitely
-- Heartbeat continues even during low activity
-- Lock enforcement persists
-
-### Known Limitations
-
-**User Can Circumvent By:**
-
-1. **Disabling Extension:**
-   - Navigate to `chrome://extensions/`
-   - Toggle BrowserBricker off
-   - **Mitigation**: Requires user knowledge of extensions
-
-2. **Removing Extension:**
-   - Delete from extensions page
-   - **Mitigation**: User must know about extension
-
-3. **Using Another Browser:**
-   - Switch to unprotected browser
-   - **Mitigation**: Install on all browsers
-
-4. **Booting Safe Mode:**
-   - Start browser without extensions
-   - **Mitigation**: System-level controls
+Users with physical device access can:
+1. Disable the extension via `chrome://extensions/`
+2. Remove the extension completely
+3. Use a different browser
+4. Boot in safe mode
 
 **Why These Exist:**
 - Chrome security model prevents extensions from being unremovable
-- Physical device access provides ultimate control
-- BrowserBricker is a deterrent, not a prison
+- Physical access = ultimate control
+- BrowserBricker is a deterrent and monitoring tool
 
 **Additional Protections:**
-- Combine with OS-level parental controls
-- Use with full-disk encryption
+- Combine with OS-level controls
+- Use full-disk encryption
 - Implement BIOS passwords
-- Enable Chrome policies for managed devices
+- Enable managed Chrome policies
+
+### Device Security Best Practices
+
+**For Users:**
+1. Store master key in password manager
+2. Never share your master key
+3. Use strong device passwords
+4. Keep browser updated
+5. Enable two-factor authentication where available
+
+**For System Administrators:**
+1. Maintain secure registration codes
+2. Monitor breach detection alerts
+3. Regular security audits
+4. Document all device assignments
+5. Implement incident response procedures
 
 ---
 
-## Breach Detection
+## Reporting Security Issues
 
-### Monitored Events
+### How to Report
 
-BrowserBricker automatically detects and logs:
+**Found a security vulnerability?**
 
-#### Authentication Anomalies
-- Multiple failed API key attempts
-- Requests from unexpected IPs
-- Rapid key rotation
-- Invalid device fingerprints
+**IMPORTANT: DO NOT** post security issues publicly on GitHub
 
-#### Behavioral Anomalies
-- Unusual heartbeat patterns
-- GPS coordinate jumping
-- Rapid arm/disarm cycles
-- Extension reinstallation
+**Contact:** browserbricker@gmail.com
 
-#### Security Events
-- Geofence violations
-- Quarantine escapes
-- API rate limit hits
-- Suspicious metadata changes
+**Include:**
+1. Description of the vulnerability
+2. Steps to reproduce
+3. Potential impact
+4. Your contact information
+5. Screenshots or proof of concept (if applicable)
 
-### Automatic Responses
+**What NOT to Include:**
+- Do not attempt to exploit the vulnerability on the production service
+- Do not access other users' data
+- Do not disrupt service for others
 
-**Level 1 - Logging:**
-- Record event with timestamp
-- Capture full context
-- No automated action
+### Response Process
 
-**Level 2 - Alerting:**
-- Increment breach counter
-- Notify administrators
-- Flag device in dashboard
+**Our Commitment:**
+1. **Acknowledgment**: 24-48 hours
+2. **Initial Assessment**: 3-5 business days
+3. **Fix Development**: Varies by severity
+4. **Deployment**: As soon as fix is tested
+5. **Public Disclosure**: After fix is deployed
 
-**Level 3 - Quarantine:**
-- Automatic device isolation
-- Lock until manual review
-- Prevent all remote unlocks
+**Severity Levels:**
 
-### Breach Reporting
+| Severity | Response Time | Examples |
+|----------|---------------|----------|
+| **Critical** | Immediate | Data breach, authentication bypass |
+| **High** | 1-3 days | Privilege escalation, data exposure |
+| **Medium** | 1-2 weeks | Logic flaws, minor security issues |
+| **Low** | As scheduled | Cosmetic issues, suggestions |
 
-**Admin Panel Access:**
-```
-Admin Dashboard → Security → Breach Detection
-```
+### Bug Bounty
 
-**Information Shown:**
-- Device ID and name
-- Breach type and count
-- Timestamp and details
-- Severity level
-- Recommended actions
+**Security researchers are appreciated!**
+
+While we don't currently have a formal bug bounty program, we:
+- Acknowledge security researchers in our credits
+- Respond promptly to all reports
+- May offer rewards for critical findings
+- Ensure safe disclosure process
+
+Contact browserbricker@gmail.com for details.
 
 ---
 
 ## Privacy
 
-### Data Collection
+### What We Collect
 
-**What We Collect:**
+**Device Information:**
+- Device fingerprint (hashed hardware ID)
+- GPS coordinates (only when tracking enabled)
+- Battery level (when monitoring enabled)
+- Network type (connection information)
+- Heartbeat timestamps
 
-| Data Type | Purpose | Storage |
-|-----------|---------|---------|
-| Device fingerprint | Unique identification | Hashed |
-| GPS coordinates | Geofencing | Encrypted |
-| Battery level | Status monitoring | Temporary |
-| Network type | Connectivity | Temporary |
-| Browser/OS | Compatibility | Not stored |
-| IP address | Security | Hashed |
-| Timestamps | Activity tracking | Permanent |
+**User Information:**
+- API key hashes
+- Device names and tags
+- Action timestamps
+- IP addresses (for security)
 
 **What We DON'T Collect:**
 - Browsing history
@@ -437,324 +221,254 @@ Admin Dashboard → Security → Breach Detection
 - Personal files
 - Keystrokes
 - Screenshots
-- Webcam/microphone
+- Webcam/microphone data
+
+### Data Usage
+
+**Your Data Is Used For:**
+- Device authentication
+- Service functionality
+- Security monitoring
+- Breach detection
+- Service improvement
+
+**Your Data Is NEVER:**
+- Sold to third parties
+- Shared without consent
+- Used for advertising
+- Tracked across services
+
+### Data Retention
+
+**Active Accounts:**
+- Data retained while account is active
+- Required for service functionality
+- Secured with encryption
+
+**Account Deletion:**
+- Contact browserbricker@gmail.com to delete account
+- All associated data will be removed
+- Process completed within 30 days
 
 ### Location Privacy
 
 **GPS Tracking:**
-- Only when explicitly enabled
-- Requires user permission
-- Can be disabled per device
-- Accuracy: ±10-50 meters
+- Only when explicitly enabled by user
+- Requires browser permission
+- Can be disabled at any time
+- Used only for geofencing
 
 **Location Data:**
-- Encrypted in transit (TLS)
+- Encrypted in transit
+- Securely stored
 - Not shared with third parties
-- Used only for geofencing
-- Deleted on device removal
-
-### Third-Party Services
-
-**None.**
-
-BrowserBricker uses:
-- No analytics services
-- No advertising networks  
-- No tracking pixels
-- No external CDNs (except fonts)
-
-**Hosting:**
-- Render.com (PaaS provider)
-- Located in US data centers
-- GDPR compliant
-- SOC 2 Type II certified
+- Deleted upon device removal
 
 ---
 
 ## Best Practices
 
-### For End Users
+### For Individual Users
 
-**API Key Management:**
-1. Store master key in password manager
-2. Use different master keys for different purposes
-3. Never email keys to yourself
-4. Don't screenshot keys to cloud storage
-5. Treat keys like passwords
+**Account Security:**
+1. **Store Master Key Securely**
+   - Use a password manager
+   - Never email keys
+   - Don't save in browser
+   - Keep backup copy offline
 
-**Device Security:**
-1. Use strong OS passwords
-2. Enable full-disk encryption
-3. Keep browser updated
-4. Use HTTPS everywhere
-5. Enable firewall
+2. **Device Security**
+   - Use strong device passwords
+   - Enable full-disk encryption
+   - Keep browser updated
+   - Review extension permissions
 
-**Operational Security:**
-1. Test locks before relying on them
-2. Have backup admin access
-3. Document device configurations
-4. Regular security audits
-5. Plan for emergency unlocks
+3. **Operational Security**
+   - Test locks before relying on them
+   - Have emergency contact plan
+   - Document device configurations
+   - Regular security reviews
 
-### For Administrators
-
-**System Hardening:**
-1. Use admin panel IP whitelisting
-2. Enable 2FA on admin accounts (when available)
-3. Rotate admin keys quarterly
-4. Monitor breach detection logs
-5. Implement device naming standards
+### For Organizations
 
 **Deployment:**
-1. Pre-configure extensions before deployment
-2. Document all device registrations
-3. Create SOPs for common scenarios
-4. Train users on expected behavior
-5. Have rollback procedures ready
+1. **Contact Service Owner**
+   - Email: browserbricker@gmail.com
+   - Request system administrator access
+   - Provide organization details
+   - Receive secure registration code
 
-**Monitoring:**
-1. Check system health daily
-2. Review audit logs weekly
-3. Investigate all breach alerts
-4. Track device online/offline patterns
-5. Maintain incident response plan
+2. **User Training**
+   - Inform users about monitoring
+   - Explain acceptable use policies
+   - Provide support contacts
+   - Document procedures
 
-### For Developers
+3. **Security Monitoring**
+   - Review breach detection logs
+   - Investigate security alerts
+   - Maintain incident response plan
+   - Regular audits
 
-**Code Security:**
-1. Never log API keys
-2. Sanitize all user inputs
-3. Use parameterized queries
-4. Validate on server-side
-5. Follow least privilege principle
-
-**Deployment:**
-1. Use environment variables for secrets
-2. Keep dependencies updated
-3. Run security scanners
-4. Enable CORS properly
-5. Implement rate limiting
+**Compliance:**
+- Obtain necessary consent
+- Follow data protection laws
+- Maintain audit trails
+- Document security procedures
 
 ---
 
-## Threat Model
+## FAQ
 
-### Threat Actors
+### Security Questions
 
-**1. Curious Teenager**
-- **Capability**: Low technical skill
-- **Goal**: Browse unrestricted
-- **Method**: Try obvious bypasses
-- **Mitigation**: Basic lock screen hardening sufficient
+**Q: How secure is my data?**  
+A: All data is encrypted in transit and at rest. We use enterprise-grade security practices.
 
-**2. Tech-Savvy User**
-- **Capability**: Moderate technical skill
-- **Goal**: Disable protection
-- **Method**: Extension manipulation
-- **Mitigation**: Extension can be disabled; combine with OS controls
+**Q: Can the service see my browsing history?**  
+A: No. BrowserBricker only monitors device lock status, location (if enabled), and system events.
 
-**3. Malicious Insider**
-- **Capability**: High technical skill, device access
-- **Goal**: Complete system compromise
-- **Method**: Multiple attack vectors
-- **Mitigation**: Physical security, encryption, monitoring
+**Q: What happens if there's a data breach?**  
+A: We monitor continuously for threats. In case of incident, affected users are notified immediately.
 
-**4. External Attacker**
-- **Capability**: High technical skill, remote
-- **Goal**: Unauthorized device control
-- **Method**: API attacks, MITM, credential theft
-- **Mitigation**: Strong authentication, TLS, rate limiting
+**Q: Can someone hack my devices through BrowserBricker?**  
+A: API keys are strongly hashed. Unauthorized access would require compromising your master key.
 
-### Attack Scenarios
+**Q: Is my location data safe?**  
+A: Yes. Location data is encrypted, only collected when enabled, and never shared with third parties.
 
-#### Scenario 1: Extension Disable
+### Service Questions
 
-**Attack:**
-```
-1. Navigate to chrome://extensions/
-2. Find BrowserBricker
-3. Toggle OFF
-4. Browse unrestricted
-```
+**Q: Who has access to my data?**  
+A: Only you via your master key, and service administrators for maintenance purposes.
 
-**Defense:**
-- Cannot prevent (Chrome security model)
-- Use in combination with managed Chrome policies
-- Deploy alongside OS-level parental controls
-- Consider kiosk mode for high-security needs
+**Q: Is the service audited?**  
+A: Yes, we perform regular security audits and vulnerability assessments.
 
-#### Scenario 2: API Key Theft
+**Q: What if the service is compromised?**  
+A: We have incident response procedures and will notify all users immediately.
 
-**Attack:**
-```
-1. Access extension storage
-2. Extract device API key
-3. Use key to unlock remotely
-```
+**Q: Can I export my data?**  
+A: Yes, contact browserbricker@gmail.com to request data export.
 
-**Defense:**
-- Keys hashed in server storage
-- Monitor for unusual API usage patterns
-- Breach detection alerts on anomalies
-- Geographic IP validation
+### Technical Questions
 
-#### Scenario 3: Geofence Spoofing
+**Q: How are API keys stored?**  
+A: Keys are hashed using SHA-256. Plaintext keys are never stored.
 
-**Attack:**
-```
-1. Use GPS spoofing software
-2. Fake location inside geofence
-3. Bypass location lock
-```
+**Q: What encryption is used?**  
+A: TLS 1.3 for data in transit, industry-standard encryption for data at rest.
 
-**Defense:**
-- GPS spoofing possible with root/jailbreak
-- Combine with IP geolocation validation
-- Use smaller geofence radius
-- Enable breach detection alerts
+**Q: How often are security updates released?**  
+A: Critical security issues are patched immediately. Regular updates are deployed as needed.
 
-#### Scenario 4: Network Interception
+**Q: Can I audit the code?**  
+A: The browser extension is open-source and available for review on GitHub.
 
-**Attack:**
-```
-1. MITM attack on local network
-2. Intercept API traffic
-3. Extract keys or manipulate responses
-```
+---
 
-**Defense:**
-- TLS encryption prevents interception
-- Certificate validation required
-- No sensitive data in URLs
-- Nonce-based replay protection
+## Supported Versions
+
+### Current Support Status
+
+| Version | Supported | End of Support |
+|---------|-----------|----------------|
+| 5.0.x   | ✅ Yes    | Current        |
+| 4.2.x   | ✅ Yes    | June 2026      |
+| 4.1.x   | ⚠️ Limited | March 2026    |
+| < 4.0   | ❌ No     | Unsupported    |
+
+**Recommendation:** Always use the latest version for best security.
+
+---
+
+## Contact Information
+
+### Security Contact
+
+**For Security Issues:**
+- **Email**: browserbricker@gmail.com
+- **Subject**: "SECURITY: [Brief Description]"
+- **Response Time**: 24-48 hours
+
+**For General Security Questions:**
+- **Email**: browserbricker@gmail.com
+- **Subject**: "Security Question: [Topic]"
+
+### System Administrator Access
+
+**Organizations requiring administrative access:**
+- **Email**: browserbricker@gmail.com
+- **Subject**: "System Admin Access Request"
+- **Include**: Organization details, use case, device count
+
+### Service Support
+
+**For service issues or questions:**
+- **Email**: browserbricker@gmail.com
+- **GitHub**: [Issues Page](https://github.com/Aaks-hatH/Browser-Bricker-Panel/issues)
+- **Response Time**: 24-48 hours
+
+---
+
+## Responsible Disclosure
+
+We appreciate security researchers who:
+- Report vulnerabilities responsibly
+- Give us time to fix issues
+- Don't exploit vulnerabilities
+- Respect user privacy
+
+**We commit to:**
+- Prompt response and investigation
+- Transparent communication
+- Timely patches and updates
+- Recognition for researchers (with permission)
 
 ---
 
 ## Security Updates
 
-### Vulnerability Reporting
+**Stay Informed:**
+- Watch the GitHub repository for updates
+- Check the changelog regularly
+- Subscribe to service announcements (contact us)
 
-**Found a security issue?**
-
-1. **DO NOT** open a public GitHub issue
-2. Email: browserbricker@gmail.com
-3. Include:
-   - Vulnerability description
-   - Steps to reproduce
-   - Potential impact
-   - Suggested fix (if any)
-
-**Response Timeline:**
-- Acknowledgment: 24-48 hours
-- Initial assessment: 3-5 days
-- Fix implementation: Varies by severity
-- Public disclosure: After fix deployed
-
-### Version History
-
-**v4.1.0 (Current)**
-- Enhanced keep-alive system (6 strategies)
-- Improved lock screen hardening
-- GPS accuracy improvements
-- Breach detection system
-- Quarantine mode
-
-**Security Patches:**
-- Regular dependency updates
-- Chrome API compatibility updates
-- Server security hardening
-
-### Update Procedure
-
-**Extension Updates:**
-1. Download latest release from GitHub
-2. Remove old version from browser
-3. Load new version unpacked
-4. Verify configuration retained
-
-**Server Updates:**
-- Zero-downtime deployment
-- Automatic failover
-- Database migrations tested
-- Rollback procedures ready
+**Latest Security Updates:**
+- v5.0.0: Enhanced infrastructure security
+- v4.2.1: Improved data protection
+- v4.1.0: Advanced breach detection
 
 ---
 
-## Compliance
+## Legal
 
-### Data Protection
+### Terms of Service
 
-**GDPR Considerations:**
-- Right to access: Via API/dashboard
-- Right to deletion: Via device deletion
-- Right to portability: Data export available
-- Privacy by design: Minimal data collection
+Use of BrowserBricker is subject to:
+- Compliance with local laws
+- Obtaining necessary user consent
+- Responsible use of monitoring capabilities
+- No malicious or unauthorized use
 
-**COPPA Considerations:**
-- Parental consent: User responsibility
-- No data selling: Guaranteed
-- No tracking: No third-party analytics
+### Liability
 
-### Terms of Use
-
-Users are responsible for:
-- Complying with local laws
-- Obtaining necessary consent
-- Proper use of monitoring capabilities
-- Data protection obligations
-
-BrowserBricker is provided as-is for legitimate device management purposes only.
+BrowserBricker is provided "as-is" for legitimate device management purposes. Users are responsible for:
+- Proper deployment and configuration
+- Obtaining required consent
+- Compliance with applicable laws
+- Appropriate use of features
 
 ---
 
-## Security Checklist
+**Security Documentation v5.0**
 
-Before deploying BrowserBricker, ensure:
+Last Updated: February 2026
 
-- Master key stored in password manager
-- Device API keys documented
-- Geofencing tested if used
-- Lock/unlock cycle tested
-- Breach alerts configured
-- Backup admin access available
-- Users informed of monitoring
-- Legal compliance verified
-- Emergency procedures documented
-- Regular security audits scheduled
+Maintained by: Aakshat Hariharan
+
+**Contact:** browserbricker@gmail.com
 
 ---
 
-# Security Policy
-
-## Reporting a Vulnerability
-
-**DO NOT** open a public issue for security vulnerabilities.
-
-Email: browserbricker@gmail.com
-
-Include:
-- Description of vulnerability
-- Steps to reproduce
-- Potential impact
-- Suggested fix (if any)
-
-## Response Timeline
-
-- Acknowledgment: 24-48 hours
-- Initial assessment: 3-5 days
-- Fix development: Varies by severity
-- Public disclosure: After fix deployed
-
-## Supported Versions
-
-| Version | Supported |
-|---------|-----------|
-| 4.1.x   | Yes       |
-| 4.0.x   | Yes       |
-| < 4.0   | No        |
-
----
-
-**Security Documentation v4.1** • Last Updated: January 2026 • By Aakshat Hariharan
-
-For security inquiries: browserbricker@gmail.com
+**Remember: If you see something, say something. Security is everyone's responsibility.**
