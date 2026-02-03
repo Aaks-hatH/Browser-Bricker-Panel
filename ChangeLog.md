@@ -2,128 +2,159 @@
 
 All notable changes to BrowserBricker are documented here.
 
+## [5.0.0] - 2026-02-02
+
+### MAJOR UPDATE: Enhanced Service Infrastructure
+
+**🎉 Upgraded Backend Architecture**
+
+BrowserBricker's backend infrastructure has been upgraded to enterprise-grade cloud storage, providing improved reliability and performance for all users.
+
+### What's New for Users
+- **Improved Reliability:** Service now maintains your device configurations permanently, even during maintenance windows
+- **Better Performance:** Faster dashboard loading and improved response times
+- **Enhanced Stability:** More reliable connection and reduced downtime
+- **Always Available:** Your devices and settings persist across all service updates
+
+### What This Means
+- **No Action Required:** All existing users automatically benefit from the upgrade
+- **Seamless Experience:** All your devices, settings, and configurations are preserved
+- **Better Uptime:** Enhanced infrastructure means more reliable service
+- **Future-Ready:** System can now scale to support growing user base
+
+### For System Administrators
+System administrators requiring access should contact **browserbricker@gmail.com** with:
+- Organization name
+- Intended use case
+- Number of devices to be managed
+- Contact information
+
+---
+
 ## [4.2.1] - 2026-02-01
 
-### Added - System Persistence & Recovery
-- **JSON State Export:** Added ability for the Owner to download the entire system state (Maps, Sets, Logs, and Settings) as a single encrypted-hash JSON file.
-- **JSON State Import:** Added a recovery mechanism to upload a previously saved JSON state, allowing the system to restore all Admins, Devices, and Keys after a server restart or deployment.
+### Added - System Management Features
+- **Enhanced Backup System:** Improved data preservation during service maintenance
+- **Better Reliability:** Strengthened system stability and data integrity
 
-### Fixed - Critical API Endpoints
-- **Global User Management:** Added missing `GET /api/admin/users` endpoint to allow Owners to view all Master Keys across the entire system.
-- **Global Revocation:** Added missing `POST /api/admin/revoke-key` endpoint for Owners to revoke any Master Key regardless of group.
-- **Data Synchronization:** Fixed `GET /api/admin/system-admins` to include `registrationCodes` in the response, resolving the issue where pending codes were not appearing in the Owner Panel.
+### Fixed - API Improvements
+- **User Management:** Enhanced endpoint for viewing all user accounts
+- **Account Controls:** Improved system administrator management capabilities
+- **Data Synchronization:** Better tracking of pending registration codes
 
-### Fixed - UX & Workflow Improvements
-- **Group Management:** Updated the System Admin creation form to include the mandatory `groupName` field required by the server.
-- **Registration Workflow:** Replaced browser `alert()` pop-ups with a streamlined **Toast + Auto-Copy** system. New registration codes are now automatically copied to the clipboard and displayed in a non-intrusive toast notification.
-- **Persistence UI:** Added a dedicated "System State Persistence" section in the Owner Settings for manual backups.
+### Fixed - User Experience
+- **Group Management:** Streamlined system administrator setup process
+- **Registration Workflow:** Improved notification system with automatic clipboard integration
+- **Settings Interface:** Enhanced system configuration options
 
 ---
 
 ## [4.2.0] - 2026-02-01
 
 ### MAJOR UPDATE: Hierarchical Access Control System
-This release introduces a complete hierarchical system for multi-organization deployment, perfect for schools, businesses, and resellers.
+Complete multi-organization support for enterprise deployments.
 
-### Added - Hierarchical System
-**Three-Tier Access Control:**
-- **OWNER Level** (Top Tier)
-  - Full system control across all organizations
-  - Create and manage system administrators
-  - View all devices across entire system
-  - Access via `/api/admin` endpoints (backwards compatible)
-  - Generate system administrator registration codes
-  - Deactivate/reactivate/delete system administrators
-  - Arm/disarm all devices system-wide
-  - Complete audit trail and analytics
+### Added - Three-Tier System
+**Access Levels:**
+- **OWNER Level** (Service Administrator)
+  - Full system control and oversight
+  - Create and manage organization administrators
+  - View all devices across the platform
+  - System-wide security controls
+  - Complete analytics and reporting
 
-- **SYSTEM ADMINISTRATOR Level** (Middle Tier)
-  - Group-based device management
-  - Cannot view or control other administrators' groups
-  - Zero-trust isolation between groups
-  - Access via `/api/system` endpoints
-  - Create users (master keys) within their group
-  - Manage only devices in their group
-  - Bulk arm/disarm for group devices
-  - Group-specific analytics and reporting
+- **SYSTEM ADMINISTRATOR Level** (Organization Manager)
+  - Manage devices within assigned organization/group
+  - Cannot access other organizations' devices
+  - Organization-specific user management
+  - Group-level analytics and controls
+  - **Contact owner for system administrator access**
 
-- **USER Level** (Bottom Tier)
-  - Individual device management
-  - Can be independent or under a system administrator
-  - Access via `/api/device` endpoints
+- **USER Level** (Device Owner)
+  - Personal device management
   - Standard device registration and control
-  - Personal device limits
+  - Individual account controls
 
-### Added - Registration Code System
-**Secure Onboarding:**
-- One-time use registration codes for system administrators
-- Owner generates codes via `/api/admin/system-admins/create`
-- Codes expire after 7 days (configurable)
-- Format: `XXXX-XXXX-XXXX-XXXX` (16 alphanumeric chars)
-- System admins self-register with code
-- Prevents unauthorized system administrator creation
-- Full audit trail of code usage
+### Added - Secure Onboarding
+**System Administrator Access:**
+- Contact **browserbricker@gmail.com** for organization access
+- Secure registration code provided by service owner
+- One-time use codes for enhanced security
+- Full audit trail of all access grants
 
 ### Added - Web Interfaces
-- **System Administrator Panel (`admin.html` and `admin.js`)**
-- **Owner Panel (renamed existing `admin.html` to `owner.html`)**
+- **System Administrator Dashboard** for organization management
+- **Enhanced Owner Panel** for service administration
+- **Improved User Panel** for device control
 
-### Added - Security Features
-- **Zero-Trust Architecture:** Strict role validation and group isolation.
-- **Audit Logging:** Comprehensive history with actor tracking and hierarchical attribution.
-
-### Changed
-- **Authentication System:** Role-based middleware with backwards compatibility for existing keys.
-- **Device Registration:** Devices now track `systemAdminId` and `groupId`.
-
-### Configuration
-**New Environment Variables:**
-- `MAX_DEVICES_PER_SYSADMIN`
-- `MAX_SYSTEM_ADMINS`
-- `MAX_USERS_PER_SYSADMIN`
-- `REG_CODE_EXPIRY`
+### Security Enhancements
+- **Zero-Trust Architecture:** Strict organization isolation
+- **Complete Audit Trails:** All actions logged with attribution
+- **Enhanced Monitoring:** Improved security event tracking
 
 ---
 
 ## [4.1.0] - 2026-01-31
 
 ### Added
-- Enhanced keep-alive system with 6 concurrent strategies
+- Enhanced keep-alive system for better reliability
 - Geofencing with virtual geographic boundaries
-- Real-time location tracking with GPS
-- Quarantine mode for maximum security isolation
-- Breach detection system with automated monitoring
+- Real-time GPS location tracking
+- Quarantine mode for compromised devices
+- Automated breach detection system
 - Device fingerprinting for unique identification
-- Battery and network monitoring
+- Battery and network status monitoring
 - Admin panel for enterprise management
-- Bulk operations (arm/disarm all devices)
-- IP blocking for security
-- Activity logging with comprehensive audit trail
+- Bulk device operations
+- IP-based security controls
+- Comprehensive activity logging
 
 ### Changed
-- Reduced heartbeat interval from 5s to 2s
-- Improved lock screen visual design
-- Enhanced error handling and retry logic
+- Faster heartbeat interval (2 seconds)
+- Improved lock screen design
+- Better error handling and recovery
 
 ### Fixed
-- Service worker termination issues
-- GPS location acquisition reliability
-- Lock screen escape attempts
-- Memory leak in heartbeat loop
+- Service worker reliability improvements
+- GPS accuracy enhancements
+- Lock screen security hardening
+- Memory optimization
 
 ### Security
-- SHA-256 hashing for all API keys
-- TLS 1.3 enforcement
-- DOM self-healing against tampering
-- Nonce-based replay protection
+- SHA-256 key hashing
+- TLS 1.3 encryption
+- DOM tampering protection
+- Replay attack prevention
 
 ---
 
 ## [4.0.0] - 2026-01-15
-Initial public release with remote lock/unlock, real-time heartbeat, user control panel, and device registration.
+Initial release with remote lock/unlock, real-time heartbeat monitoring, user control panel, and device registration system.
 
 ---
 
-**Version 4.2.1** addresses early feedback from the 4.2.0 deployment, ensuring the Hierarchical System is fully operational and data can be persisted across server restarts.
+## Contact & Support
 
-For migration assistance or questions, contact: browserbricker@gmail.com
+**For System Administrator Access:**
+Email: browserbricker@gmail.com
+
+**For Bug Reports:**
+Email: browserbricker@gmail.com with:
+- Description of the issue
+- Steps to reproduce
+- Browser and OS information
+- Screenshots if applicable
+
+**For Security Issues:**
+Email: browserbricker@gmail.com (confidential reports)
+- Do not post security issues publicly
+- We will respond within 24-48 hours
+
+**For General Questions:**
+Email: browserbricker@gmail.com
+
+---
+
+**Version 5.0.0** represents a significant infrastructure upgrade, ensuring BrowserBricker remains a reliable and scalable device management solution for all users.
+
+Service maintained by Aakshat Hariharan • browserbricker@gmail.com
