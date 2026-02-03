@@ -627,47 +627,54 @@ async function loadBreaches() {
 
 async function loadBlockedIPs() {
     try {
+        // ✅ CORRECTED: Use the actual server endpoint
         const data = await apiCall('/api/admin/blocked-ips');
         const list = document.getElementById('blockedIPsList');
         const failedList = document.getElementById('failedAttemptsList');
         
-        if (!data.blocked || data.blocked.length === 0) {
+        // ✅ CORRECTED: Server returns { success: true, blockedIPs: [...] }
+        const blockedIPs = data.blockedIPs || [];
+        
+        if (blockedIPs.length === 0) {
             list.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--zinc-400);">No blocked IPs</div>';
         } else {
-            list.innerHTML = data.blocked.map(ip => `
-                <div style="background: var(--zinc-50); padding: 16px; border-radius: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <div style="font-family: var(--mono); font-weight: 700; margin-bottom: 4px;">${ip}</div>
-                        <div style="font-size: 0.75rem; color: var(--zinc-500);">Blocked due to suspicious activity</div>
+            list.innerHTML = blockedIPs.map(ipData => {
+                // Handle both formats: string "192.168.1.1" or object { ip: "...", reason: "...", blockedAt: ... }
+                const ip = typeof ipData === 'string' ? ipData : ipData.ip;
+                const reason = typeof ipData === 'object' ? ipData.reason : 'Suspicious activity';
+                const blockedAt = typeof ipData === 'object' && ipData.blockedAt 
+                    ? new Date(ipData.blockedAt).toLocaleString() 
+                    : 'Unknown';
+                
+                return `
+                    <div style="background: var(--zinc-50); padding: 16px; border-radius: 12px; margin-bottom: 12px; border-left: 4px solid var(--status-danger);">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-family: var(--mono); font-weight: 700; margin-bottom: 4px;">${ip}</div>
+                                <div style="font-size: 0.75rem; color: var(--zinc-500);">
+                                    Reason: ${escapeHtml(reason)}<br>
+                                    Blocked: ${blockedAt}
+                                </div>
+                            </div>
+                            <button class="btn btn-ghost" style="padding: 6px 12px; font-size: 0.75rem;" onclick="unblockIPDirect('${ip}')">
+                                <i data-lucide="unlock" size="12"></i> Unblock
+                            </button>
+                        </div>
                     </div>
-                    <button class="btn btn-ghost" style="padding: 6px 12px; font-size: 0.75rem;" onclick="unblockIPDirect('${ip}')">
-                        <i data-lucide="unlock" size="12"></i> Unblock
-                    </button>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
+        // Failed attempts list (if your server supports it in the future)
         if (failedList) {
-            if (!data.failed || data.failed.length === 0) {
-                failedList.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--zinc-400);">No failed attempts</div>';
-            } else {
-                failedList.innerHTML = data.failed.map(attempt => `
-                    <div style="background: var(--zinc-50); padding: 16px; border-radius: 12px; margin-bottom: 12px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <div style="font-family: var(--mono); font-weight: 700;">${attempt.ip}</div>
-                            <span class="badge badge-warn">${attempt.attempts} Attempts</span>
-                        </div>
-                        <div style="font-size: 0.75rem; color: var(--zinc-500);">
-                            Last attempt: ${formatTime(attempt.lastAttempt)}
-                        </div>
-                    </div>
-                `).join('');
-            }
+            // For now, show empty state since server doesn't return failed attempts
+            failedList.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--zinc-400);">Failed attempts tracking coming soon</div>';
         }
         
         lucide.createIcons();
     } catch (error) {
         console.error('Blocked IPs error:', error);
+        showToast('Error', 'Failed to load blocked IPs', 'error');
     }
 }
 
@@ -1392,6 +1399,7 @@ async function unblockIPDirect(ip) {
     if (!confirm(`Unblock IP: ${ip}?`)) return;
 
     try {
+        // This endpoint is already correct
         await apiCall('/api/admin/unblock-ip', 'DELETE', { ip });
         
         showToast('Success', `IP ${ip} unblocked`, 'success');
