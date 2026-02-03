@@ -2,7 +2,7 @@
 
 **Advanced Remote Device Security & Management System**
 
-[![Version](https://img.shields.io/badge/version-4.1.0-blue.svg)](https://github.com/Aaks-hatH/Browser-Bricker-Panel)
+[![Version](https://img.shields.io/badge/version-5.0.0-blue.svg)](https://github.com/Aaks-hatH/Browser-Bricker-Panel)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Chrome](https://img.shields.io/badge/chrome-extension-orange.svg)](https://github.com/Aaks-hatH/Browser-Bricker-Panel)
 
@@ -17,10 +17,8 @@ Created by **Aakshat Hariharan** • 2026
 - [Overview](#overview)
 - [Key Features](#key-features)
 - [Security Architecture](#security-architecture)
-- [Installation](#installation)
-- [Quick Start Guide](#quick-start-guide)
-- [User Dashboard](#user-dashboard)
-- [Admin Panel](#admin-panel)
+- [Getting Started](#getting-started)
+- [Using BrowserBricker](#using-browserbricker)
 - [Advanced Features](#advanced-features)
 - [FAQ](#faq)
 - [Support](#support)
@@ -34,21 +32,20 @@ BrowserBricker is a powerful remote device management system designed for:
 
 - **Parents** monitoring children's device usage
 - **Organizations** managing company computers
-- **Individuals** securing personal devices against theft
 - **Educational institutions** controlling lab computers
+- **Businesses** requiring enterprise device control
 
-The system consists of three components:
+The system consists of two main components:
 
 1. **Browser Extension** - Installed on target devices
-2. **User Control Panel** - Manage your devices remotely
-3. **Admin Dashboard** - Enterprise management (optional)
+2. **Web Control Panel** - Manage your devices remotely
 
 ### How It Works
 
 ```
 ┌─────────────────┐      ┌──────────────┐      ┌─────────────────┐
-│  Your Device    │─────▶│  Cloud API   │◀─────│ Control Panel   │
-│  (Extension)    │◀─────│  (Secure)    │─────▶│ (Your Phone)    │
+│  Your Device    │─────▶│BrowserBricker│◀─────│ Control Panel   │
+│  (Extension)    │◀─────│Cloud Service │─────▶│ (Any Browser)   │
 └─────────────────┘      └──────────────┘      └─────────────────┘
         │                                               │
         └───────────── 2-Second Heartbeat ─────────────┘
@@ -64,6 +61,7 @@ The system consists of three components:
 - **Real-Time Control**: 2-second heartbeat ensures immediate response
 - **Persistent Protection**: Advanced keep-alive system prevents bypass
 - **Breach Detection**: Automatic security monitoring and alerts
+- **Reliable Service**: Enterprise infrastructure ensures uptime
 
 ### Location Services
 
@@ -78,6 +76,7 @@ The system consists of three components:
 - **IP Blocking**: Prevent access from suspicious networks
 - **Device Fingerprinting**: Unique identification prevents spoofing
 - **Encrypted Communications**: All data transmitted securely
+- **Audit Trails**: Complete action history
 
 ### Monitoring & Analytics
 
@@ -85,13 +84,15 @@ The system consists of three components:
 - **Network Information**: Track connection type and speed
 - **Online/Offline Status**: Real-time connectivity monitoring
 - **Activity Logs**: Comprehensive audit trail
+- **Statistics Dashboard**: Overview of all managed devices
 
 ### User Experience
 
 - **Clean Interface**: Modern, intuitive design
 - **Mobile Friendly**: Manage devices from any device
 - **Real-Time Updates**: Auto-refresh every 5 seconds
-- **Toast Notifications**: Instant feedback on actions
+- **Instant Feedback**: Toast notifications for all actions
+- **Multi-Device Support**: Manage unlimited devices
 
 ---
 
@@ -109,6 +110,8 @@ Layer 3: Network Security (IP monitoring & blocking)
 Layer 4: Breach Detection (Automated threat response)
     ↓
 Layer 5: Quarantine System (Isolation protocols)
+    ↓
+Layer 6: Cloud Infrastructure (Reliable & secure)
 ```
 
 ### Encryption & Privacy
@@ -116,6 +119,7 @@ Layer 5: Quarantine System (Isolation protocols)
 - **API Keys**: SHA-256 hashed, never stored in plaintext
 - **Transport Security**: All communications over HTTPS
 - **Location Privacy**: GPS data encrypted in transit
+- **Cloud Security**: Enterprise-grade infrastructure
 - **No Third Parties**: Direct communication only
 
 ### Anti-Bypass Measures
@@ -129,7 +133,7 @@ Layer 5: Quarantine System (Isolation protocols)
 
 ---
 
-## Installation
+## Getting Started
 
 ### Prerequisites
 
@@ -137,7 +141,7 @@ Layer 5: Quarantine System (Isolation protocols)
 - Version 88 or higher
 - Active internet connection
 
-### Step-by-Step Installation
+### Installation
 
 1. **Download the Extension**
    ```bash
@@ -154,65 +158,44 @@ Layer 5: Quarantine System (Isolation protocols)
 3. **Verify Installation**
    - Look for the BrowserBricker icon in your extensions
    - Icon should appear in the browser toolbar
-   - Click icon to open the setup interface
 
-### Alternative: Chrome Web Store
+### Create Your Account
 
-> Coming soon: One-click installation from Chrome Web Store
-
----
-
-## Quick Start Guide
-
-### For First-Time Users
-
-#### 1. Create Your Account
-
-1. Visit the Control Panel: `https://browserbricker.onrender.com`
-2. Click **"CREATE ACCOUNT"** tab
+1. Visit: `https://browserbricker.onrender.com`
+2. Click **"CREATE ACCOUNT"**
 3. Click **"GENERATE MASTER KEY"**
 4. **IMPORTANT**: Copy and save your 64-character master key
    - Store it in a password manager
    - You cannot recover it if lost
    - This key controls all your devices
 
-#### 2. Register Your First Device
+### Register Your First Device
 
 1. Sign in to Control Panel with your master key
 2. Click **"REGISTER DEVICE"**
-3. Fill in device details:
+3. Enter device details:
    - **Device Name**: Friendly name (e.g., "Kid's Laptop")
    - **Tags**: Optional labels (e.g., "family, monitored")
-   - **Location**: Optional description (e.g., "Home Office")
 4. Click **"REGISTER DEVICE"**
 5. **Copy the Device API Key** (64 characters)
 
-#### 3. Configure the Extension
+### Configure the Extension
 
 1. On the target device, click the BrowserBricker extension icon
-2. Paste the **Device API Key** from step 2
+2. Paste the **Device API Key**
 3. Click **"Activate Protection"**
-4. Extension will connect to the server
+4. Extension will connect to the service
 5. You should see "DISARMED" status and "ONLINE" connection
-
-### Your First Lock
-
-1. In the Control Panel, find your device
-2. Click the **"ARM"** button
-3. Within 2 seconds, the device will show the lock screen
-4. To unlock, click **"DISARM"** in the Control Panel
 
 ---
 
-## User Dashboard
+## Using BrowserBricker
 
-### Accessing the Dashboard
+### Control Panel
 
-Visit: `https://browserbricker.onrender.com`
+Access the control panel at: `https://browserbricker.onrender.com`
 
-Sign in with your master key.
-
-### Dashboard Overview
+**Dashboard Overview:**
 
 ```
 ┌─────────────────────────────────────────────┐
@@ -234,18 +217,7 @@ Sign in with your master key.
 └─────────────────────────────────────────────┘
 ```
 
-### Device Cards
-
-Each device shows:
-
-- **Name & Status**: Visual indicators for armed/disarmed
-- **Online Status**: Green dot = online, gray = offline
-- **Device ID**: Unique identifier (first 8 chars shown)
-- **Last Seen**: Time since last heartbeat
-- **Tags**: Custom labels for organization
-- **Actions**: Quick control buttons
-
-### Available Actions
+### Device Actions
 
 | Action | Description |
 |--------|-------------|
@@ -254,89 +226,19 @@ Each device shows:
 | **EDIT** | Change device name/tags |
 | **DELETE** | Permanently remove device |
 
-### Statistics Panel
+### Locking a Device
 
-- **Total Devices**: All registered devices
-- **Online Now**: Devices currently connected
-- **Armed**: Devices in locked state
-- **Quarantined**: Devices in isolation
+1. In the Control Panel, find your device
+2. Click the **"ARM"** button
+3. Within 2 seconds, the device will show the lock screen
+4. The lock persists until you disarm it
 
----
+### Unlocking a Device
 
-## Admin Panel
-
-### Access Requirements
-
-Admin access requires an **Admin API Key**. Contact your system administrator or generate one with the backend secret code.
-
-### Admin Dashboard URL
-
-`https://browserbricker.onrender.com/admin.html`
-
-### Admin Capabilities
-
-#### 1. System Overview
-- View all devices across all users
-- Real-time system statistics
-- Network health monitoring
-- Server performance metrics
-
-#### 2. Bulk Operations
-- **Lock All Devices**: Emergency system-wide lockdown
-- **Unlock All**: Release all active locks
-- **Reason Tracking**: Document why actions were taken
-
-#### 3. Security Management
-
-**Quarantine System**
-- Isolate compromised devices
-- Prevent unlock until released
-- Track quarantine history
-
-**IP Blocking**
-- Block suspicious IP addresses
-- Monitor failed access attempts
-- Whitelist trusted networks
-
-**Breach Detection**
-- Real-time security event monitoring
-- Automatic threat response
-- Detailed breach reports
-
-#### 4. Geofencing Control
-- View all active geofences
-- Create new geographic boundaries
-- Monitor location violations
-- Automatic lock on boundary exit
-
-#### 5. Location Tracking
-- Live device GPS coordinates
-- Real-time location feed (5-second refresh)
-- Location history and patterns
-- Accuracy indicators
-
-#### 6. Advanced Features
-
-**Audit Trail**
-- Complete action history
-- Filter by action type
-- User accountability
-- Timestamp tracking
-
-**Notifications**
-- System-wide alerts
-- Severity levels (info, warning, critical)
-- Event notifications
-
-**Settings Management**
-- Configure system parameters
-- Update security policies
-- Customize behavior
-
-**System Logs**
-- Real-time terminal output
-- Error tracking
-- Performance monitoring
+1. In the Control Panel, find the armed device
+2. Click the **"DISARM"** button
+3. Device will unlock within 2 seconds
+4. User can resume normal browsing
 
 ---
 
@@ -344,29 +246,15 @@ Admin access requires an **Admin API Key**. Contact your system administrator or
 
 ### Geofencing
 
-Create virtual boundaries for your devices.
+Create virtual boundaries for automatic device control.
 
-**How to Set Up:**
+**Contact the service owner** at browserbricker@gmail.com to set up geofencing for your devices.
 
-1. Access Admin Panel
-2. Navigate to **Geofencing**
-3. Enter:
-   - Device ID
-   - Latitude (e.g., 40.712776)
-   - Longitude (e.g., -74.005974)
-   - Radius in meters (e.g., 1000)
-4. Click **"Create Geofence"**
-
-**What Happens:**
-- Device checks location every heartbeat
-- If device exits boundary, automatic lock
+**How It Works:**
+- Define a geographic area (latitude, longitude, radius)
+- Device automatically locks when leaving the area
 - Lock persists until manually released
-
-**Finding Coordinates:**
-1. Open Google Maps
-2. Right-click your location
-3. Click the coordinates that appear
-4. Copy latitude and longitude
+- All events logged for audit trail
 
 ### Location Tracking
 
@@ -377,59 +265,41 @@ Enable in extension:
 2. Toggle **"Enable Tracking"** switch
 3. Grant location permissions when prompted
 
-View locations:
-- Admin Panel → **Location Tracking**
-- Shows live coordinates
-- Auto-refreshes every 5 seconds
-- Displays accuracy in meters
-
-**Privacy Note**: Location data is only transmitted when tracking is enabled and device is online.
+View locations in the Control Panel to see real-time GPS coordinates.
 
 ### Quarantine Mode
+
+**For Maximum Security:**
+
+Contact browserbricker@gmail.com to quarantine a device.
+
+**What Quarantine Does:**
+- Locks device immediately
+- Prevents remote unlock
+- Requires service administrator to release
+- All activity logged
 
 **When to Use:**
 - Suspected malware infection
 - Security policy violation
 - Device theft recovery
-- Disciplinary action
-
-**How It Works:**
-1. Device is locked immediately
-2. Cannot be unlocked remotely
-3. Must be released by admin
-4. All activity is logged
-
-**Implementing Quarantine:**
-- Admin Panel → **Quarantine**
-- Enter device ID
-- Provide reason
-- Click **"Quarantine Device"**
-
-**Releasing from Quarantine:**
-- Find device in Quarantine list
-- Click **"Release"**
-- Device returns to normal state
+- Emergency lockdown
 
 ### Breach Detection
 
-**Monitored Events:**
+**Automatic Security Monitoring:**
+
+The system automatically detects:
 - Multiple failed access attempts
 - Suspicious API requests
 - Geofence violations
-- Rapid state changes
 - Unusual patterns
 
 **Automatic Responses:**
-- Increment breach counter
-- Log detailed information
-- Notify administrators
+- Security events logged
+- Administrators notified
 - Optional auto-quarantine
-
-**Viewing Breaches:**
-- Admin Panel → **Breach Detection**
-- Lists all security events
-- Shows severity levels
-- Device-specific details
+- Complete audit trail
 
 ---
 
@@ -438,30 +308,44 @@ View locations:
 ### General Questions
 
 **Q: Is BrowserBricker free to use?**  
-A: Yes, the open-source version is completely free.
+A: The browser extension is open-source. The cloud service is provided by the developer.
 
 **Q: What browsers are supported?**  
 A: All Chromium-based browsers: Chrome, Edge, Brave, Opera, Vivaldi.
 
 **Q: Does it work on mobile?**  
-A: The extension is for desktop browsers. Control panels work on mobile devices.
+A: The extension is for desktop browsers. Control panels work on any device.
 
 **Q: How many devices can I manage?**  
-A: Unlimited devices per master key.
+A: Unlimited devices per account.
+
+**Q: Is the service reliable?**  
+A: Yes, the service runs on enterprise-grade infrastructure with high uptime.
 
 ### Security Questions
 
 **Q: Can the lock screen be bypassed?**  
-A: The extension uses multiple anti-bypass techniques, but determined users with advanced technical knowledge could potentially remove the extension. Physical device access provides additional security.
+A: The extension uses multiple anti-bypass techniques. Physical device access allows extension removal.
 
 **Q: What if I lose my master key?**  
-A: Master keys cannot be recovered. This is a security feature. You'll need to generate a new master key and re-register devices.
+A: Master keys cannot be recovered. Generate a new key and re-register devices.
 
 **Q: Is my location data private?**  
-A: Yes. Location data is encrypted in transit and only accessible through your authenticated account.
+A: Yes. Location data is encrypted and only accessible through your authenticated account.
 
-**Q: What happens if the internet connection is lost?**  
-A: Armed devices stay locked until connection is restored. Disarmed devices remain accessible.
+**Q: What happens if the service is down?**  
+A: Armed devices stay locked. Disarmed devices remain accessible.
+
+### Account Questions
+
+**Q: How do I become a System Administrator?**  
+A: Contact browserbricker@gmail.com with your organization details.
+
+**Q: Can I manage multiple organizations?**  
+A: System Administrators can manage their assigned organization. Contact the service owner for additional access.
+
+**Q: How do I report a bug?**  
+A: Email browserbricker@gmail.com with issue details and screenshots.
 
 ### Technical Questions
 
@@ -469,27 +353,13 @@ A: Armed devices stay locked until connection is restored. Disarmed devices rema
 A: Every 2 seconds for real-time control.
 
 **Q: Does this drain battery?**  
-A: Minimal impact. The extension is designed for efficiency.
+A: Minimal impact. The extension is optimized for efficiency.
 
 **Q: Can I use this on multiple accounts?**  
-A: Yes, create separate master keys for different account needs.
+A: Yes, create separate master keys for different purposes.
 
 **Q: How do I update the extension?**  
-A: Download the latest version and reload the extension in Chrome.
-
-### Troubleshooting
-
-**Q: Extension shows "Offline"**  
-A: Check internet connection. Verify API URLs are accessible.
-
-**Q: Device won't lock**  
-A: Ensure device is online. Check browser hasn't disabled extension.
-
-**Q: Can't generate master key**  
-A: Verify you're accessing the correct URL. Check browser console for errors.
-
-**Q: Lock screen doesn't appear**  
-A: Verify extension is enabled. Check for browser permission issues.
+A: Download the latest version and reload in Chrome.
 
 ---
 
@@ -497,24 +367,37 @@ A: Verify extension is enabled. Check for browser permission issues.
 
 ### Getting Help
 
-- **Issues**: [GitHub Issues](https://github.com/Aaks-hatH/Browser-Bricker-Panel/issues)
-- **Documentation**: [Wiki](https://github.com/Aaks-hatH/Browser-Bricker-Panel/wiki)
-- **Email**: browserbricker@gmail.com
+- **Bug Reports**: browserbricker@gmail.com
+- **Feature Requests**: browserbricker@gmail.com
+- **System Admin Access**: browserbricker@gmail.com
+- **Security Issues**: browserbricker@gmail.com (confidential)
+- **General Questions**: browserbricker@gmail.com
 
-### Reporting Bugs
+### Reporting Issues
 
 When reporting issues, please include:
 
-1. BrowserBricker version (4.1.0)
+1. BrowserBricker version (5.0.0)
 2. Browser type and version
 3. Operating system
 4. Steps to reproduce
 5. Expected vs actual behavior
 6. Screenshots if applicable
 
-### Feature Requests
+### System Administrator Access
 
-Submit feature requests via GitHub Issues with the `enhancement` label.
+Organizations requiring system administrator access should contact:
+
+**Email**: browserbricker@gmail.com
+
+**Include:**
+- Organization name
+- Intended use case
+- Number of devices to be managed
+- Contact information
+
+**Response Time:**
+- We respond to all inquiries within 24-48 hours
 
 ---
 
@@ -561,6 +444,7 @@ Built with:
 - Modern JavaScript (ES2020+)
 - Web Crypto API
 - Geolocation API
+- Enterprise Cloud Infrastructure
 
 Special thanks to the open-source community for inspiration and support.
 
@@ -588,4 +472,8 @@ BrowserBricker is a powerful tool. Please use it responsibly:
 
 **Made with care by Aakshat Hariharan**
 
-[GitHub](https://github.com/Aaks-hatH/Browser-Bricker-Panel) • [Report Issue](https://github.com/Aaks-hatH/Browser-Bricker-Panel/issues) • [Documentation](https://github.com/Aaks-hatH/Browser-Bricker-Panel/wiki)
+**Service URL**: https://browserbricker.onrender.com
+
+**Contact**: browserbricker@gmail.com
+
+[GitHub](https://github.com/Aaks-hatH/Browser-Bricker-Panel) • [Report Issue](mailto:browserbricker@gmail.com) • [System Admin Access](mailto:browserbricker@gmail.com)
