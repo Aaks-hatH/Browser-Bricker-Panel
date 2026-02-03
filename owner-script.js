@@ -273,12 +273,16 @@ async function loadStats() {
     try {
         const data = await apiCall('/api/admin/stats');
         
-        document.getElementById('totalDevices').textContent = data.devices?.total || 0;
+        // Calculate device stats if not provided
+        const devices = data.devices || {};
+        const settings = { heartbeatTimeout: 60000 };
+        
+        document.getElementById('totalDevices').textContent = devices.total || 0;
         document.getElementById('totalUsers').textContent = data.users?.total || 0;
-        document.getElementById('armedDevices').textContent = data.devices?.armed || 0;
-        document.getElementById('onlineDevices').textContent = data.devices?.online || 0;
-        document.getElementById('quarantinedDevices').textContent = data.devices?.quarantined || 0;
-        document.getElementById('geofencedDevices').textContent = data.devices?.geofenced || 0;
+        document.getElementById('armedDevices').textContent = devices.armed || 0;
+        document.getElementById('onlineDevices').textContent = devices.online || 0;
+        document.getElementById('quarantinedDevices').textContent = devices.quarantined || 0;
+        document.getElementById('geofencedDevices').textContent = data.geofences?.total || 0;
         document.getElementById('breachCount').textContent = data.statistics?.breachAttempts || 0;
         document.getElementById('blockedIPCount').textContent = data.security?.blockedIPs || 0;
         
@@ -287,20 +291,11 @@ async function loadStats() {
             document.getElementById('activeSystemAdmins').textContent = data.systemAdmins.active || 0;
         }
 
-        if (data.system) {
-            const memUsed = data.system.memory?.used || 0;
-            const memTotal = data.system.memory?.total || 100;
-            const memPercent = (memUsed / memTotal) * 100;
-            
-            document.getElementById('memVal').textContent = `${memUsed}/${memTotal} MB`;
-            document.getElementById('memBar').style.width = memPercent + '%';
-            document.getElementById('uptimeVal').textContent = formatUptime(data.system.uptime);
-            
-            const reqCount = data.system.health?.requests || 0;
-            document.getElementById('reqVal').textContent = reqCount;
-            document.getElementById('reqBar').style.width = Math.min((reqCount / 1000) * 100, 100) + '%';
+        // Update health indicators
+        if (data.uptime) {
+            document.getElementById('uptimeVal').textContent = formatUptime(data.uptime / 1000);
         }
-
+        
         document.getElementById('apiStatusBadge').className = 'badge badge-safe';
         document.getElementById('apiStatusBadge').innerHTML = '<i data-lucide="activity" size="12"></i> API: OK';
         lucide.createIcons();
@@ -417,8 +412,15 @@ async function loadDevices() {
             return;
         }
 
+        const settings = { heartbeatTimeout: 60000 }; // 60 seconds
+        const now = Date.now();
+
         tbody.innerHTML = data.devices.map(device => {
-            const statusBadge = device.online ? 
+            // Calculate if device is online
+            const isOnline = device.lastHeartbeat && 
+                            (now - device.lastHeartbeat) < settings.heartbeatTimeout;
+            
+            const statusBadge = isOnline ? 
                 '<span class="badge badge-safe"><i data-lucide="wifi" size="10"></i> Online</span>' :
                 '<span class="badge badge-warn"><i data-lucide="wifi-off" size="10"></i> Offline</span>';
             
@@ -473,7 +475,6 @@ async function loadDevices() {
         showToast('Error', 'Failed to load devices', 'error');
     }
 }
-
 function updateQuarantineView(quarantinedDevices) {
     const qList = document.getElementById('quarantineList');
     if (!qList) return;
