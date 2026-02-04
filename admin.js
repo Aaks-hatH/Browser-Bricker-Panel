@@ -161,17 +161,19 @@ async function loadDashboard() {
         
         const stats = await statsRes.json();
         
-        // Update header
-        document.getElementById('groupNameDisplay').textContent = 
-            `Group: ${stats.systemAdmin.groupName} | ${stats.systemAdmin.name}`;
+        // Update header - fix the structure
+        if (stats.systemAdmin) {
+            document.getElementById('groupNameDisplay').textContent = 
+                `Group: ${stats.systemAdmin.groupName} | ${stats.systemAdmin.name}`;
+        }
         
-        // Update stats
-        document.getElementById('statTotal').textContent = stats.devices.total;
-        document.getElementById('statOnline').textContent = stats.devices.online;
-        document.getElementById('statArmed').textContent = stats.devices.armed;
-        document.getElementById('statUsers').textContent = stats.users.total;
-        document.getElementById('statQuarantined').textContent = stats.devices.quarantined || 0;
-        document.getElementById('statGeofenced').textContent = stats.devices.geofenced || 0;
+        // Update stats with proper null checks
+        document.getElementById('statTotal').textContent = stats.devices?.total || 0;
+        document.getElementById('statOnline').textContent = stats.devices?.online || 0;
+        document.getElementById('statArmed').textContent = stats.devices?.armed || 0;
+        document.getElementById('statUsers').textContent = stats.users?.total || 0;
+        document.getElementById('statQuarantined').textContent = stats.devices?.quarantined || 0;
+        document.getElementById('statGeofenced').textContent = stats.devices?.geofenced || 0;
         
         // Load data for active view
         const activeView = document.querySelector('.view-container.active');
@@ -183,6 +185,7 @@ async function loadDashboard() {
         
     } catch (error) {
         console.error('Dashboard load error:', error);
+        showToast('Error', 'Failed to load dashboard stats', 'error');
     }
 }
 
