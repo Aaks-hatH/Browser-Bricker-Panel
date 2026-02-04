@@ -145,15 +145,15 @@ Layer 6: Cloud Infrastructure (Reliable & secure)
 
 1. **Download the Extension**
    ```bash
-   git clone https://github.com/aakshathariharan/browserbricker.git
-   cd browserbricker
+   git clone https://github.com/Aaks-hatH/Browser-Bricker-Panel.git
+   cd Browser-Bricker-Panel
    ```
 
 2. **Load in Browser**
    - Open Chrome and navigate to `chrome://extensions/`
    - Enable **Developer mode** (top right toggle)
    - Click **Load unpacked**
-   - Select the `browserbricker` folder
+   - Select the `Extension` folder
 
 3. **Verify Installation**
    - Look for the BrowserBricker icon in your extensions
