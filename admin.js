@@ -389,6 +389,7 @@ function renderUsers(users) {
                 <tr>
                     <th>Key Hash</th>
                     <th>Devices</th>
+                    <th>Uses</th>
                     <th>Status</th>
                     <th>Created</th>
                     <th>Last Used</th>
@@ -403,22 +404,28 @@ function renderUsers(users) {
             '<span class="badge badge-danger">REVOKED</span>' : 
             '<span class="badge badge-safe">ACTIVE</span>';
         
-        const created = new Date(user.created).toLocaleDateString();
+        // ✅ Fix: Use createdAt instead of created
+        const created = new Date(user.createdAt).toLocaleDateString();
         const lastUsed = user.lastUsed ? timeSince(user.lastUsed) : 'Never';
+        
+        // ✅ Fix: Create display hash (first 16 chars)
+        const displayHash = user.keyHash.substring(0, 16) + '...';
         
         html += `
             <tr>
-                <td><code style="font-family: var(--mono); font-size: 0.8rem; background: var(--zinc-100); padding: 4px 8px; border-radius: 4px;">${user.keyHash}</code></td>
+                <td><code style="font-family: var(--mono); font-size: 0.8rem; background: var(--zinc-100); padding: 4px 8px; border-radius: 4px;">${displayHash}</code></td>
                 <td>
-                    <div style="font-weight: 600;">${user.deviceCount} total</div>
-                    <div style="font-size: 0.75rem; color: var(--zinc-500);">${user.armedCount} armed · ${user.onlineCount} online</div>
+                    <div style="font-weight: 600;">${user.deviceCount} devices</div>
+                </td>
+                <td>
+                    <div style="font-weight: 600;">${user.uses || 0} times</div>
                 </td>
                 <td>${statusBadge}</td>
                 <td style="font-size: 0.85rem;">${created}</td>
                 <td style="font-size: 0.85rem; font-family: var(--mono);">${lastUsed}</td>
                 <td>
                     ${user.revoked ? '<span style="color: var(--zinc-400); font-size: 0.8rem;">—</span>' : `
-                        <button class="btn btn-danger" style="padding: 8px 16px; font-size: 0.8rem;" onclick="revokeUser('${user.fullHash}', '${user.keyHash}')">
+                        <button class="btn btn-danger" style="padding: 8px 16px; font-size: 0.8rem;" onclick="revokeUser('${user.keyHash}', '${displayHash}')">
                             <i data-lucide="x-circle" size="14"></i> Revoke
                         </button>
                     `}
@@ -862,7 +869,16 @@ function copyUserKey() {
 }
 
 async function revokeUser(keyHash, displayHash) {
-    if (!confirm(`⚠️ Are you sure you want to revoke this user (${displayHash})?\n\nThey will no longer be able to access their devices.`)) return;
+    console.log(' Revoking user:', { keyHash, displayHash }); // Debug log
+    
+    if (!confirm(` Are you sure you want to revoke this user (${displayHash})?\n\nThey will no longer be able to access their devices.`)) return;
+    
+    // ✅ Validate keyHash before sending
+    if (!keyHash || keyHash === 'undefined') {
+        showToast('Error', 'Invalid key hash', 'error');
+        console.error('Invalid keyHash:', keyHash);
+        return;
+    }
     
     try {
         const response = await fetch(`${API_URL}/api/system/users/revoke`, {
@@ -879,6 +895,7 @@ async function revokeUser(keyHash, displayHash) {
         if (response.ok) {
             showToast('Success', 'User revoked successfully', 'success');
             loadUsers();
+            loadDashboard();
         } else {
             showToast('Error', data.error || 'Failed to revoke user', 'error');
         }
