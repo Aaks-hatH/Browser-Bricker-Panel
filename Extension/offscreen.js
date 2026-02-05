@@ -52,6 +52,60 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         );
         return true; // Keep channel open for async response
     }
+
+    // Handle system stats requests
+    if (message.type === 'get-system-stats') {
+        console.log('[Offscreen] System stats requested');
+        
+        const stats = {
+            platform: navigator.platform || 'Unknown',
+            language: navigator.language || 'en-US',
+            cores: navigator.hardwareConcurrency || 4,
+            battery: null,
+            network: null
+        };
+
+        // Try to get battery info
+        if ('getBattery' in navigator) {
+            navigator.getBattery().then((battery) => {
+                stats.battery = {
+                    level: Math.round(battery.level * 100),
+                    charging: battery.charging
+                };
+                
+                // Try to get network info
+                if ('connection' in navigator) {
+                    const conn = navigator.connection;
+                    stats.network = {
+                        type: conn.effectiveType || 'unknown',
+                        downlink: conn.downlink || 0,
+                        rtt: conn.rtt || 0
+                    };
+                }
+                
+                console.log('[Offscreen] Stats collected:', stats);
+                sendResponse(stats);
+            }).catch((err) => {
+                console.warn('[Offscreen] Battery API error:', err);
+                sendResponse(stats);
+            });
+        } else {
+            // Try to get network info even if battery fails
+            if ('connection' in navigator) {
+                const conn = navigator.connection;
+                stats.network = {
+                    type: conn.effectiveType || 'unknown',
+                    downlink: conn.downlink || 0,
+                    rtt: conn.rtt || 0
+                };
+            }
+            
+            console.log('[Offscreen] Stats collected (no battery):', stats);
+            sendResponse(stats);
+        }
+        
+        return true; // Keep channel open for async response
+    }
 });
 
 // Log that offscreen is active
