@@ -311,9 +311,7 @@ async function loadSystemAdmins() {
     try {
         const data = await apiCall('/api/admin/system-admins');
         const tbody = document.querySelector('#systemAdminsTable tbody');
-        const codesList = document.getElementById('registrationCodesList');
         
-        // 1. Update the Table of Active System Admins
         if (!data.systemAdmins || data.systemAdmins.length === 0) {
             tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 40px; color: var(--zinc-400);">No system administrators found</td></tr>';
         } else {
@@ -324,25 +322,33 @@ async function loadSystemAdmins() {
                 
                 return `
                     <tr>
-                        <td style="font-family: var(--mono); font-size: 0.8rem;">${admin.id}</td>
+                        <td style="font-family: var(--mono); font-size: 0.8rem;">${admin.systemAdminId}</td>
                         <td style="font-weight: 700; color: var(--brand-primary);">${escapeHtml(admin.groupName || 'Default')}</td>
                         <td style="font-weight: 600;">${escapeHtml(admin.name || 'N/A')}</td>
                         <td style="font-family: var(--mono); font-size: 0.75rem;">${escapeHtml(admin.email || 'N/A')}</td>
                         <td>${new Date(admin.createdAt).toLocaleDateString()}</td>
                         <td>${formatTime(admin.lastActive)}</td>
-                        <td><span class="badge badge-info">${admin.deviceCount || 0}</span></td>
-                        <td><span class="badge badge-info">${admin.userCount || 0}</span></td>
+                        <td><span class="badge badge-info">${admin.devicesManaged || 0}</span></td>
+                        <td><span class="badge badge-info">${admin.usersManaged || 0}</span></td>
                         <td>${statusBadge}</td>
                         <td>
                             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                <button class="btn btn-ghost" style="padding: 6px 12px; font-size: 0.75rem;" onclick="showAdminDetails('${admin.id}')">
+                                <button class="btn btn-ghost" style="padding: 6px 12px; font-size: 0.75rem;" 
+                                        onclick="showAdminDetails('${admin.systemAdminId}')">
                                     <i data-lucide="info" size="12"></i>
                                 </button>
                                 ${admin.active ? 
-                                    `<button class="btn btn-warn" style="padding: 6px 12px; font-size: 0.75rem;" onclick="deactivateSystemAdmin('${admin.id}', '${escapeHtml(admin.name)}')"><i data-lucide="pause" size="12"></i></button>` :
-                                    `<button class="btn btn-success" style="padding: 6px 12px; font-size: 0.75rem;" onclick="activateSystemAdmin('${admin.id}', '${escapeHtml(admin.name)}')"><i data-lucide="play" size="12"></i></button>`
+                                    `<button class="btn btn-warn" style="padding: 6px 12px; font-size: 0.75rem;" 
+                                             onclick="deactivateSystemAdmin('${admin.systemAdminId}', '${escapeHtml(admin.name)}')">
+                                        <i data-lucide="pause" size="12"></i>
+                                     </button>` :
+                                    `<button class="btn btn-success" style="padding: 6px 12px; font-size: 0.75rem;" 
+                                             onclick="activateSystemAdmin('${admin.systemAdminId}', '${escapeHtml(admin.name)}')">
+                                        <i data-lucide="play" size="12"></i>
+                                     </button>`
                                 }
-                                <button class="btn btn-ghost" style="padding: 6px 12px; font-size: 0.75rem; color: var(--status-danger);" onclick="deleteSystemAdmin('${admin.id}', '${escapeHtml(admin.name)}')">
+                                <button class="btn btn-ghost" style="padding: 6px 12px; font-size: 0.75rem; color: var(--status-danger);" 
+                                        onclick="deleteSystemAdmin('${admin.systemAdminId}', '${escapeHtml(admin.name)}')">
                                     <i data-lucide="trash-2" size="12"></i>
                                 </button>
                             </div>
@@ -352,54 +358,108 @@ async function loadSystemAdmins() {
             }).join('');
         }
         
-        // 2. Update the Registration Codes List (Crucial for seeing which group the code is for)
-        if (data.registrationCodes && codesList) {
-            if (data.registrationCodes.length === 0) {
-                codesList.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--zinc-400);">No registration codes generated</div>';
-            } else {
-                codesList.innerHTML = data.registrationCodes.map(code => {
-                    const isExpired = Date.now() > code.expiresAt;
-                    const statusBadge = code.used ? 
-                        '<span class="badge badge-safe">Used</span>' :
-                        isExpired ?
-                        '<span class="badge badge-danger">Expired</span>' :
-                        '<span class="badge badge-info">Active</span>';
-                    
-                    return `
-                        <div style="background: var(--zinc-50); padding: 16px; border-radius: 12px; margin-bottom: 12px; border-left: 4px solid ${code.used ? 'var(--status-safe)' : isExpired ? 'var(--status-danger)' : 'var(--status-info)'};">
-                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
-                                <div>
-                                    <div style="font-size: 0.7rem; font-weight: 800; color: var(--zinc-400); text-transform: uppercase; margin-bottom: 4px;">Group Name</div>
-                                    <div style="font-weight: 800; color: var(--zinc-900); margin-bottom: 8px; font-size: 1rem;">${escapeHtml(code.groupName || 'No Group Specified')}</div>
-                                    
-                                    <div style="font-family: var(--mono); font-weight: 700; font-size: 1.1rem; letter-spacing: 2px; color: var(--brand-primary); margin-bottom: 8px;">${code.code}</div>
-                                    
-                                    <div style="font-size: 0.8rem; color: var(--zinc-600); display: grid; grid-template-columns: auto 1fr; gap: x 10px;">
-                                        <span>Created:</span> <span>${new Date(code.createdAt).toLocaleString()}</span>
-                                        <span>Expires:</span> <span>${new Date(code.expiresAt).toLocaleString()}</span>
-                                        ${code.name ? `<span>For:</span> <span>${escapeHtml(code.name)}</span>` : ''}
-                                    </div>
-                                </div>
-                                <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
-                                    ${statusBadge}
-                                    ${!code.used && !isExpired ? 
-                                        `<button class="btn btn-primary" style="padding: 6px 12px; font-size: 0.75rem;" onclick="copyToClipboard('${code.code}')"><i data-lucide="copy" size="12"></i> Copy Code</button>` : ''
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            }
-        }
+        // ✅ FIX: Load registration codes separately
+        await loadRegistrationCodes();
         
         lucide.createIcons();
     } catch (error) {
-        console.error('System admins error:', error);
+        console.error('Load system admins error:', error);
         showToast('Error', 'Failed to load system administrators', 'error');
     }
 }
 
+async function loadRegistrationCodes() {
+    try {
+        const data = await apiCall('/api/admin/registration-codes');
+        const codesList = document.getElementById('registrationCodesList');
+        
+        if (!codesList) return;
+        
+        if (!data.codes || data.codes.length === 0) {
+            codesList.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--zinc-400);">No registration codes generated</div>';
+        } else {
+            codesList.innerHTML = data.codes.map(code => {
+                const isExpired = Date.now() > code.expiresAt;
+                const statusBadge = code.used ? 
+                    '<span class="badge badge-safe">Used</span>' :
+                    isExpired ?
+                    '<span class="badge badge-danger">Expired</span>' :
+                    '<span class="badge badge-info">Active</span>';
+                
+                return `
+                    <div style="background: var(--zinc-50); padding: 16px; border-radius: 12px; 
+                               margin-bottom: 12px; border-left: 4px solid ${code.used ? 'var(--status-safe)' : isExpired ? 'var(--status-danger)' : 'var(--status-info)'};">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                            <div style="flex: 1;">
+                                <div style="font-size: 0.7rem; font-weight: 800; color: var(--zinc-400); 
+                                           text-transform: uppercase; margin-bottom: 4px;">Group Name</div>
+                                <div style="font-weight: 800; color: var(--zinc-900); margin-bottom: 8px; font-size: 1rem;">
+                                    ${escapeHtml(code.groupName || 'No Group Specified')}
+                                </div>
+                                
+                                <div style="font-family: var(--mono); font-weight: 700; font-size: 1.1rem; 
+                                           letter-spacing: 2px; color: var(--brand-primary); margin-bottom: 8px; 
+                                           cursor: pointer; user-select: all;" 
+                                     onclick="navigator.clipboard.writeText('${code.code}'); 
+                                              showToast('Copied', 'Code copied!', 'success');">
+                                    ${code.code}
+                                </div>
+                                
+                                <div style="font-size: 0.8rem; color: var(--zinc-600); 
+                                           display: grid; grid-template-columns: auto 1fr; gap: 5px 10px;">
+                                    <span style="font-weight: 600;">Created:</span>
+                                    <span>${new Date(code.createdAt).toLocaleString()}</span>
+                                    <span style="font-weight: 600;">Expires:</span>
+                                    <span>${new Date(code.expiresAt).toLocaleString()}</span>
+                                    ${code.name ? `<span style="font-weight: 600;">For:</span><span>${escapeHtml(code.name)}</span>` : ''}
+                                    ${code.email ? `<span style="font-weight: 600;">Email:</span><span>${escapeHtml(code.email)}</span>` : ''}
+                                    ${code.usedBy ? `<span style="font-weight: 600;">Used By:</span><span>${escapeHtml(code.usedBy)}</span>` : ''}
+                                    ${code.usedAt ? `<span style="font-weight: 600;">Used At:</span><span>${new Date(code.usedAt).toLocaleString()}</span>` : ''}
+                                </div>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
+                                ${statusBadge}
+                                ${!code.used && !isExpired ? 
+                                    `<button class="btn btn-ghost" style="padding: 4px 8px; font-size: 0.7rem;" 
+                                             onclick="navigator.clipboard.writeText('${code.code}'); 
+                                                      showToast('Copied', 'Code copied!', 'success');">
+                                        <i data-lucide="copy" size="12"></i> Copy
+                                     </button>` : ''
+                                }
+                                ${!code.used ? 
+                                    `<button class="btn btn-ghost" style="padding: 4px 8px; font-size: 0.7rem; color: var(--status-danger);" 
+                                             onclick="deleteRegistrationCode('${code.code}')">
+                                        <i data-lucide="trash-2" size="12"></i> Delete
+                                     </button>` : ''
+                                }
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        lucide.createIcons();
+    } catch (error) {
+        console.error('Load registration codes error:', error);
+        showToast('Error', 'Failed to load registration codes', 'error');
+    }
+}
+
+async function deleteRegistrationCode(code) {
+    if (!confirm(`Delete registration code ${code}?`)) return;
+    
+    try {
+        await apiCall(`/api/admin/registration-code/${code}`, {
+            method: 'DELETE'
+        });
+        
+        showToast('Success', 'Registration code deleted', 'success');
+        await loadRegistrationCodes();
+    } catch (error) {
+        showToast('Error', error.message || 'Failed to delete code', 'error');
+    }
+}
 
 async function loadDevices() {
     try {
@@ -983,66 +1043,128 @@ async function saveSettings(event) {
 }
 
 // ========== SYSTEM ADMIN OPERATIONS ==========
-async function createSystemAdmin(event) {
+async function handleCreateSystemAdmin(event) {
     event.preventDefault();
     
-    const groupNameInput = document.getElementById('newAdminGroupName');
-    const groupName = groupNameInput ? groupNameInput.value.trim() : "";
-    const name = document.getElementById('newAdminName').value.trim();
-    const email = document.getElementById('newAdminEmail').value.trim();
-
+    const groupName = document.getElementById('groupNameInput').value.trim();
+    const name = document.getElementById('nameInput').value.trim();
+    const email = document.getElementById('emailInput').value.trim();
+    
     if (!groupName) {
         showToast('Error', 'Group Name is required', 'error');
         return;
     }
-
+    
     if (!name || !email) {
         showToast('Error', 'Name and Email are required', 'error');
         return;
     }
-
+    
     try {
-        const data = await apiCall('/api/admin/system-admins/create', 'POST', { 
-            groupName, 
-            name, 
-            email 
+        const data = await apiCall('/api/admin/system-admins/create', {
+            method: 'POST',
+            body: JSON.stringify({ groupName, name, email })
         });
         
-        // Server returns 'code' not 'registrationCode'
-        const regCode = data.code;
-
-        if (!regCode) {
-            throw new Error('No registration code received');
+        if (data.success) {
+            // Copy to clipboard
+            try {
+                await navigator.clipboard.writeText(data.code);
+                showToast('Copied', 'Registration code copied to clipboard', 'success');
+            } catch (e) {
+                console.log('Clipboard not available');
+            }
+            
+            // Show beautiful modal
+            showRegistrationCodeModal(data);
+            
+            // Clear form
+            document.getElementById('groupNameInput').value = '';
+            document.getElementById('nameInput').value = '';
+            document.getElementById('emailInput').value = '';
+            
+            // Reload to show new code
+            await loadSystemAdmins();
         }
-
-        // Copy to clipboard
-        if (navigator.clipboard) {
-            await navigator.clipboard.writeText(regCode);
-        }
-
-        // Show success modal with code
-        alert(`✅ System Admin Created Successfully!\n\n` +
-              `Registration Code:\n${regCode}\n\n` +
-              `Group: ${groupName}\n` +
-              `Name: ${name}\n` +
-              `Email: ${email}\n\n` +
-              `Expires: ${new Date(data.expiresAt).toLocaleString()}\n\n` +
-              `📋 Code has been copied to clipboard!`);
-
-        // Reset form
-        document.getElementById('newAdminGroupName').value = '';
-        document.getElementById('newAdminName').value = '';
-        document.getElementById('newAdminEmail').value = '';
-
-        await loadSystemAdmins();
-        await loadStats();
-
-        logTerminal(`System admin created: ${email}`, 'success');
-        showToast('Success', 'System admin created! Code copied to clipboard.', 'success');
     } catch (error) {
-        console.error('Create admin error:', error);
         showToast('Error', error.message || 'Failed to create system admin', 'error');
     }
+}
+
+function showRegistrationCodeModal(data) {
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5); display: flex; align-items: center; 
+        justify-content: center; z-index: 10000; animation: fadeIn 0.3s;
+    `;
+    
+    modal.innerHTML = `
+        <div style="background: white; border-radius: 24px; padding: 40px; max-width: 600px; 
+                    width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: slideUp 0.3s;">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #10b981, #059669);
+                           border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+                           margin: 0 auto 20px;">
+                    <i data-lucide="check-circle" style="color: white;" size="40"></i>
+                </div>
+                <h2 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 10px;">System Admin Created!</h2>
+                <p style="color: #71717a;">Registration code generated successfully</p>
+            </div>
+            
+            <div style="background: #f4f4f5; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                <div style="margin-bottom: 15px;">
+                    <div style="font-size: 0.75rem; font-weight: 800; color: #a1a1aa; 
+                               text-transform: uppercase; margin-bottom: 5px;">Registration Code</div>
+                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 1.5rem; 
+                               font-weight: 700; letter-spacing: 3px; color: #3b82f6; 
+                               user-select: all; cursor: pointer;"
+                         onclick="navigator.clipboard.writeText('${data.code}'); 
+                                  showToast('Copied', 'Code copied!', 'success');">
+                        ${data.code}
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: auto 1fr; gap: 10px 20px; font-size: 0.9rem;">
+                    <strong>Group:</strong><span>${escapeHtml(data.groupName)}</span>
+                    <strong>Name:</strong><span>${escapeHtml(data.name)}</span>
+                    <strong>Email:</strong><span>${escapeHtml(data.email)}</span>
+                    <strong>Expires:</strong><span>${new Date(data.expiresAt).toLocaleString()}</span>
+                </div>
+            </div>
+            
+            <div style="background: #dbeafe; border: 1px solid #3b82f6; border-radius: 8px; 
+                       padding: 15px; margin-bottom: 20px;">
+                <div style="display: flex; gap: 10px; align-items: start;">
+                    <i data-lucide="info" style="color: #3b82f6; flex-shrink: 0;" size="20"></i>
+                    <div style="font-size: 0.85rem; color: #1e40af;">
+                        Share this code with the system administrator to complete registration.
+                    </div>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 10px;">
+                <button onclick="navigator.clipboard.writeText('${data.code}'); 
+                               showToast('Copied', 'Code copied!', 'success');" 
+                        style="flex: 1; padding: 12px 24px; background: #3b82f6; color: white; 
+                               border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                    📋 Copy Code
+                </button>
+                <button onclick="this.closest('div').parentElement.parentElement.remove()" 
+                        style="flex: 1; padding: 12px 24px; background: #f4f4f5; color: #18181b; 
+                               border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                    Close
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    lucide.createIcons();
+    
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.remove();
+    });
 }
 
 async function deactivateSystemAdmin(adminId, adminName) {
