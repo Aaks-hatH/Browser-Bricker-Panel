@@ -104,7 +104,7 @@ Your master key is the root credential for your account. It controls all devices
 
 1. **Access Control Panel**
    ```
-   https://browser-bricker-panel.onrender.com
+   https://browser-bricker-panel.onrender.com/main
    ```
 
 2. **Generate Master Key**
@@ -591,7 +591,7 @@ Your master key is the root credential for your account. It controls all devices
 
 1. **Access Control Panel**
    ```
-   https://browser-bricker-panel.onrender.com
+   https://browser-bricker-panel.onrender.com/main
    ```
 
 2. **Generate Master Key**
