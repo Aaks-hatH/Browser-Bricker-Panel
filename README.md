@@ -161,7 +161,7 @@ Layer 6: Cloud Infrastructure (Reliable & secure)
 
 ### Create Your Account
 
-1. Visit: `https://browserbricker.onrender.com`
+1. Visit: `https://browserbricker.onrender.com/main`
 2. Click **"CREATE ACCOUNT"**
 3. Click **"GENERATE MASTER KEY"**
 4. **IMPORTANT**: Copy and save your 64-character master key
@@ -193,7 +193,7 @@ Layer 6: Cloud Infrastructure (Reliable & secure)
 
 ### Control Panel
 
-Access the control panel at: `https://browserbricker.onrender.com`
+Access the control panel at: `https://browserbricker.onrender.com/main`
 
 **Dashboard Overview:**
 
