@@ -251,17 +251,36 @@ async function loadConfig() {
  * Offscreen Documents allow geolocation in a service worker context
  */
 async function setupOffscreen() {
-    if (await chrome.offscreen.hasDocument?.()) return;
-
     try {
+        // Check if offscreen document already exists
+        const existingContexts = await chrome.runtime.getContexts({
+            contextTypes: ['OFFSCREEN_DOCUMENT']
+        });
+        
+        if (existingContexts.length > 0) {
+            console.log('[Lockdown] Offscreen document already exists');
+            return;
+        }
+
+        // Create new offscreen document
         await chrome.offscreen.createDocument({
             url: chrome.runtime.getURL('offscreen.html'),
             reasons: ['GEOLOCATION'],
             justification: 'Geolocation tracking for security enforcement'
         });
+        
         console.log('[Lockdown] Offscreen Geolocation Bridge Created');
+        
+        // Give the offscreen document a moment to initialize
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
     } catch (err) {
-        console.log('[Lockdown] Offscreen already exists or error:', err.message);
+        // If error is about document already existing, that's fine
+        if (err.message?.includes('already exists')) {
+            console.log('[Lockdown] Offscreen document already exists (caught)');
+        } else {
+            console.error('[Lockdown] Error setting up offscreen:', err.message);
+        }
     }
 }
 
@@ -276,12 +295,19 @@ async function getGPSLocation() {
 
     try {
         console.log('[GPS] Requesting location from offscreen...');
-        const coords = await chrome.runtime.sendMessage({
-            target: 'offscreen',
-            type: 'get-geolocation'
-        });
         
-        if (coords && coords.lat && coords.lon) {
+        // Use a Promise with timeout to prevent hanging
+        const coords = await Promise.race([
+            chrome.runtime.sendMessage({
+                target: 'offscreen',
+                type: 'get-geolocation'
+            }),
+            new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('GPS request timeout')), 12000)
+            )
+        ]);
+        
+        if (coords && coords.lat !== undefined && coords.lon !== undefined) {
             console.log('[GPS] Location acquired:', coords.lat.toFixed(6), coords.lon.toFixed(6));
             return coords;
         } else {
@@ -296,15 +322,21 @@ async function getGPSLocation() {
 
 /**
  * Retrieves browser and battery stats
- * FIX: Service workers don't have access to navigator.getBattery or navigator.connection
- * We'll send a message to the offscreen document to get this data
+ * Service workers don't have access to navigator.getBattery or navigator.connection
+ * We send a message to the offscreen document to get this data
  */
 async function getSystemStats() {
     try {
-        const stats = await chrome.runtime.sendMessage({
-            target: 'offscreen',
-            type: 'get-system-stats'
-        });
+        // Use a Promise with timeout to prevent hanging
+        const stats = await Promise.race([
+            chrome.runtime.sendMessage({
+                target: 'offscreen',
+                type: 'get-system-stats'
+            }),
+            new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Stats request timeout')), 5000)
+            )
+        ]);
         
         if (stats) {
             console.log('[Stats] Battery:', stats.battery, 'Network:', stats.network);
