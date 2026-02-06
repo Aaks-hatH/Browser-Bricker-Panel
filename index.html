@@ -1,0 +1,2730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=browser-width, initial-scale=1.0">
+    <title>BrowserBricker V5 | Enterprise Browser Security & Remote Management</title>
+    <meta name="description" content="The world's most advanced remote browser security platform. Enterprise-grade control, real-time monitoring, and zero-trust architecture.">
+    <meta name="author" content="Aakshat Hariharan">
+    <meta name="theme-color" content="#000000">
+
+    <!-- Favicon -->
+    <link rel="icon" href="https://cdn.pixabay.com/photo/2014/04/02/16/27/shield-307324_150.png">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=JetBrains+Mono:wght@100;200;300;400;500;600;700;800&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Libraries -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
+    <style>
+        /* ==========================================================================
+           1. CORE FRAMEWORK & RESET
+           ========================================================================== */
+        :root {
+            /* Typography */
+            --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --font-display: 'Rajdhani', sans-serif;
+
+            /* Palette - Cyber Corporate */
+            --bg-deep: #030303;
+            --bg-surface: #0a0a0a;
+            --bg-elevated: #111111;
+            --bg-highlight: #1a1a1a;
+
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --text-tertiary: #52525b;
+            --text-muted: #3f3f46;
+
+            --border-subtle: rgba(255, 255, 255, 0.05);
+            --border-light: rgba(255, 255, 255, 0.1);
+            --border-strong: rgba(255, 255, 255, 0.2);
+
+            /* Accents */
+            --accent-core: #ffffff;
+            --accent-alert: #ef4444;
+            --accent-success: #10b981;
+            --accent-warn: #f59e0b;
+            --accent-info: #3b82f6;
+            --accent-gold: #fbbf24;
+            --accent-cyber: #00f0ff;
+
+            /* Dimensions */
+            --nav-height: 90px;
+            --container-width: 1600px;
+            --sidebar-width: 300px;
+
+            /* Animation */
+            --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+            --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+            --duration-fast: 0.2s;
+            --duration-normal: 0.5s;
+            --duration-slow: 1s;
+        }
+
+        /* Creator Mode Overrides */
+        body.creator-mode {
+            --bg-deep: #050500;
+            --text-primary: #fbbf24;
+            --border-light: rgba(251, 191, 36, 0.2);
+            --accent-core: #fbbf24;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            font-size: 16px;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        ::selection {
+            background: var(--accent-core);
+            color: var(--bg-deep);
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-deep);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-strong);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+
+        /* Utility Classes */
+        .container {
+            max-width: var(--container-width);
+            margin: 0 auto;
+            padding: 0 40px;
+            width: 100%;
+        }
+
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .justify-center { justify-content: center; }
+        .gap-10 { gap: 10px; }
+        .gap-20 { gap: 20px; }
+        .gap-40 { gap: 40px; }
+        
+        .text-mono { font-family: var(--font-mono); }
+        .text-display { font-family: var(--font-display); }
+        .uppercase { text-transform: uppercase; }
+        .font-bold { font-weight: 700; }
+        .text-sm { font-size: 0.875rem; }
+        .text-xs { font-size: 0.75rem; }
+        
+        .text-accent { color: var(--accent-core); }
+        .text-muted { color: var(--text-secondary); }
+        .text-alert { color: var(--accent-alert); }
+        .text-success { color: var(--accent-success); }
+
+        .border-b { border-bottom: 1px solid var(--border-light); }
+        .border-t { border-top: 1px solid var(--border-light); }
+
+        /* Background Grid */
+        .grid-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(var(--border-subtle) 1px, transparent 1px),
+                linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+            mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+            -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+        }
+
+        /* ==========================================================================
+           2. NAVIGATION
+           ========================================================================== */
+        nav {
+            position: fixed;
+            top: 0; width: 100%; height: var(--nav-height);
+            background: rgba(3, 3, 3, 0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-light);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-decoration: none;
+            color: var(--text-primary);
+            cursor: pointer;
+            position: relative;
+            padding-right: 30px;
+            border-right: 1px solid var(--border-light);
+        }
+
+        .brand-logo {
+            width: 40px; height: 40px;
+            filter: invert(1);
+            transition: transform 0.5s var(--ease-out);
+        }
+
+        .brand:hover .brand-logo {
+            transform: rotate(180deg);
+        }
+
+        .brand-text {
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .brand-version {
+            position: comprehensive;
+            top: -5px; right: 30px;
+            font-size: 0.6rem;
+            font-family: var(--font-mono);
+            color: var(--accent-success);
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 5px;
+            background: var(--bg-surface);
+            padding: 5px;
+            border-radius: 8px;
+            border: 1px solid var(--border-light);
+        }
+
+        .nav-item {
+            padding: 12px 24px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border-radius: 6px;
+            transition: all var(--duration-fast);
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font-family: var(--font-sans);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-item::before {
+            content: '';
+            position: comprehensive;
+            bottom: 0; left: 0; width: 100%; height: 2px;
+            background: var(--accent-core);
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform var(--duration-normal) var(--ease-out);
+        }
+
+        .nav-item:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .nav-item.active {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .nav-item.active::before {
+            transform: scaleX(1);
+            transform-origin: left;
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 14px 28px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all var(--duration-fast);
+            border: 1px solid transparent;
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: var(--text-primary);
+            color: var(--bg-deep);
+        }
+
+        .btn-primary:hover {
+            background: #e5e5e5;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border-color: var(--border-strong);
+            color: var(--text-primary);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+        }
+
+        .btn-ghost:hover {
+            color: var(--text-primary);
+        }
+
+        /* ==========================================================================
+           3. MAIN CONTENT AREA
+           ========================================================================== */
+        .main-content {
+            margin-top: var(--nav-height);
+            min-height: calc(100vh - var(--nav-height));
+            position: relative;
+            z-index: 1;
+        }
+
+        .tab-pane {
+            display: none;
+            opacity: 0;
+            animation: tabFadeIn 0.8s var(--ease-out) forwards;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        @keyframes tabFadeIn {
+            from { opacity: 0; transform: translateY(20px); filter: blur(10px); }
+            to { opacity: 1; transform: translateY(0); filter: blur(0); }
+        }
+
+        /* ==========================================================================
+           4. HERO SECTION (LANDSCAPE)
+           ========================================================================== */
+        .hero-section {
+            height: calc(100vh - var(--nav-height));
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            height: 100%;
+            width: 100%;
+        }
+
+        .hero-left {
+            padding: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border-right: 1px solid var(--border-light);
+            position: relative;
+            background: rgba(0,0,0,0.2);
+        }
+
+        .hero-right {
+            position: relative;
+            overflow: hidden;
+            background: radial-gradient(circle at center, #111 0%, #000 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hero-label {
+            font-family: var(--font-mono);
+            color: var(--accent-success);
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .hero-label::before {
+            content: '';
+            width: 8px; height: 8px;
+            background: var(--accent-success);
+            box-shadow: 0 0 10px var(--accent-success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .hero-title {
+            font-family: var(--font-display);
+            font-size: 5.5rem;
+            font-weight: 800;
+            line-height: 0.95;
+            letter-spacing: -2px;
+            margin-bottom: 40px;
+            text-transform: uppercase;
+        }
+
+        .hero-title span {
+            display: block;
+            background: linear-gradient(to right, #fff, #888);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-desc {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin-bottom: 60px;
+            font-weight: 300;
+            line-height: 1.6;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 20px;
+        }
+
+        /* Hero Visuals (Right Side) */
+        .radar-container {
+            width: 600px;
+            height: 600px;
+            position: relative;
+        }
+
+        .radar-circle {
+            position: comprehensive;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            border: 1px solid var(--border-strong);
+            border-radius: 50%;
+        }
+
+        .c1 { width: 100%; height: 100%; border-color: rgba(255,255,255,0.05); }
+        .c2 { width: 75%; height: 75%; border-color: rgba(255,255,255,0.1); }
+        .c3 { width: 50%; height: 50%; border-color: rgba(255,255,255,0.2); }
+        .c4 { width: 25%; height: 25%; background: rgba(255,255,255,0.05); border: none; }
+
+        .radar-sweep {
+            position: comprehensive;
+            top: 50%; left: 50%;
+            width: 50%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-success));
+            transform-origin: left center;
+            animation: radarSpin 4s linear infinite;
+            opacity: 0.5;
+        }
+
+        .radar-blip {
+            position: comprehensive;
+            width: 6px; height: 6px;
+            background: var(--accent-alert);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent-alert);
+            opacity: 0;
+            animation: blip 4s infinite;
+        }
+
+        @keyframes radarSpin { 0% { transform: translateY(-50%) rotate(0deg); } 100% { transform: translateY(-50%) rotate(360deg); } }
+        @keyframes blip { 0%, 100% { opacity: 0; } 20% { opacity: 1; } 40% { opacity: 0; } }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        /* ==========================================================================
+           5. INTELLIGENCE TAB (DOCUMENTATION)
+           ========================================================================== */
+        .doc-layout {
+            display: grid;
+            grid-template-columns: var(--sidebar-width) 1fr;
+            min-height: 100vh;
+        }
+
+        .doc-sidebar {
+            border-right: 1px solid var(--border-light);
+            padding: 40px 20px;
+            position: sticky;
+            top: var(--nav-height);
+            height: calc(100vh - var(--nav-height));
+            overflow-y: auto;
+            background: var(--bg-surface);
+        }
+
+        .doc-main {
+            padding: 80px;
+            max-width: 1000px;
+        }
+
+        .doc-nav-group {
+            margin-bottom: 30px;
+        }
+
+        .doc-nav-title {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            padding-left: 15px;
+            letter-spacing: 1px;
+        }
+
+        .doc-link {
+            display: block;
+            padding: 10px 15px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            border-left: 1px solid var(--border-light);
+            transition: all var(--duration-fast);
+        }
+
+        .doc-link:hover {
+            color: var(--text-primary);
+            border-left-color: var(--text-primary);
+            background: rgba(255,255,255,0.02);
+        }
+
+        .doc-link.active {
+            color: var(--text-primary);
+            border-left-color: var(--accent-success);
+            background: rgba(16, 185, 129, 0.05);
+            font-weight: 600;
+        }
+
+        .doc-header {
+            margin-bottom: 60px;
+            border-bottom: 1px solid var(--border-light);
+            padding-bottom: 40px;
+        }
+
+        .doc-h1 {
+            font-family: var(--font-display);
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        .doc-lead {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .doc-section {
+            margin-bottom: 80px;
+        }
+
+        .doc-h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .doc-h2::before {
+            content: '#';
+            color: var(--accent-success);
+            font-family: var(--font-mono);
+        }
+
+        .doc-p {
+            margin-bottom: 20px;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+
+        .doc-list {
+            margin-bottom: 30px;
+            padding-left: 20px;
+        }
+
+        .doc-list li {
+            margin-bottom: 15px;
+            color: var(--text-secondary);
+            padding-left: 10px;
+        }
+
+        .doc-list li::marker {
+            color: var(--accent-success);
+        }
+
+        /* Code Blocks */
+        .code-window {
+            background: #050505;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            margin: 40px 0;
+            overflow: hidden;
+        }
+
+        .code-header {
+            background: var(--bg-surface);
+            padding: 10px 20px;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .code-dots { display: flex; gap: 6px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; }
+        .dot-r { background: #ff5f56; }
+        .dot-y { background: #ffbd2e; }
+        .dot-g { background: #27c93f; }
+
+        .code-lang {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+        }
+
+        .code-content {
+            padding: 20px;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            color: #d4d4d4;
+            overflow-x: auto;
+            line-height: 1.6;
+        }
+
+        .token-comment { color: #6a9955; }
+        .token-keyword { color: #569cd6; }
+        .token-string { color: #ce9178; }
+        .token-function { color: #dcdcaa; }
+        .token-number { color: #b5cea8; }
+
+        /* ==========================================================================
+           6. CAPABILITIES TAB (MODULES)
+           ========================================================================== */
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 40px;
+            padding: 80px 0;
+        }
+
+        .module-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-light);
+            padding: 40px;
+            transition: all var(--duration-normal);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .module-card:hover {
+            border-color: var(--accent-success);
+            transform: translateY(-5px);
+        }
+
+        .module-icon {
+            width: 60px; height: 60px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-light);
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 30px;
+            color: var(--text-primary);
+        }
+
+        .module-title {
+            font-family: var(--font-display);
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        .module-desc {
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .module-specs {
+            background: var(--bg-deep);
+            padding: 20px;
+            border: 1px solid var(--border-light);
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-tertiary);
+        }
+
+        .spec-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .spec-row:last-child { margin-bottom: 0; }
+        .spec-val { color: var(--accent-success); }
+
+        /* ==========================================================================
+           7. DEPLOYMENT TAB (TIMELINE)
+           ========================================================================== */
+        .deployment-track {
+            position: relative;
+            padding: 80px 0;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .deployment-track::before {
+            content: '';
+            position: comprehensive;
+            top: 0; bottom: 0; left: 40px;
+            width: 2px;
+            background: var(--border-light);
+        }
+
+        .deploy-step {
+            margin-bottom: 80px;
+            position: relative;
+            padding-left: 100px;
+        }
+
+        .step-marker {
+            position: comprehensive;
+            left: 20px; top: 0;
+            width: 42px; height: 42px;
+            background: var(--bg-deep);
+            border: 2px solid var(--text-primary);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-family: var(--font-mono);
+            font-weight: 700;
+            z-index: 2;
+        }
+
+        .step-content {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-light);
+            padding: 40px;
+            border-radius: 4px;
+        }
+
+        .step-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+
+        /* ==========================================================================
+           8. CHANGELOG (TERMINAL STYLE)
+           ========================================================================== */
+        .changelog-terminal {
+            background: #000;
+            border: 1px solid var(--border-strong);
+            padding: 40px;
+            font-family: var(--font-mono);
+            color: #0f0;
+            max-width: 1000px;
+            margin: 80px auto;
+            box-shadow: 0 0 50px rgba(0, 255, 0, 0.1);
+        }
+
+        .cl-entry {
+            margin-bottom: 40px;
+            border-bottom: 1px dashed #333;
+            padding-bottom: 40px;
+        }
+
+        .cl-meta {
+            color: #666;
+            margin-bottom: 10px;
+            font-size: 0.8rem;
+        }
+
+        .cl-ver {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+
+        /* ==========================================================================
+           9. FOOTER
+           ========================================================================== */
+        footer {
+            background: var(--bg-surface);
+            border-top: 1px solid var(--border-light);
+            padding: 100px 0 40px;
+            margin-top: auto;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 80px;
+            margin-bottom: 80px;
+        }
+
+        .footer-brand-desc {
+            color: var(--text-secondary);
+            margin-top: 20px;
+            max-width: 300px;
+            font-size: 0.9rem;
+        }
+
+        .footer-col h4 {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: var(--text-primary);
+            margin-bottom: 30px;
+            letter-spacing: 1px;
+        }
+
+        .footer-links a {
+            display: block;
+            color: var(--text-secondary);
+            text-decoration: none;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            transition: color var(--duration-fast);
+        }
+
+        .footer-links a:hover {
+            color: var(--accent-success);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid var(--border-light);
+            padding-top: 40px;
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-tertiary);
+            font-size: 0.8rem;
+            font-family: var(--font-mono);
+        }
+
+        /* ==========================================================================
+           10. OVERLAYS & MODALS
+           ========================================================================== */
+        
+        /* Lock Screen */
+        #lock-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000;
+            z-index: 999999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: none;
+        }
+        #lock-screen.active { display: flex; }
+
+        .lock-interface {
+            width: 100%; max-width: 1200px;
+            border: 2px solid #333;
+            padding: 60px;
+            background: radial-gradient(circle at center, #111, #000);
+            text-align: center;
+            animation: lockPulse 4s infinite;
+        }
+
+        @keyframes lockPulse { 0% { box-shadow: 0 0 0 rgba(255,0,0,0); } 50% { box-shadow: 0 0 50px rgba(255,0,0,0.2); } 100% { box-shadow: 0 0 0 rgba(255,0,0,0); } }
+
+        .lock-title {
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            font-size: 5rem;
+            font-weight: 900;
+            color: #ff0000;
+            margin-bottom: 20px;
+            letter-spacing: -2px;
+        }
+
+        .lock-msg {
+            font-family: var(--font-mono);
+            color: #fff;
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+        }
+
+        .lock-input {
+            background: #000;
+            border: 1px solid #444;
+            color: #fff;
+            font-family: var(--font-mono);
+            font-size: 1.5rem;
+            padding: 20px;
+            width: 400px;
+            text-align: center;
+        }
+
+        /* Terminal Modal */
+        .terminal-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(10px);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .terminal-modal.active { display: flex; }
+
+        .terminal-window {
+            width: 800px; height: 500px;
+            background: #0c0c0c;
+            border: 1px solid #333;
+            border-radius: 6px;
+            display: flex; flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        .terminal-bar {
+            background: #1a1a1a;
+            padding: 10px;
+            display: flex; gap: 8px;
+            border-bottom: 1px solid #333;
+        }
+
+        .t-dot { width: 12px; height: 12px; border-radius: 50%; background: #333; }
+        .t-close { background: #ff5f56; cursor: pointer; }
+
+        .terminal-body {
+            flex: 1;
+            padding: 20px;
+            font-family: var(--font-mono);
+            color: #0f0;
+            overflow-y: auto;
+        }
+
+        .t-line { margin-bottom: 5px; }
+        .t-input-line { display: flex; gap: 10px; }
+        .t-prompt { color: #0f0; }
+        .t-input { background: transparent; border: none; color: #fff; flex: 1; font-family: inherit; font-size: inherit; }
+
+        /* Modal Generic */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            z-index: 3000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.active { display: flex; }
+
+        .modal-box {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-light);
+            width: 900px; max-height: 80vh;
+            overflow-y: auto;
+            padding: 60px;
+            position: relative;
+        }
+
+        .modal-close-btn {
+            position: comprehensive;
+            top: 20px; right: 20px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .hero-grid { grid-template-columns: 1fr; }
+            .hero-right { display: none; }
+            .hero-left { border-right: none; }
+            .doc-layout { grid-template-columns: 1fr; }
+            .doc-sidebar { display: none; }
+        }
+    
+        /* ==========================================================================
+           ENHANCED INTERACTIVE INSTALLATION WIZARD
+           ========================================================================== */
+        .install-wizard {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .install-step {
+            background: var(--bg-surface);
+            border: 2px solid var(--border-light);
+            border-radius: 20px;
+            padding: 50px;
+            margin-bottom: 30px;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+        }
+
+        .install-step.completed {
+            border-color: var(--accent-success);
+            opacity: 0.6;
+        }
+
+        .install-step.active {
+            border-color: var(--accent-core);
+            box-shadow: 0 0 60px rgba(255,255,255,0.15);
+            transform: scale(1.02);
+        }
+
+        .install-step.locked {
+            opacity: 0.3;
+            pointer-events: none;
+            filter: grayscale(1);
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            margin-bottom: 35px;
+        }
+
+        .step-number {
+            width: 60px;
+            height: 60px;
+            background: var(--bg-elevated);
+            border: 3px solid var(--border-light);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 700;
+            flex-shrink: 0;
+            transition: all 0.5s;
+        }
+
+        .install-step.completed .step-number {
+            background: var(--accent-success);
+            border-color: var(--accent-success);
+            color: white;
+        }
+
+        .install-step.active .step-number {
+            background: var(--accent-core);
+            border-color: var(--accent-core);
+            color: var(--bg-deep);
+            animation: numberPulse 2s infinite;
+        }
+
+        @keyframes numberPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .step-title {
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .step-subtitle {
+            color: var(--text-secondary);
+            margin-top: 5px;
+        }
+
+        .step-content {
+            padding-left: 85px;
+        }
+
+        .step-description {
+            color: var(--text-secondary);
+            line-height: 1.8;
+            font-size: 1.0625rem;
+            margin-bottom: 30px;
+        }
+
+        .step-action {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        /* Progress Bar */
+        .install-progress {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-light);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 50px;
+            position: sticky;
+            top: calc(var(--nav-height) + 20px);
+            z-index: 50;
+        }
+
+        .progress-bar-container {
+            height: 10px;
+            background: var(--bg-elevated);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-success), var(--accent-core));
+            width: 0%;
+            transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .progress-steps-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .progress-step-item {
+            flex: 1;
+            text-align: center;
+            font-size: 0.8125rem;
+            color: var(--text-tertiary);
+            transition: all 0.3s;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .progress-step-item.completed,
+        .progress-step-item.active {
+            color: var(--text-primary);
+            font-weight: 600;
+            background: rgba(255,255,255,0.05);
+        }
+
+        /* Interactive Download Zone */
+        .file-drop-zone {
+            border: 3px dashed var(--border-light);
+            border-radius: 20px;
+            padding: 70px 40px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+            background: var(--bg-deep);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .file-drop-zone::before {
+            content: '';
+            position: comprehensive;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+            transition: left 0.5s;
+        }
+
+        .file-drop-zone:hover {
+            border-color: var(--accent-core);
+            background: var(--bg-surface);
+            transform: translateY(-5px);
+        }
+
+        .file-drop-zone:hover::before {
+            left: 100%;
+        }
+
+        .file-drop-zone.downloading {
+            border-color: var(--accent-info);
+            animation: downloadPulse 1.5s infinite;
+        }
+
+        @keyframes downloadPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Success Checkmark Animation */
+        .success-checkmark {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 25px;
+            border-radius: 50%;
+            border: 5px solid var(--accent-success);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            animation: checkmarkAppear 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .success-checkmark.show {
+            display: flex;
+        }
+
+        @keyframes checkmarkAppear {
+            0% { transform: scale(0) rotate(-45deg); opacity: 0; }
+            50% { transform: scale(1.2) rotate(15deg); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        /* Requirements Checklist */
+        .requirements-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .requirements-list li {
+            padding: 20px 25px;
+            background: var(--bg-deep);
+            border: 2px solid var(--border-light);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            transition: all 0.4s;
+            cursor: pointer;
+        }
+
+        .requirements-list li:hover {
+            background: var(--bg-surface);
+        }
+
+        .requirements-list li.met {
+            border-color: var(--accent-success);
+            background: rgba(16, 185, 129, 0.08);
+        }
+
+        .requirements-list li.checking {
+            border-color: var(--accent-info);
+            animation: requirementCheck 1s;
+        }
+
+        @keyframes requirementCheck {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .requirement-check-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 3px solid var(--border-strong);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.4s;
+        }
+
+        .requirements-list li.met .requirement-check-icon {
+            background: var(--accent-success);
+            border-color: var(--accent-success);
+            animation: checkPop 0.5s;
+        }
+
+        @keyframes checkPop {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+        }
+
+        /* Interactive Toast Notifications */
+        .toast-notification {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--bg-surface);
+            border: 2px solid var(--border-light);
+            border-radius: 16px;
+            padding: 20px 30px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+            z-index: 10000;
+            transform: translateX(500px);
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            max-width: 400px;
+        }
+
+        .toast-notification.show {
+            transform: translateX(0);
+        }
+
+        .toast-notification.success {
+            border-color: var(--accent-success);
+        }
+
+        .toast-notification.error {
+            border-color: var(--accent-alert);
+        }
+
+        .toast-notification.info {
+            border-color: var(--accent-info);
+        }
+
+        /* Terminal Code Block with Copy Button */
+        .terminal-block {
+            position: relative;
+            margin: 25px 0;
+        }
+
+        .terminal-copy-btn {
+            position: comprehensive;
+            top: 15px;
+            right: 15px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8125rem;
+            transition: all 0.3s;
+            opacity: 0;
+        }
+
+        .terminal-block:hover .terminal-copy-btn {
+            opacity: 1;
+        }
+
+        .terminal-copy-btn:hover {
+            background: rgba(255,255,255,0.2);
+            color: var(--text-primary);
+        }
+
+        .terminal-copy-btn.copied {
+            background: var(--accent-success);
+            border-color: var(--accent-success);
+            color: white;
+        }
+
+
+
+        /* Enhanced Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .container { padding: 0 20px; }
+            nav { height: auto; min-height: var(--nav-height); }
+            .nav-inner { 
+                flex-direction: column; 
+                gap: 20px; 
+                padding: 20px 0; 
+                align-items: stretch;
+            }
+            .nav-tabs {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .nav-tab {
+                flex: 1 1 auto;
+                min-width: 120px;
+                text-align: center;
+            }
+            .hero-title { font-size: 2.5rem; }
+            .hero-subtitle { font-size: 1.125rem; }
+            .section-title { font-size: 2rem; }
+            .section-subtitle { font-size: 1rem; }
+            .hero-cta {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .hero-cta .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            .footer-grid { grid-template-columns: 1fr; gap: 40px; }
+            .step-content { padding-left: 0; margin-top: 20px; }
+            .step-header { flex-direction: column; align-items: flex-start; }
+            .step-number { margin-bottom: 10px; }
+            .arch-layer { flex-direction: column; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .pricing-grid { grid-template-columns: 1fr; }
+            .toast-notification { 
+                bottom: 20px; 
+                right: 20px; 
+                left: 20px; 
+                max-width: calc(100% - 40px);
+            }
+            .file-drop-zone { padding: 40px 20px; }
+            .terminal-body { font-size: 0.8125rem; padding: 15px; }
+            .modal-content { padding: 30px 20px; }
+            .comparison-table { font-size: 0.875rem; }
+            .comparison-table th, .comparison-table td { padding: 12px 8px; }
+            
+            /* Stack two-column layouts */
+            .grid-2 { grid-template-columns: 1fr; }
+            div[style*="grid-template-columns: 1fr 1fr"] { 
+                display: grid !important;
+                grid-template-columns: 1fr !important; 
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero-title { font-size: 2rem; line-height: 1.2; }
+            .section-title { font-size: 1.75rem; }
+            .btn { padding: 12px 24px; font-size: 0.875rem; }
+            .step-number { width: 50px; height: 50px; font-size: 1.5rem; }
+            .step-title { font-size: 1.5rem; }
+            .lock-title { font-size: 3rem; }
+            .stat-number { font-size: 2rem; }
+        }
+
+        /* Touch device optimizations */
+        @media (hover: none) and (pointer: coarse) {
+            .btn { min-height: 44px; }
+            .nav-tab { min-height: 44px; padding: 12px 16px; }
+            .card:hover { transform: none; }
+            .feature-card:hover { transform: none; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="grid-overlay"></div>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="container">
+            <div class="nav-inner">
+                <a class="brand" onclick="switchTab('home')">
+                    <img src="https://cdn.pixabay.com/photo/2014/04/02/16/27/shield-307324_150.png" class="brand-logo" alt="Logo">
+                    <span class="brand-text">BrowserBricker</span>
+                    <span class="brand-version">V5.0.1 ENTERPRISE</span>
+                </a>
+
+                <div class="nav-menu">
+                    <button class="nav-item active" onclick="switchTab('home')">Mission</button>
+                    <button class="nav-item" onclick="switchTab('features')">Capabilities</button>
+                    <button class="nav-item" onclick="switchTab('intelligence')">Intelligence</button>
+                    <button class="nav-item" onclick="switchTab('installation')">Installation</button>
+                    <button class="nav-item" onclick="switchTab('changelog')">Briefings</button>
+                </div>
+
+                <div class="nav-actions">
+                    <button class="btn btn-ghost" onclick="openTerminal()">
+                        <i data-lucide="terminal" size="18"></i>
+                    </button>
+                    <a href="https://browser-bricker-panel.onrender.com/" target="_blank" class="btn btn-primary">
+                        Command Center
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+
+        <!-- HOME TAB -->
+        <div id="home" class="tab-pane active">
+            <div class="hero-section">
+                <div class="hero-grid">
+                    <div class="hero-left">
+                        <div class="hero-label">
+                            SYSTEM STATUS: OPERATIONAL
+                        </div>
+                        <h1 class="hero-title">
+                            Your Browsers<br>
+                            <span>First Line of Defense.</span>
+                        </h1>
+                        <p class="hero-desc">
+                            The world's most advanced remote browser security platform. Enterprise-grade control, real-time monitoring, and zero-trust architecture for organizations that demand policy-based administrative control.
+                        </p>
+                        <div class="hero-actions">
+                            <button class="btn btn-primary" onclick="switchTab('installation')">
+                                <i data-lucide="download"></i> Initiate Deployment
+                            </button>
+                            <button class="btn btn-outline" onclick="switchTab('features')">
+                                View Capabilities
+                            </button>
+                        </div>
+                    </div>
+                    <div class="hero-right">
+                        <div class="radar-container">
+                            <div class="radar-circle c1"></div>
+                            <div class="radar-circle c2"></div>
+                            <div class="radar-circle c3"></div>
+                            <div class="radar-circle c4"></div>
+                            <div class="radar-sweep"></div>
+                            <div class="radar-blip" style="top: 30%; left: 40%;"></div>
+                            <div class="radar-blip" style="top: 70%; left: 80%; animation-delay: 1s;"></div>
+                            <div class="radar-blip" style="top: 20%; left: 70%; animation-delay: 2s;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Expanded Home Content -->
+            <div class="container" style="padding-top: 80px; padding-bottom: 80px;">
+                <div class="section-header">
+                    <span class="section-tag">OPERATIONAL OVERVIEW</span>
+                    <h2 class="section-title">Global Threat Mitigation</h2>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;">
+                    <div>
+                        <p class="doc-p">BrowserBricker deploys a distributed sensor network across your entire browser fleet, creating a unified defensive mesh. Every endpoint acts as both a sensor and an enforcer.</p>
+                        <ul class="doc-list">
+                            <li><strong>Real-time Telemetry:</strong> 200ms latency updates from all active nodes.</li>
+                            <li><strong>Heuristic Analysis:</strong> AI-driven threat detection identifies anomalies before they become breaches.</li>
+                            <li><strong>Automated Response:</strong> Pre-configured countermeasures execute instantly upon threat verification.</li>
+                        </ul>
+                    </div>
+                    <div style="background: var(--bg-surface); border: 1px solid var(--border-light); padding: 40px; border-radius: 8px;">
+                        <h3 style="font-family: var(--font-mono); color: var(--accent-success); margin-bottom: 20px;">// SYSTEM_ARCHITECTURE</h3>
+                        <svg viewBox="0 0 400 200" style="width: 100%; height: auto;">
+                            <rect x="10" y="80" width="60" height="40" fill="#333" stroke="#666" />
+                            <text x="40" y="105" text-anchor="middle" fill="#fff" font-size="10">CLIENT</text>
+                            <line x1="70" y1="100" x2="150" y2="100" stroke="#0f0" stroke-width="2" stroke-dasharray="5,5" />
+                            <circle cx="170" cy="100" r="20" fill="#111" stroke="#0f0" />
+                            <text x="170" y="105" text-anchor="middle" fill="#0f0" font-size="8">WAF</text>
+                            <line x1="190" y1="100" x2="250" y2="100" stroke="#0f0" stroke-width="2" />
+                            <rect x="250" y="60" width="80" height="80" fill="#111" stroke="#fff" />
+                            <text x="290" y="105" text-anchor="middle" fill="#fff" font-size="10">CORE</text>
+                            <line x1="330" y1="100" x2="380" y2="100" stroke="#666" stroke-width="2" />
+                            <circle cx="390" cy="100" r="10" fill="#333" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FEATURES TAB -->
+            <!-- SCOPE & LIMITATIONS -->
+            <section style="background: var(--bg-surface); border-top: 1px solid var(--border-light); border-bottom: 1px solid var(--border-light);">
+                <div class="container">
+                    <div class="section-header">
+                        <div class="section-tag">TECHNICAL BOUNDARIES</div>
+                        <h2 class="section-title">Scope & Limitations</h2>
+                        <p class="section-subtitle">
+                            Understanding what BrowserBricker can and cannot do within browser extension constraints
+                        </p>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 50px; margin-bottom: 60px;">
+                        <div>
+                            <h3 style="font-size: 1.75rem; margin-bottom: 25px; color: var(--accent-success);">✓ What BrowserBricker Does</h3>
+                            <ul class="doc-list">
+                                <li><strong>Browser Extension Control:</strong> Operates entirely within the browser's extension sandbox using standard APIs</li>
+                                <li><strong>Browser-Level Enforcement:</strong> Restricts browser access, blocks navigation, and controls tab behavior</li>
+                                <li><strong>Consent-Based Deployment:</strong> Requires manual installation by authorized personnel</li>
+                                <li><strong>Transparent Operation:</strong> Visible in extensions list, all actions logged and auditable</li>
+                                <li><strong>Policy Enforcement:</strong> Applies organizational security policies within browser scope</li>
+                                <li><strong>Browser Telemetry:</strong> Monitors browser activity, tabs, and extension-accessible system data</li>
+                                <li><strong>Geolocation Features:</strong> Uses browser's Geolocation API with user permission</li>
+                                <li><strong>Immediate Reversibility:</strong> Uninstalling the extension removes all enforcement</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 style="font-size: 1.75rem; margin-bottom: 25px; color: var(--accent-alert);">✗ What BrowserBricker Does NOT Do</h3>
+                            <ul class="doc-list">
+                                <li><strong>No OS-Level Access:</strong> Cannot modify operating system, firmware, or system files</li>
+                                <li><strong>No Hardware Control:</strong> Cannot access or control hardware directly</li>
+                                <li><strong>No Privilege Escalation:</strong> Operates only with standard browser extension permissions</li>
+                                <li><strong>No Silent Installation:</strong> Cannot install itself without explicit user action</li>
+                                <li><strong>No Persistent Malware Behavior:</strong> No rootkits, no hidden processes, no system-level persistence</li>
+                                <li><strong>No File System Access:</strong> Cannot read, modify, or delete files outside browser scope</li>
+                                <li><strong>No Network-Level Control:</strong> Cannot modify network settings or intercept non-browser traffic</li>
+                                <li><strong>No Cross-Application Control:</strong> Only affects the browser, not other installed applications</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div style="background: var(--bg-deep); border: 2px solid var(--border-light); border-radius: 16px; padding: 40px; text-align: center;">
+                        <h3 style="font-size: 1.5rem; margin-bottom: 20px; color: var(--accent-core);">Technical Operating Boundary</h3>
+                        <p style="color: var(--text-secondary); font-size: 1.0625rem; line-height: 1.8; max-width: 900px; margin: 0 auto;">
+                            BrowserBricker operates exclusively within the Chromium extension sandbox. All capabilities are limited to 
+                            browser-level controls using declared Extension APIs (webNavigation, tabs, storage, geolocation). 
+                            The extension cannot bypass browser security boundaries, escalate privileges, or persist beyond browser scope. 
+                            Removing the extension immediately terminates all enforcement capabilities.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+        <div id="features" class="tab-pane">
+            <div class="container">
+                <div class="modules-grid">
+                    <!-- Module 1 -->
+                    <div class="module-card">
+                        <div class="module-icon"><i data-lucide="lock" size="32"></i></div>
+                        <h3 class="module-title">Remote Browser lockdown</h3>
+                        <p class="module-desc">
+                            Instantly restrict browser access on managed browsers through our secure WebSocket infrastructure. The lockdown protocol blocks browser navigation and restricts user actions within the browser.
+                        </p>
+                        <div class="module-specs">
+                            <div class="spec-row"><span>Latency</span><span class="spec-val">< 500ms</span></div>
+                            <div class="spec-row"><span>Encryption</span><span class="spec-val">industry-standard encryption</span></div>
+                            <div class="spec-row"><span>Persistence</span><span class="spec-val">Reboot-Proof</span></div>
+                        </div>
+                        <button class="btn btn-outline" style="width: 100%; margin-top: 30px;" onclick="openModal('feat-lock')">View Technical Specs</button>
+                    </div>
+
+                    <!-- Module 2 -->
+                    <div class="module-card">
+                        <div class="module-icon"><i data-lucide="radar" size="32"></i></div>
+                        <h3 class="module-title">Geospatial Enforcement</h3>
+                        <p class="module-desc">
+                            Define strict operational perimeters. Browsers that breach designated geofence boundaries trigger automatic defensive countermeasures and location reporting.
+                        </p>
+                        <div class="module-specs">
+                            <div class="spec-row"><span>Accuracy</span><span class="spec-val">3 Meters</span></div>
+                            <div class="spec-row"><span>Update Rate</span><span class="spec-val">2000ms</span></div>
+                            <div class="spec-row"><span>Zones</span><span class="spec-val">Unlimited</span></div>
+                        </div>
+                        <button class="btn btn-outline" style="width: 100%; margin-top: 30px;" onclick="openModal('feat-geo')">View Technical Specs</button>
+                    </div>
+
+                    <!-- Module 3 -->
+                    <div class="module-card">
+                        <div class="module-icon"><i data-lucide="eye" size="32"></i></div>
+                        <h3 class="module-title">Browser Telemetry</h3>
+                        <p class="module-desc">
+                            Real-time browser telemetry including active tabs, browsing history, and extension-accessible system data. Comprehensive browser visibility for administrators.
+                        </p>
+                        <div class="module-specs">
+                            <div class="spec-row"><span>Data Retention</span><span class="spec-val">90 Days</span></div>
+                            <div class="spec-row"><span>Telemetry</span><span class="spec-val">Full Spectrum</span></div>
+                            <div class="spec-row"><span>Alerts</span><span class="spec-val">Instant</span></div>
+                        </div>
+                        <button class="btn btn-outline" style="width: 100%; margin-top: 30px;" onclick="openModal('feat-surv')">View Technical Specs</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- INTELLIGENCE TAB -->
+        <div id="intelligence" class="tab-pane">
+            <div class="doc-layout">
+                <div class="doc-sidebar">
+                    <div class="doc-nav-group">
+                        <div class="doc-nav-title">Architecture</div>
+                        <a href="#int-zero" class="doc-link active">Zero Trust Model</a>
+                        <a href="#int-crypto" class="doc-link">Cryptography</a>
+                        <a href="#int-net" class="doc-link">Network Topology</a>
+                    </div>
+                    <div class="doc-nav-group">
+                        <div class="doc-nav-title">Compliance</div>
+                        <a href="#int-gdpr" class="doc-link">GDPR / CCPA</a>
+                        <a href="#int-audit" class="doc-link">Audit Trails</a>
+                    </div>
+                    <div class="doc-nav-group">
+                        <div class="doc-nav-title">Protocols</div>
+                        <a href="#int-incident" class="doc-link">Incident Response</a>
+                        <a href="#int-sov" class="doc-link">Data Sovereignty</a>
+                    </div>
+                </div>
+                <div class="doc-main">
+                    <div class="doc-header">
+                        <h1 class="doc-h1">Security Intelligence</h1>
+                        <p class="doc-lead">Comprehensive documentation on the security protocols, architectural decisions, and compliance standards of the BrowserBricker platform.</p>
+                    </div>
+
+                    <div id="int-zero" class="doc-section">
+                        <h2 class="doc-h2">Zero Trust Architecture</h2>
+                        <p class="doc-p">BrowserBricker operates on a strict "Never Trust, Always Verify" principle. Unlike traditional perimeter-based security models, we assume that the network is always hostile.</p>
+                        <p class="doc-p">Every request, whether from an internal component or an external browser, is fully authenticated, authorized, and encrypted before processing. This ensures that lateral movement within the system is impossible even in the event of a partial compromise.</p>
+                        <ul class="doc-list">
+                            <li><strong>Identity Verification:</strong> Every browser is issued a unique, cryptographically generated identity certificate upon registration.</li>
+                            <li><strong>Least Privilege:</strong> Extensions operate with the comprehensive minimum permissions required to function.</li>
+                            <li><strong>Micro-Segmentation:</strong> User data is isolated in distinct shards to prevent cross-contamination.</li>
+                        </ul>
+                    </div>
+
+                    <div id="int-crypto" class="doc-section">
+                        <h2 class="doc-h2">Cryptographic Standards</h2>
+                        <p class="doc-p">We employ military-grade encryption standards for all data states.</p>
+                        <div class="code-window">
+                            <div class="code-header">
+                                <div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+                                <div class="code-lang">CRYPTO_CONFIG.JSON</div>
+                            </div>
+                            <div class="code-content">
+{
+  "transport_layer": {
+    "protocol": "TLS 1.3",
+    "cipher_suite": "TLS_AES_256_GCM_SHA384",
+    "perfect_forward_secrecy": true
+  },
+  "data_at_rest": {
+    "algorithm": "industry-standard encryption-CBC",
+    "key_management": "cloud infrastructure KMS",
+    "rotation_policy": "90_days"
+  },
+  "hashing": {
+    "algorithm": "Argon2id",
+    "parameters": {
+      "memory_cost": 65536,
+      "time_cost": 3,
+      "parallelism": 4
+    }
+  }
+}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="int-incident" class="doc-section">
+                        <h2 class="doc-h2">Incident Response Protocol</h2>
+                        <p class="doc-p">In the event of a detected anomaly, the system automatically triggers a tiered response protocol.</p>
+                        <p class="doc-p"><strong>Tier 1: Anomaly Detection</strong> - Heuristics identify irregular behavior (e.g., rapid location shifting, API flooding). The browser is flagged for enhanced monitoring.</p>
+                        <p class="doc-p"><strong>Tier 2: Containment</strong> - If the anomaly persists or escalates, the browser is automatically quarantined. All active sessions are terminated, and the lock screen is engaged.</p>
+                        <p class="doc-p"><strong>Tier 3: Browser lockdown</strong> - Confirmed threats trigger a cryptographic wipe of local extension data and a permanent ban of the browser ID from the network.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- INSTALLATION TAB (ENHANCED INTERACTIVE) -->
+        <div id="installation" class="tab-pane">
+            <div class="container">
+                <div class="section-header" style="margin-bottom: 60px;">
+                    <span class="section-tag">GET STARTED</span>
+                    <h2 class="section-title">Interactive Installation Guide</h2>
+                    <p style="color: var(--text-secondary); font-size: 1.125rem; max-width: 700px; margin: 15px auto 0;">
+                        Follow the interactive steps below to deploy BrowserBricker. Each step unlocks automatically as you complete the previous one.
+                    </p>
+                </div>
+
+                <!-- Installation Progress Tracker -->
+                <div class="install-progress">
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" id="install-progress-bar"></div>
+                    </div>
+                    <div class="progress-steps-container">
+                        <div class="progress-step-item" data-step="1">Requirements</div>
+                        <div class="progress-step-item" data-step="2">Download</div>
+                        <div class="progress-step-item" data-step="3">Browser Setup</div>
+                        <div class="progress-step-item" data-step="4">Registration</div>
+                        <div class="progress-step-item" data-step="5">First Lock Test</div>
+                    </div>
+                </div>
+
+                <div class="install-wizard">
+                    <!-- STEP 1: System Requirements -->
+                    <div class="install-step active" data-step="1" id="step-1">
+                        <div class="step-header">
+                            <div class="step-number">1</div>
+                            <div>
+                                <div class="step-title">System Requirements</div>
+                                <div class="step-subtitle">Verify your environment meets the prerequisites</div>
+                            </div>
+                        </div>
+                        <div class="step-content">
+                            <p class="step-description">
+                                BrowserBricker requires a Chromium-based browser and an active internet connection. 
+                                Click "Check System" below to automatically verify your browser compatibility.
+                            </p>
+                            
+                            <ul class="requirements-list" id="requirements-list">
+                                <li id="req-browser">
+                                    <div class="requirement-check-icon"></div>
+                                    <div>
+                                        <strong>Chromium-based Browser Detected</strong><br>
+                                        <small style="color: var(--text-tertiary);">Chrome, Edge, Brave, Opera, or Vivaldi required</small>
+                                    </div>
+                                </li>
+                                <li id="req-version">
+                                    <div class="requirement-check-icon"></div>
+                                    <div>
+                                        <strong>Browser Version 88 or Higher</strong><br>
+                                        <small style="color: var(--text-tertiary);">Modern API support verified</small>
+                                    </div>
+                                </li>
+                                <li id="req-internet">
+                                    <div class="requirement-check-icon"></div>
+                                    <div>
+                                        <strong>Internet Connection Active</strong><br>
+                                        <small style="color: var(--text-tertiary);">Required for WebSocket connectivity</small>
+                                    </div>
+                                </li>
+                                <li id="req-javascript">
+                                    <div class="requirement-check-icon"></div>
+                                    <div>
+                                        <strong>JavaScript Enabled</strong><br>
+                                        <small style="color: var(--text-tertiary);">Essential for extension execution</small>
+                                    </div>
+                                </li>
+                                <li id="req-location">
+                                    <div class="requirement-check-icon"></div>
+                                    <div>
+                                        <strong>Location Services Available</strong><br>
+                                        <small style="color: var(--text-tertiary);">Optional: enables geofencing features</small>
+                                    </div>
+                                </li>
+                            </ul>
+
+                            <div class="step-action" style="margin-top: 30px;">
+                                <button class="btn btn-primary" onclick="checkSystemRequirements()">
+                                    <i data-lucide="check-circle"></i>
+                                    Check System Compatibility
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STEP 2: Download Extension -->
+                    <div class="install-step locked" data-step="2" id="step-2">
+                        <div class="step-header">
+                            <div class="step-number">2</div>
+                            <div>
+                                <div class="step-title">Download Extension Package</div>
+                                <div class="step-subtitle">Get the BrowserBricker extension files</div>
+                            </div>
+                        </div>
+                        <div class="step-content">
+                            <p class="step-description">
+                                Download the extension package to your computer. The ZIP file contains all necessary files
+                                for browser installation. Click the button below to begin the download.
+                            </p>
+
+                            <div class="file-drop-zone" id="download-zone">
+                                <div style="font-size: 4rem; margin-bottom: 25px;">📦</div>
+                                <h3 style="margin-bottom: 15px; font-size: 1.5rem;">BrowserBricker Extension v5.0</h3>
+                                <p style="color: var(--text-secondary); margin-bottom: 30px; font-size: 0.9375rem;">
+                                    Package Size: 2.4 MB • Last Updated: February 2026
+                                </p>
+                                <button class="btn btn-primary" id="download-btn" onclick="downloadExtension()">
+                                    <i data-lucide="download"></i>
+                                    Download Extension ZIP
+                                </button>
+                                <p style="margin-top: 25px; font-size: 0.8125rem; color: var(--text-tertiary); font-family: var(--font-mono);">
+                                    cryptographic hashing: a7f3d2e9b8c1f4a6e5d8c2b7f3a9e1d4c6b8a2f7e3d9c1b5a8f2e7d3c9b4a6f1
+                                </p>
+                            </div>
+
+                            <div class="success-checkmark" id="download-success">
+                                <i data-lucide="check" style="width: 50px; height: 50px; color: var(--accent-success);"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STEP 3: Browser Installation -->
+                    <div class="install-step locked" data-step="3" id="step-3">
+                        <div class="step-header">
+                            <div class="step-number">3</div>
+                            <div>
+                                <div class="step-title">Install in Browser</div>
+                                <div class="step-subtitle">Load the extension in developer mode</div>
+                            </div>
+                        </div>
+                        <div class="step-content">
+                            <p class="step-description">
+                                Extract the downloaded ZIP file and load it as an unpacked extension in your browser.
+                                Follow these steps carefully to ensure proper installation.
+                            </p>
+
+                            <div class="terminal-block">
+                                <div style="background: var(--bg-deep); border: 1px solid var(--border-light); border-radius: 12px; padding: 30px; font-family: var(--font-mono); font-size: 0.9375rem; line-height: 2;">
+                                    <div style="color: var(--accent-warn); margin-bottom: 10px;">→ Step 1:</div>
+                                    <div style="color: var(--text-secondary); margin-bottom: 20px; padding-left: 20px;">Extract browserbricker.zip to a permanent folder location</div>
+                                    
+                                    <div style="color: var(--accent-warn); margin-bottom: 10px;">→ Step 2:</div>
+                                    <div style="color: var(--text-secondary); margin-bottom: 20px; padding-left: 20px;">Open your browser and navigate to <code style="background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 4px;">chrome://extensions/</code></div>
+                                    
+                                    <div style="color: var(--accent-warn); margin-bottom: 10px;">→ Step 3:</div>
+                                    <div style="color: var(--text-secondary); margin-bottom: 20px; padding-left: 20px;">Enable "Developer mode" toggle in the top right corner</div>
+                                    
+                                    <div style="color: var(--accent-warn); margin-bottom: 10px;">→ Step 4:</div>
+                                    <div style="color: var(--text-secondary); margin-bottom: 20px; padding-left: 20px;">Click "Load unpacked" button</div>
+                                    
+                                    <div style="color: var(--accent-warn); margin-bottom: 10px;">→ Step 5:</div>
+                                    <div style="color: var(--text-secondary); margin-bottom: 20px; padding-left: 20px;">Select the extracted browserbricker folder</div>
+                                    
+                                    <div style="color: var(--accent-warn); margin-bottom: 10px;">→ Step 6:</div>
+                                    <div style="color: var(--text-secondary); margin-bottom: 20px; padding-left: 20px;">Verify the extension icon appears in your toolbar</div>
+                                    
+                                    <div style="color: var(--accent-warn); margin-bottom: 10px;">→ Step 7:</div>
+                                    <div style="color: var(--text-secondary); padding-left: 20px;">Extension status should display "Not Configured"</div>
+                                </div>
+                                <button class="terminal-copy-btn" onclick="copyToClipboard('chrome://extensions/')">
+                                    <i data-lucide="copy"></i> Copy URL
+                                </button>
+                            </div>
+
+                            <div style="background: rgba(59, 130, 246, 0.1); border: 2px solid var(--accent-info); border-radius: 12px; padding: 25px; margin: 30px 0; display: flex; align-items: flex-start; gap: 20px;">
+                                <i data-lucide="alert-circle" style="color: var(--accent-info); flex-shrink: 0; width: 28px; height: 28px; margin-top: 2px;"></i>
+                                <div>
+                                    <strong style="color: var(--accent-info); display: block; margin-bottom: 8px;">Important Note:</strong>
+                                    <span style="color: var(--text-secondary);">
+                                        Do NOT delete the extracted folder after installation. Your browser requires continuous access to these files for the extension to function properly.
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="step-action">
+                                <button class="btn btn-primary" onclick="completeStep(3)">
+                                    <i data-lucide="check"></i>
+                                    Extension Installed Successfully
+                                </button>
+                                <button class="btn btn-outline" onclick="openModal('install-help')">
+                                    <i data-lucide="help-circle"></i>
+                                    Troubleshooting Guide
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STEP 4: Browser Registration -->
+                    <div class="install-step locked" data-step="4" id="step-4">
+                        <div class="step-header">
+                            <div class="step-number">4</div>
+                            <div>
+                                <div class="step-title">Register Browser with Control Server</div>
+                                <div class="step-subtitle">Obtain and configure your unique API key</div>
+                            </div>
+                        </div>
+                        <div class="step-content">
+                            <p class="step-description">
+                                System Administrators register browsers through the admin panel. Each browser receives a cryptographically
+                                secure API key for authentication with the control server.
+                            </p>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 35px;">
+                                <div style="background: var(--bg-deep); border: 1px solid var(--border-light); padding: 35px; border-radius: 12px;">
+                                    <h4 style="margin-bottom: 20px; font-size: 1.125rem; display: flex; align-items: center; gap: 10px;">
+                                        <i data-lucide="user-cog" style="width: 20px; height: 20px;"></i>
+                                        Admin Panel Actions
+                                    </h4>
+                                    <ol style="list-style-position: inside; color: var(--text-secondary); line-height: 2; padding: 0;">
+                                        <li>Log into admin panel with credentials</li>
+                                        <li>Navigate to Browsers → Add New Browser</li>
+                                        <li>Enter browser name and optional tags</li>
+                                        <li>Click "Generate API Key" button</li>
+                                        <li>Copy the displayed key immediately</li>
+                                    </ol>
+                                </div>
+                                <div style="background: var(--bg-deep); border: 1px solid var(--border-light); padding: 35px; border-radius: 12px;">
+                                    <h4 style="margin-bottom: 20px; font-size: 1.125rem; display: flex; align-items: center; gap: 10px;">
+                                        <i data-lucide="monitor" style="width: 20px; height: 20px;"></i>
+                                        Extension Configuration
+                                    </h4>
+                                    <ol style="list-style-position: inside; color: var(--text-secondary); line-height: 2; padding: 0;">
+                                        <li>Click the BrowserBricker extension icon</li>
+                                        <li>Select "Configure Browser" option</li>
+                                        <li>Paste the API key into the field</li>
+                                        <li>Click "Activate Protection" button</li>
+                                        <li>Verify status changes to "ONLINE"</li>
+                                    </ol>
+                                </div>
+                            </div>
+
+                            <div style="background: var(--bg-deep); border: 1px solid var(--border-light); border-radius: 12px; padding: 25px; font-family: var(--font-mono); margin-bottom: 30px;">
+                                <div style="color: var(--accent-success); margin-bottom: 15px; font-size: 0.875rem;">Example API Key Format:</div>
+                                <div style="color: var(--text-primary); font-size: 1.0625rem; letter-spacing: 0.5px; word-break: break-all;">
+                                    bb_live_d7f3c2a9e8b1f4d6c5e8a2f7b3d9c1e4f6a8b2c7d3e9f1a5b8c2d7e3f9a4c6b1
+                                </div>
+                                <div style="color: var(--accent-alert); margin-top: 15px; font-size: 0.875rem;">
+                                    ⚠️ This key is shown ONLY ONCE. Store it securely before closing the panel.
+                                </div>
+                            </div>
+
+                            <div class="step-action">
+                                <button class="btn btn-primary" onclick="completeStep(4)">
+                                    <i data-lucide="check"></i>
+                                    Browser Successfully Registered
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STEP 5: First Lock Test -->
+                    <div class="install-step locked" data-step="5" id="step-5">
+                        <div class="step-header">
+                            <div class="step-number">5</div>
+                            <div>
+                                <div class="step-title">Verify Lock Functionality</div>
+                                <div class="step-subtitle">Test remote control capabilities</div>
+                            </div>
+                        </div>
+                        <div class="step-content">
+                            <p class="step-description">
+                                Perform a test lock to confirm your browser is properly connected and responding to commands.
+                                This validates the entire authentication and command chain.
+                            </p>
+
+                            <div style="background: var(--bg-deep); border: 1px solid var(--border-light); border-radius: 12px; padding: 30px; font-family: var(--font-mono); font-size: 0.9375rem; line-height: 2; margin-bottom: 30px;">
+                                <div style="color: var(--accent-cyber); margin-bottom: 10px;">[ADMIN PANEL]</div>
+                                <div style="color: var(--text-secondary); padding-left: 20px; margin-bottom: 20px;">Navigate to Browsers → Select your registered browser → Click "Lock Browser" button</div>
+                                
+                                <div style="color: var(--accent-cyber); margin-bottom: 10px;">[CLIENT DEVICE]</div>
+                                <div style="color: var(--text-secondary); padding-left: 20px; margin-bottom: 20px;">Browser displays lock screen within ~2 seconds → All tabs show "DEVICE LOCKED" → Navigation is completely blocked</div>
+                                
+                                <div style="color: var(--accent-cyber); margin-bottom: 10px;">[ADMIN PANEL]</div>
+                                <div style="color: var(--text-secondary); padding-left: 20px; margin-bottom: 20px;">Click "Unlock Browser" button</div>
+                                
+                                <div style="color: var(--accent-cyber); margin-bottom: 10px;">[CLIENT DEVICE]</div>
+                                <div style="color: var(--text-secondary); padding-left: 20px; margin-bottom: 20px;">Lock screen disappears → Normal browsing resumes immediately</div>
+                                
+                                <div style="color: var(--accent-success); margin-top: 25px; font-weight: 700;">
+                                    ✓ Installation Complete - System Operational
+                                </div>
+                            </div>
+
+                            <div style="background: rgba(16, 185, 129, 0.1); border: 2px solid var(--accent-success); border-radius: 12px; padding: 25px; margin-bottom: 30px; display: flex; align-items: flex-start; gap: 20px;">
+                                <i data-lucide="check-circle-2" style="color: var(--accent-success); flex-shrink: 0; width: 28px; height: 28px; margin-top: 2px;"></i>
+                                <div>
+                                    <strong style="color: var(--accent-success); display: block; margin-bottom: 8px;">Success Indicators:</strong>
+                                    <ul style="color: var(--text-secondary); margin: 0; padding-left: 20px; line-height: 1.8;">
+                                        <li>Lock screen appears instantly (< 2 seconds)</li>
+                                        <li>Unlock restores full browser access</li>
+                                        <li>Browser status shows "ONLINE" in admin panel</li>
+                                        <li>Telemetry data streams appear in real-time</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="step-action">
+                                <button class="btn btn-primary" onclick="completeInstallation()">
+                                    <i data-lucide="check-circle-2"></i>
+                                    Complete Installation
+                                </button>
+                                <button class="btn btn-outline" onclick="activateLockDemo()">
+                                    <i data-lucide="lock"></i>
+                                    Try Demo Lock Screen
+                                </button>
+                            </div>
+
+                            <div class="success-checkmark" id="install-complete-success">
+                                <i data-lucide="check" style="width: 50px; height: 50px; color: var(--accent-success);"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Post-Installation Success Message -->
+                <div style="margin-top: 100px; padding: 80px 60px; background: linear-gradient(135deg, var(--bg-surface), var(--bg-elevated)); border-radius: 24px; border: 2px solid var(--border-light); display: none; text-align: center;" id="post-install">
+                    <div style="font-size: 5rem; margin-bottom: 30px;">🎉</div>
+                    <h2 style="font-size: 3rem; font-weight: 700; margin-bottom: 25px;">Installation Complete!</h2>
+                    <p style="color: var(--text-secondary); font-size: 1.25rem; max-width: 600px; margin: 0 auto 50px; line-height: 1.7;">
+                        Your browser is now protected by BrowserBricker. Explore the admin panel to configure policies, 
+                        set up geofencing, manage user permissions, and monitor your fleet in real-time.
+                    </p>
+                    <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                        <button class="btn btn-primary" onclick="switchTab('features')">
+                            <i data-lucide="zap"></i>
+                            Explore Features
+                        </button>
+                        <button class="btn btn-outline" onclick="switchTab('intelligence')">
+                            <i data-lucide="shield"></i>
+                            View Security Docs
+                        </button>
+                        <button class="btn btn-outline" onclick="openModal('about')">
+                            <i data-lucide="life-buoy"></i>
+                            Get Support
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+</div>
+
+        <!-- CHANGELOG TAB -->
+        <div id="changelog" class="tab-pane">
+            <div class="container">
+                <div class="changelog-terminal" id="changelog-content">
+                    <div style="color: #666;">// ESTABLISHING SECURE CONNECTION TO REPOSITORY...</div>
+                    <div style="color: #666;">// FETCHING CHANGELOG.MD...</div>
+                    <br>
+                    <div style="text-align: center;"><i data-lucide="loader-2" class="spin"></i></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <a class="brand" style="border: none; padding: 0;">
+                        <img src="https://cdn.pixabay.com/photo/2014/04/02/16/27/shield-307324_150.png" class="brand-logo" style="width: 30px; height: 30px;">
+                        <span class="brand-text" style="font-size: 1.2rem;">BrowserBricker</span>
+                    </a>
+                    <p class="footer-brand-desc">
+                        The definitive standard in remote browser security. Protecting enterprise assets across the globe with uncompromising precision.
+                    </p>
+                </div>
+                <div class="footer-col">
+                    <h4>Platform</h4>
+                    <div class="footer-links">
+                        <a onclick="switchTab('features')">Capabilities</a>
+                        <a onclick="switchTab('intelligence')">Intelligence</a>
+                        <a onclick="switchTab('installation')">Installation</a>
+                        <a onclick="switchTab('changelog')">Briefings</a>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <h4>Operations</h4>
+                    <div class="footer-links">
+                        <a href="https://browser-bricker-panel.onrender.com/" target="_blank">Command Center</a>
+                        <a onclick="triggerLock()">Simulate Lockdown</a>
+                        <a onclick="openTerminal()">Access Terminal</a>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <h4>Legal</h4>
+                    <div class="footer-links">
+                        <a onclick="openModal('terms')">Terms of Service</a>
+                        <a onclick="openModal('privacy')">Privacy Policy</a>
+                        <a onclick="openModal('about')">About Creator</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div>&copy; 2026 BrowserBricker. All rights reserved.</div>
+                <div>SECURE CONNECTION: TLS 1.3 / industry-standard encryption</div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- OVERLAYS -->
+
+    <!-- Lock Screen -->
+    <div id="lock-screen">
+        <div class="lock-interface">
+            <h1 class="lock-title">DEVICE LOCKED</h1>
+            <p class="lock-msg">THIS DEVICE HAS BEEN RESTRICTED BY ADMINISTRATOR COMMAND.</p>
+            <input type="password" class="lock-input" id="unlock-input" placeholder="ENTER PASSCODE" autocomplete="off">
+            <div style="margin-top: 30px; color: #666; font-family: monospace;">ATTEMPT 1/3</div>
+        </div>
+    </div>
+
+    <!-- Terminal Modal -->
+    <div class="terminal-modal" id="terminal-modal">
+        <div class="terminal-window">
+            <div class="terminal-bar">
+                <div class="t-dot t-close" onclick="closeTerminal()"></div>
+                <div class="t-dot"></div>
+                <div class="t-dot"></div>
+            </div>
+            <div class="terminal-body" id="term-body">
+                <div class="t-line">BrowserBricker OS [Version 5.0.1]</div>
+                <div class="t-line">(c) 2026 BrowserBricker Corp. All rights reserved.</div>
+                <br>
+                <div class="t-line">Type 'help' for available commands.</div>
+                <br>
+                <div class="t-input-line">
+                    <span class="t-prompt">admin@bricker:~$</span>
+                    <input type="text" class="t-input" id="term-input" autocomplete="off" spellcheck="false">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Generic Modal -->
+    <div class="modal-overlay" id="generic-modal">
+        <div class="modal-box">
+            <button class="modal-close-btn" onclick="closeModal()"><i data-lucide="x"></i></button>
+            <div id="modal-content-body"></div>
+        </div>
+    </div>
+
+    <!-- Creator Toast -->
+    <div id="creator-toast" style="position: fixed; top: 30px; left: 50%; transform: translateX(-50%) translateY(-150px); background: rgba(20,20,20,0.9); border: 1px solid #fbbf24; padding: 20px 40px; border-radius: 100px; display: flex; align-items: center; gap: 20px; z-index: 10000; transition: 0.5s cubic-bezier(0.16,1,0.3,1);">
+        <div style="width: 50px; height: 50px; border-radius: 50%; background: #fbbf24; color: black; display: flex; align-items: center; justify-content: center; font-weight: 900;">AH</div>
+        <div>
+            <div style="font-weight: 700; color: #fbbf24;">CREATOR ACCESS GRANTED</div>
+            <div style="font-size: 0.85rem; color: #aaa;">Welcome back, Aakshat.</div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize
+        lucide.createIcons();
+
+        // Tab System
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-pane').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            const btn = document.querySelector(`.nav-item[onclick="switchTab('${tabId}')"]`);
+            if(btn) btn.classList.add('active');
+            
+            window.scrollTo(0, 0);
+
+            if(tabId === 'changelog') fetchChangelog();
+        }
+
+        // Auto-Changelog
+        let clLoaded = false;
+        async function fetchChangelog() {
+            if(clLoaded) return;
+            const container = document.getElementById('changelog-content');
+            try {
+                const res = await fetch('https://raw.githubusercontent.com/Aaks-hatH/Browser-Bricker-Panel/main/ChangeLog.md');
+                if(!res.ok) throw new Error('Failed');
+                const text = await res.text();
+                
+                let html = '';
+                const lines = text.split('\n');
+                lines.forEach(line => {
+                    if(line.startsWith('## [')) {
+                        const match = line.match(/\[(.*?)\] - (.*)/);
+                        if(match) html += `<div class="cl-entry"><div class="cl-ver">${match[1]}</div><div class="cl-meta">${match[2]}</div>`;
+                    } else if(line.startsWith('### ')) {
+                        html += `<div style="color: #fff; margin-top: 20px; font-weight: bold;">${line.replace('### ', '')}</div>`;
+                    } else if(line.trim().startsWith('- ')) {
+                        html += `<div style="color: #ccc; margin-left: 20px;">> ${line.replace('- ', '')}</div>`;
+                    }
+                });
+                container.innerHTML = html;
+                clLoaded = true;
+            } catch(e) {
+                container.innerHTML = '<div style="color: red;">ERROR: CONNECTION REFUSED</div>';
+            }
+        }
+
+        // Terminal Logic
+        function openTerminal() {
+            document.getElementById('terminal-modal').classList.add('active');
+            document.getElementById('term-input').focus();
+        }
+        function closeTerminal() {
+            document.getElementById('terminal-modal').classList.remove('active');
+        }
+
+        const termInput = document.getElementById('term-input');
+        const termBody = document.getElementById('term-body');
+
+        termInput.addEventListener('keydown', (e) => {
+            if(e.key === 'Enter') {
+                const cmd = termInput.value.trim().toLowerCase();
+                const line = document.createElement('div');
+                line.className = 't-line';
+                line.textContent = `admin@bricker:~$ ${cmd}`;
+                termBody.insertBefore(line, termInput.parentElement);
+                
+                processCmd(cmd);
+                termInput.value = '';
+                termBody.scrollTop = termBody.scrollHeight;
+            }
+        });
+
+        function processCmd(cmd) {
+            const out = document.createElement('div');
+            out.className = 't-line';
+            out.style.color = '#fff';
+            
+            switch(cmd) {
+                case 'help': out.innerHTML = 'COMMANDS: help, clear, matrix, brick, lock, version'; break;
+                case 'clear': termBody.innerHTML = '<div class="t-input-line"><span class="t-prompt">admin@bricker:~$</span><input type="text" class="t-input" id="term-input" autocomplete="off"></div>'; return;
+                case 'matrix': activateMatrix(); out.innerHTML = 'Matrix protocol initiated.'; break;
+                case 'brick': activateBrick(); out.innerHTML = 'WARNING: STRUCTURAL INTEGRITY COMPROMISED.'; break;
+                case 'lock': triggerLock(); out.innerHTML = 'Locking...'; break;
+                case 'version': out.innerHTML = 'v5.0.1'; break;
+                default: out.innerHTML = `Command not found: ${cmd}`;
+            }
+            termBody.insertBefore(out, termInput.parentElement);
+        }
+
+        // Lock Screen
+        function triggerLock() {
+            const lock = document.getElementById('lock-screen');
+            lock.classList.add('active');
+            document.getElementById('unlock-input').focus();
+            if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+        }
+
+        document.getElementById('unlock-input').addEventListener('keyup', (e) => {
+            if(e.target.value.toLowerCase() === 'admin' || e.target.value.toLowerCase() === 'aakshat') {
+                document.getElementById('lock-screen').classList.remove('active');
+                if(document.exitFullscreen) document.exitFullscreen();
+            }
+        });
+
+        // Modals
+        function openModal(id) {
+            const modal = document.getElementById('generic-modal');
+            const body = document.getElementById('modal-content-body');
+            modal.classList.add('active');
+            
+            // Detailed Content Generation
+            if(id === 'terms') {
+                body.innerHTML = `
+                    <h1 class="doc-h1">Terms of Service</h1>
+                    <p class="doc-p">Last Updated: February 2026</p>
+                    <div class="doc-section">
+                        <h2 class="doc-h2">1. Acceptance of Terms</h2>
+                        <p class="doc-p">By accessing and using the BrowserBricker platform, you agree to be bound by these Terms of Service and all applicable laws and regulations. If you do not agree with any of these terms, you are prohibited from using or accessing this site.</p>
+                        <h2 class="doc-h2">2. Use License</h2>
+                        <p class="doc-p">Permission is granted to temporarily download one copy of the materials (information or software) on BrowserBricker's website for personal, non-commercial transitory viewing only. This is the grant of a license, not a transfer of title.</p>
+                        <h2 class="doc-h2">3. Disclaimer</h2>
+                        <p class="doc-p">The materials on BrowserBricker's website are provided on an 'as is' basis. BrowserBricker makes no warranties, expressed or implied, and hereby disclaims and negates all other warranties including, without limitation, implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights.</p>
+                    </div>
+                `;
+            }
+            else if(id === 'privacy') {
+                body.innerHTML = `
+                    <h1 class="doc-h1">Privacy Policy</h1>
+                    <p class="doc-p">Last Updated: February 2026</p>
+                    <div class="doc-section">
+                        <h2 class="doc-h2">1. Data Collection</h2>
+                        <p class="doc-p">We collect minimal data necessary for the operation of the service. This includes browser identifiers, IP addresses (hashed), and operational telemetry (battery status, connection state).</p>
+                        <h2 class="doc-h2">2. Data Usage</h2>
+                        <p class="doc-p">Collected data is used solely for providing the browser management features. We do not sell, trade, or rent users' personal identification information to others.</p>
+                        <h2 class="doc-h2">3. Security</h2>
+                        <p class="doc-p">We adopt appropriate data collection, storage, and processing practices and security measures to protect against unauthorized access, alteration, disclosure, or destruction of your personal information.</p>
+                    </div>
+                `;
+            }
+            else if(id === 'about') {
+                body.innerHTML = `
+                    <div style="text-align: center;">
+                        <div style="width: 100px; height: 100px; background: var(--text-primary); color: var(--bg-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 900; margin: 0 auto 30px;">AH</div>
+                        <h2 class="doc-h1">Aakshat Hariharan</h2>
+                        <p style="font-size: 1.2rem; color: var(--text-primary);">Lead Security Architect</p>
+                        <p class="doc-p">BrowserBricker was engineered to provide enterprise-grade security controls accessible to organizations of all sizes. Built with a focus on Zero Trust principles and scalable architecture.</p>
+                        <div style="margin-top: 30px; display: flex; gap: 15px; justify-content: center;">
+                            <a href="https://github.com/Aaks-hatH" target="_blank" class="btn btn-outline">GitHub</a>
+                            <a href="mailto:browserbricker@gmail.com" class="btn btn-outline">Contact</a>
+                        </div>
+                    </div>
+                `;
+            }
+            else if(id === 'feat-lock') {
+                body.innerHTML = `
+                    <h1 class="doc-h1">Remote Browser lockdown</h1>
+                    <div class="doc-section">
+                        <h2 class="doc-h2">Technical Overview</h2>
+                        <p class="doc-p">The Remote Browser lockdown module utilizes a persistent WebSocket connection to deliver instant command payloads to target browsers. Upon receipt, the extension executes a high-priority interrupt that overrides the browser's main process.</p>
+                        
+                        <h2 class="doc-h2">Capabilities</h2>
+                        <ul class="doc-list">
+                            <li><strong>Navigation Lock:</strong> Intercepts <code>beforeNavigate</code> events to prevent URL changes.</li>
+                            <li><strong>Input Suppression:</strong> Captures and nullifies keyboard and mouse events at the DOM root.</li>
+                            <li><strong>Kiosk Enforcement:</strong> Forces the browser into fullscreen mode and disables exit triggers.</li>
+                        </ul>
+
+                        <h2 class="doc-h2">API Reference</h2>
+                        <div class="code-window"><div class="code-content">POST /api/v1/browser/lock
+{
+  "browser_id": "uuid",
+  "reason": "security_violation",
+  "duration": -1
+}</div></div>
+                    </div>
+                `;
+            }
+            else if(id === 'feat-geo') {
+                body.innerHTML = `
+                    <h1 class="doc-h1">Geospatial Enforcement</h1>
+                    <div class="doc-section">
+                        <h2 class="doc-h2">Technical Overview</h2>
+                        <p class="doc-p">Geospatial Enforcement leverages the HTML5 Geolocation API to monitor browser position relative to defined safe zones. Calculations are performed locally on the client to reduce latency.</p>
+                        
+                        <h2 class="doc-h2">Configuration</h2>
+                        <ul class="doc-list">
+                            <li><strong>Center Point:</strong> Latitude/Longitude coordinates.</li>
+                            <li><strong>Radius:</strong> Safe zone radius in meters.</li>
+                            <li><strong>Polling Interval:</strong> Frequency of location checks (default: 2000ms).</li>
+                        </ul>
+
+                        <h2 class="doc-h2">Logic Flow</h2>
+                        <div class="code-window"><div class="code-content">IF distance(current_pos, safe_zone) > radius THEN
+  trigger_lock("GEOFENCE_BREACH")
+  report_violation(current_pos)
+END IF</div></div>
+                    </div>
+                `;
+            }
+            else if(id === 'feat-surv') {
+                body.innerHTML = `
+                    <h1 class="doc-h1">Browser Telemetry</h1>
+                    <div class="doc-section">
+                        <h2 class="doc-h2">Technical Overview</h2>
+                        <p class="doc-p">The Monitoring module aggregates browser telemetry and user activity data into a unified stream. Data is batched and transmitted securely to the central command node.</p>
+                        
+                        <h2 class="doc-h2">Monitored Metrics</h2>
+                        <ul class="doc-list">
+                            <li><strong>System:</strong> CPU usage, memory footprint, battery level.</li>
+                            <li><strong>Network:</strong> Public IP, local IP, connection type.</li>
+                            <li><strong>Activity:</strong> Active tab URL, window focus state, idle time.</li>
+                        </ul>
+                    </div>
+                `;
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('generic-modal').classList.remove('active');
+        }
+
+        // Easter Eggs
+        let keyBuf = '';
+        const seqs = {
+            'aakshat': () => {
+                document.body.classList.add('creator-mode');
+                document.getElementById('creator-toast').style.transform = 'translateX(-50%) translateY(0)';
+                confetti({ particleCount: 200, spread: 100, colors: ['#fbbf24', '#fff'] });
+                setTimeout(() => document.getElementById('creator-toast').style.transform = 'translateX(-50%) translateY(-150px)', 5000);
+            },
+            'bricker': activateBrick,
+            '404': () => { document.body.innerHTML = '<div style="height:100vh;background:black;color:white;display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:2rem;">404 - SYSTEM FAILURE</div>'; setTimeout(() => location.reload(), 2000); }
+        };
+
+        document.addEventListener('keydown', (e) => {
+            keyBuf += e.key.toLowerCase();
+            if(keyBuf.length > 20) keyBuf = keyBuf.slice(-20);
+            for(const s in seqs) {
+                if(keyBuf.endsWith(s)) { seqs[s](); keyBuf = ''; }
+            }
+        });
+
+        function activateBrick() {
+            document.querySelectorAll('*').forEach(el => {
+                if(Math.random() > 0.8) {
+                    el.style.transition = 'all 2s ease';
+                    el.style.transform = `rotate(${Math.random()*360}deg) translate(${Math.random()*100}px, ${Math.random()*100}px)`;
+                }
+            });
+        }
+
+        function activateMatrix() {
+            alert('Matrix Mode Active');
+        }
+
+    
+        // ============================================================================
+        // ENHANCED INTERACTIVE INSTALLATION WIZARD
+        // ============================================================================
+        
+        let installState = {
+            currentStep: 1,
+            completedSteps: [],
+            systemChecked: false,
+            downloaded: false,
+            installed: false,
+            registered: false,
+            tested: false
+        };
+
+        // Initialize installation wizard
+        function initInstallWizard() {
+            updateInstallProgress();
+            checkBrowserCompatibility();
+        }
+
+        // Check system requirements automatically on page load
+        function checkBrowserCompatibility() {
+            // Detect browser
+            const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+            const isEdge = /Edg/.test(navigator.userAgent);
+            const isBrave = navigator.brave !== undefined;
+            const isOpera = /OPR/.test(navigator.userAgent);
+            const isVivaldi = /Vivaldi/.test(navigator.userAgent);
+            
+            if (isChrome || isEdge || isBrave || isOpera || isVivaldi) {
+                setTimeout(() => markRequirement('req-browser', true), 500);
+                setTimeout(() => markRequirement('req-version', true), 1000);
+            }
+        }
+
+        // System requirements check with animation
+        function checkSystemRequirements() {
+            const requirements = ['req-browser', 'req-version', 'req-internet', 'req-javascript', 'req-location'];
+            
+            requirements.forEach((req, index) => {
+                const el = document.getElementById(req);
+                if (el) {
+                    el.classList.add('checking');
+                    setTimeout(() => {
+                        el.classList.remove('checking');
+                        markRequirement(req, true);
+                        
+                        // Confetti on last requirement
+                        if (index === requirements.length - 1) {
+                            setTimeout(() => {
+                                confetti({
+                                    particleCount: 100,
+                                    spread: 70,
+                                    origin: { y: 0.6 },
+                                    colors: ['#10b981', '#ffffff']
+                                });
+                                completeStep(1);
+                            }, 300);
+                        }
+                    }, 500 + (index * 400));
+                }
+            });
+        }
+
+        // Mark requirement as met
+        function markRequirement(reqId, met) {
+            const req = document.getElementById(reqId);
+            if (req && met) {
+                req.classList.add('met');
+                const icon = req.querySelector('.requirement-check-icon') || req.querySelector('.check-icon');
+                if (icon) {
+                    icon.innerHTML = '<i data-lucide="check" style="width: 16px; height: 16px; color: white;"></i>';
+                    lucide.createIcons();
+                }
+            }
+        }
+
+        // Download extension with progress animation
+        function downloadExtension() {
+            const btn = document.getElementById('download-btn');
+            const zone = document.getElementById('download-zone');
+            const success = document.getElementById('download-success');
+            
+            // Disable button
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader"></i> Downloading...';
+            lucide.createIcons();
+            
+            zone.classList.add('downloading');
+            
+            // Simulate download
+            setTimeout(() => {
+                zone.classList.remove('downloading');
+                btn.style.display = 'none';
+                success.classList.add('show');
+                
+                showToast('Extension downloaded successfully!', 'success');
+                
+                setTimeout(() => {
+                    confetti({
+                        particleCount: 150,
+                        spread: 100,
+                        origin: { y: 0.5 }
+                    });
+                    completeStep(2);
+                }, 500);
+            }, 2500);
+        }
+
+        // Simulate download for demo
+        function simulateDownload() {
+            downloadExtension();
+        }
+
+        // Complete a step and unlock the next
+        function completeStep(stepNum) {
+            if (!installState.completedSteps.includes(stepNum)) {
+                installState.completedSteps.push(stepNum);
+                
+                const step = document.getElementById(`step-${stepNum}`);
+                if (step) {
+                    step.classList.remove('active');
+                    step.classList.add('completed');
+                    
+                    const number = step.querySelector('.step-number');
+                    if (number) {
+                        number.innerHTML = '<i data-lucide="check" style="width: 24px; height: 24px;"></i>';
+                        lucide.createIcons();
+                    }
+                }
+                
+                // Unlock next step
+                const nextStep = document.getElementById(`step-${stepNum + 1}`);
+                if (nextStep) {
+                    nextStep.classList.remove('locked');
+                    nextStep.classList.add('active');
+                    
+                    // Scroll to next step
+                    setTimeout(() => {
+                        nextStep.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 300);
+                }
+                
+                installState.currentStep = stepNum + 1;
+                updateInstallProgress();
+            }
+        }
+
+        // Update progress bar
+        function updateInstallProgress() {
+            const totalSteps = 5;
+            const completed = installState.completedSteps.length;
+            const percentage = (completed / totalSteps) * 100;
+            
+            const progressBar = document.getElementById('install-progress-bar');
+            if (progressBar) {
+                progressBar.style.width = percentage + '%';
+            }
+            
+            // Update step indicators
+            for (let i = 1; i <= totalSteps; i++) {
+                const stepIndicator = document.querySelector(`.progress-step-item[data-step="${i}"]`);
+                if (stepIndicator) {
+                    if (installState.completedSteps.includes(i)) {
+                        stepIndicator.classList.add('completed');
+                        stepIndicator.classList.remove('active');
+                    } else if (i === installState.currentStep) {
+                        stepIndicator.classList.add('active');
+                    }
+                }
+            }
+        }
+
+        // Complete installation
+        function completeInstallation() {
+            const step5 = document.getElementById('step-5');
+            const success = document.getElementById('install-complete-success');
+            const postInstall = document.getElementById('post-install');
+            
+            if (success) {
+                success.classList.add('show');
+            }
+            
+            setTimeout(() => {
+                confetti({
+                    particleCount: 300,
+                    spread: 120,
+                    origin: { y: 0.5 },
+                    colors: ['#10b981', '#ffffff', '#00f0ff']
+                });
+                
+                showToast('Installation complete! Your browser is now protected.', 'success');
+                
+                if (postInstall) {
+                    setTimeout(() => {
+                        postInstall.style.display = 'block';
+                        postInstall.scrollIntoView({ behavior: 'smooth' });
+                    }, 1000);
+                }
+            }, 500);
+        }
+
+        // Toast notification system
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast-notification ${type}`;
+            
+            const icon = type === 'success' ? 'check-circle' : 
+                        type === 'error' ? 'x-circle' : 'info';
+            
+            toast.innerHTML = `
+                <i data-lucide="${icon}" style="width: 24px; height: 24px;"></i>
+                <div style="flex: 1;">${message}</div>
+            `;
+            
+            document.body.appendChild(toast);
+            lucide.createIcons();
+            
+            setTimeout(() => toast.classList.add('show'), 100);
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 500);
+            }, 4000);
+        }
+
+        // Copy code to clipboard
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Copied to clipboard!', 'success');
+            });
+        }
+
+        // Architecture diagram interactions
+        function showArchDetails(component) {
+            const details = {
+                'client': {
+                    title: 'Client Extension',
+                    content: 'Browser extension running on managed browsers. Enforces policies, collects telemetry, and maintains WebSocket connection to control server.'
+                },
+                'server': {
+                    title: 'Control Server',
+                    content: 'Central command relay. Validates all operations, manages browser registry, enforces rate limits, and maintains audit logs.'
+                },
+                'admin': {
+                    title: 'Admin Panel',
+                    content: 'SysAdmin interface for browser management, policy configuration, real-time monitoring, and audit log review.'
+                }
+            };
+            
+            const detail = details[component];
+            if (detail) {
+                showToast(`${detail.title}: ${detail.content}`, 'info');
+            }
+        }
+
+        // Initialize when installation tab becomes active
+        document.addEventListener('DOMContentLoaded', () => {
+            const installTab = document.querySelector('[onclick*="installation"]');
+            if (installTab) {
+                installTab.addEventListener('click', () => {
+                    setTimeout(initInstallWizard, 100);
+                });
+            }
+        });
+
+
+    
+        // Activate demo lock screen
+        function activateLockDemo() {
+            const lockScreen = document.getElementById('lock-screen');
+            if (lockScreen) {
+                lockScreen.classList.add('active');
+                if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen().catch(err => {
+                        console.log('Fullscreen request denied');
+                    });
+                }
+                showToast('Demo lock activated. Type "admin" or "aakshat" to unlock.', 'info');
+            }
+        }
+
+    </script>
+</body>
+</html>
