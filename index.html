@@ -1042,6 +1042,31 @@ footer {
     </style>
 </head>
 <body>
+    <div id="mobileBlocker" style="display:none; position:fixed; inset:0; z-index:999999; background:#05070c; color:#fff; font-family:system-ui; padding:40px;">
+  <div style="max-width:520px; margin:0 auto; text-align:center; padding-top:80px;">
+    <div style="font-size:70px;">🖥️</div>
+    <h1 style="font-size:28px; margin:18px 0 10px;">Desktop Required</h1>
+    <p style="opacity:.8; line-height:1.6;">
+      This website is not available on mobile devices.<br>
+      Please open it on a laptop or desktop computer.
+    </p>
+  </div>
+</div>
+
+<script>
+(function () {
+  const isMobile =
+    /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+    (window.matchMedia && window.matchMedia("(max-width: 900px)").matches);
+
+  if (isMobile) {
+    document.getElementById("mobileBlocker").style.display = "block";
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+  }
+})();
+</script>
+    
 
     <div class="grid-overlay"></div>
 
