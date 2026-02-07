@@ -2271,6 +2271,237 @@ console.log('%c• Type "matrix" - Matrix Mode', 'color: #888;');
 console.log('%c• Type "lockdown" - Trigger Lock Screen', 'color: #888;');
 console.log('%c• Type "security" - Jump to Security Docs', 'color: #888;');
 console.log('%c• Konami Code (↑↑↓↓←→←→BA) - Special Surprise', 'color: #888;');
+
+        // ============================================================================
+    // BROWSERBRICKER EXTENSION DETECTION MODULE
+    // ============================================================================
+
+    (function() {
+        'use strict';
+        
+        let extensionDetected = false;
+        let extensionInfo = null;
+        let detectionTimeout = null;
+        let sessionNonce = null;
+        
+        /**
+         * Generate a cryptographically secure nonce
+         */
+        function generateNonce() {
+            const array = new Uint8Array(16);
+            crypto.getRandomValues(array);
+            return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+        }
+        
+        /**
+         * Initialize extension detection listener
+         */
+        function initExtensionDetection() {
+            sessionNonce = generateNonce();
+            
+            // Listen for extension identification messages
+            window.addEventListener('message', handleExtensionMessage);
+            
+            // Set timeout to show "not detected" message
+            detectionTimeout = setTimeout(() => {
+                if (!extensionDetected) {
+                    updateExtensionUI('not-detected');
+                }
+            }, 2000); // Wait 2 seconds for extension to announce itself
+            
+            // Send a ping request to check if extension is present
+            // (in case the page loaded before extension announcement)
+            setTimeout(() => {
+                sendPingToExtension();
+            }, 500);
+            
+            console.log('[BrowserBricker] Extension detection initialized');
+        }
+        
+        /**
+         * Handle messages from the extension
+         */
+        function handleExtensionMessage(event) {
+            // Verify message origin
+            if (event.origin !== window.location.origin) {
+                return;
+            }
+            
+            const message = event.data;
+            
+            // Check for extension identity announcement
+            if (message.type === 'BROWSERBRICKER_EXTENSION_IDENTITY' && 
+                message.data && 
+                message.data.source === 'browserbricker-extension') {
+                
+                extensionDetected = true;
+                extensionInfo = message.data;
+                
+                // Clear the timeout
+                if (detectionTimeout) {
+                    clearTimeout(detectionTimeout);
+                    detectionTimeout = null;
+                }
+                
+                updateExtensionUI('detected');
+                console.log('[BrowserBricker] Extension detected:', extensionInfo);
+            }
+            
+            // Check for pong response
+            if (message.type === 'BROWSERBRICKER_PONG' && 
+                message.data && 
+                message.data.source === 'browserbricker-extension') {
+                
+                // Verify nonce if we sent one
+                if (message.data.respondingTo === sessionNonce || !message.data.respondingTo) {
+                    extensionDetected = true;
+                    extensionInfo = message.data;
+                    
+                    if (detectionTimeout) {
+                        clearTimeout(detectionTimeout);
+                        detectionTimeout = null;
+                    }
+                    
+                    updateExtensionUI('detected');
+                    console.log('[BrowserBricker] Extension responded to ping:', extensionInfo);
+                }
+            }
+        }
+        
+        /**
+         * Send ping request to extension
+         */
+        function sendPingToExtension() {
+            window.postMessage({
+                type: 'BROWSERBRICKER_PING',
+                nonce: sessionNonce
+            }, window.location.origin);
+        }
+        
+        /**
+         * Update UI based on extension detection status
+         */
+        function updateExtensionUI(status) {
+            // Find or create extension status element
+            let statusElement = document.getElementById('extension-status');
+            
+            if (!statusElement) {
+                // Create status element dynamically if it doesn't exist
+                statusElement = createExtensionStatusElement();
+            }
+            
+            if (status === 'detected') {
+                statusElement.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 12px; padding: 16px 20px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px;">
+                        <svg width="24" height="24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                        <div style="flex: 1;">
+                            <div style="color: #10b981; font-weight: 600; font-size: 1rem; margin-bottom: 2px;">
+                                Extension Detected
+                            </div>
+                            <div style="color: rgba(255, 255, 255, 0.6); font-size: 0.875rem;">
+                                ${extensionInfo.name || 'BrowserBricker'} v${extensionInfo.version || 'Unknown'} is installed and active
+                            </div>
+                        </div>
+                    </div>
+                `;
+                statusElement.style.display = 'block';
+            } else {
+                statusElement.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 12px; padding: 16px 20px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px;">
+                        <svg width="24" height="24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                        <div style="flex: 1;">
+                            <div style="color: #ef4444; font-weight: 600; font-size: 1rem; margin-bottom: 2px;">
+                                Extension Not Detected
+                            </div>
+                            <div style="color: rgba(255, 255, 255, 0.6); font-size: 0.875rem;">
+                                Install the BrowserBricker extension to enable remote management features
+                            </div>
+                        </div>
+                        <a href="#install" 
+                           onclick="switchTab('install')"
+                           style="padding: 8px 16px; background: #ef4444; color: white; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.875rem; white-space: nowrap; transition: all 0.2s;">
+                            Install Now
+                        </a>
+                    </div>
+                `;
+                statusElement.style.display = 'block';
+            }
+        }
+        
+        /**
+         * Create extension status element dynamically
+         */
+        function createExtensionStatusElement() {
+            const statusElement = document.createElement('div');
+            statusElement.id = 'extension-status';
+            statusElement.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                max-width: 450px;
+                z-index: 10000;
+                animation: slideIn 0.5s ease-out;
+            `;
+            
+            // Add animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideIn {
+                    from {
+                        transform: translateX(500px);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateX(0);
+                        opacity: 1;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            document.body.appendChild(statusElement);
+            return statusElement;
+        }
+        
+        /**
+         * Public API for manual detection trigger
+         */
+        window.BrowserBrickerDetection = {
+            isDetected: () => extensionDetected,
+            getInfo: () => extensionInfo,
+            refresh: () => {
+                extensionDetected = false;
+                extensionInfo = null;
+                sendPingToExtension();
+            }
+        };
+        
+        // Initialize on DOM ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initExtensionDetection);
+        } else {
+            initExtensionDetection();
+        }
+        
+        // Re-check on page visibility change (handles tab switching)
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && !extensionDetected) {
+                sendPingToExtension();
+            }
+        });
+        
+    })();
+
+    // ============================================================================
+    // END EXTENSION DETECTION MODULE
+    // ============================================================================
             
     </script>
 </body>
