@@ -235,17 +235,35 @@ async function loadConfig() {
 
 async function setupOffscreen() {
     try {
-        const hasDocument = await chrome.offscreen.hasDocument();
-        if (!hasDocument) {
-            await chrome.offscreen.createDocument({
-                url: 'offscreen.html',
-                reasons: ['GEOLOCATION'],
-                justification: 'Required for device location tracking and system telemetry'
-            });
-            console.log('[Offscreen] Document created successfully');
+        // Check if offscreen document already exists
+        const existingContexts = await chrome.runtime.getContexts({
+            contextTypes: ['OFFSCREEN_DOCUMENT']
+        });
+        
+        if (existingContexts.length > 0) {
+            console.log('[Offscreen] Document already exists');
+            return;
         }
+
+        // Create new offscreen document
+        await chrome.offscreen.createDocument({
+            url: chrome.runtime.getURL('offscreen.html'),
+            reasons: ['GEOLOCATION'],
+            justification: 'Geolocation tracking for security enforcement'
+        });
+        
+        console.log('[Offscreen] Document created successfully');
+        
+        // Give the offscreen document a moment to initialize
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
     } catch (err) {
-        console.warn('[Offscreen] Setup warning:', err.message);
+        // If error is about document already existing, that's fine
+        if (err.message?.includes('already exists')) {
+            console.log('[Offscreen] Document already exists (caught)');
+        } else {
+            console.warn('[Offscreen] Setup warning:', err.message);
+        }
     }
 }
 
@@ -253,14 +271,25 @@ async function getGPSLocation() {
     if (!deviceConfig?.enableLocation) return null;
     
     try {
-        await setupOffscreen();
+        console.log('[GPS] Requesting location from offscreen...');
         
-        const response = await chrome.runtime.sendMessage({
-            target: 'offscreen',
-            type: 'get-geolocation'
-        });
+        const response = await Promise.race([
+            chrome.runtime.sendMessage({
+                target: 'offscreen',
+                type: 'get-geolocation'
+            }),
+            new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('GPS request timeout')), 12000)
+            )
+        ]);
         
-        return response;
+        if (response && response.lat !== undefined && response.lon !== undefined) {
+            console.log('[GPS] Location acquired:', response.lat.toFixed(6), response.lon.toFixed(6));
+            return response;
+        } else {
+            console.log('[GPS] No location data returned');
+            return null;
+        }
     } catch (err) {
         console.warn('[GPS] Acquisition failed:', err.message);
         return null;
@@ -269,76 +298,100 @@ async function getGPSLocation() {
 
 async function getSystemStats() {
     try {
-        await setupOffscreen();
+        const stats = await Promise.race([
+            chrome.runtime.sendMessage({
+                target: 'offscreen',
+                type: 'get-system-stats'
+            }),
+            new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Stats request timeout')), 5000)
+            )
+        ]);
         
-        const response = await chrome.runtime.sendMessage({
-            target: 'offscreen',
-            type: 'get-system-stats'
-        });
-        
-        return response;
+        if (stats) {
+            console.log('[Stats] Battery:', stats.battery, 'Network:', stats.network);
+            return stats;
+        }
     } catch (err) {
         console.warn('[Stats] Collection failed:', err.message);
-        return null;
     }
+    
+    return {
+        platform: 'Unknown',
+        language: 'en-US',
+        cores: 4,
+        battery: null,
+        network: null
+    };
 }
 
 // ==========================================
 // HEARTBEAT & STATE MANAGEMENT
 // ==========================================
 
-function heartbeatLoop() {
-    if (heartbeatTimer) clearInterval(heartbeatTimer);
-    
-    heartbeatTimer = setInterval(async () => {
-        await checkDeviceState();
-    }, HEARTBEAT_INTERVAL_MS);
-    
-    checkDeviceState();
+async function heartbeatLoop() {
+    await checkDeviceState();
+    heartbeatTimer = setTimeout(heartbeatLoop, HEARTBEAT_INTERVAL_MS);
 }
 
 async function checkDeviceState() {
     if (!deviceConfig) return;
 
     try {
-        const [coords, stats] = await Promise.all([
-            getGPSLocation(),
-            getSystemStats()
-        ]);
+        const coords = await getGPSLocation();
+        const stats = await getSystemStats();
+        const nonce = crypto.randomUUID();
 
+        console.log('[Heartbeat] Sending to server with location:', coords);
+
+        // Build payload matching OLD version (v4.1) server expectations
         const payload = {
-            deviceApiKey: deviceConfig.deviceApiKey,
-            deviceId: deviceConfig.deviceId,
-            fingerprint: deviceFingerprint,
-            timestamp: Date.now(),
-            location: coords,
-            battery: stats?.battery,
-            network: stats?.network,
-            platform: stats?.platform,
-            isArmed: isArmed
+            nonce,
+            fingerprint: deviceFingerprint
         };
 
-        const response = await fetch(`${API_URL}/api/device/heartbeat`, {
+        // Add location fields at TOP LEVEL if available
+        if (coords && coords.lat !== undefined && coords.lon !== undefined) {
+            payload.lat = coords.lat;
+            payload.lon = coords.lon;
+            payload.accuracy = coords.accuracy;
+            console.log('[Heartbeat] Including location:', payload.lat, payload.lon);
+        }
+
+        // Add battery at TOP LEVEL if available
+        if (stats && stats.battery) {
+            payload.battery = stats.battery;
+            console.log('[Heartbeat] Including battery:', stats.battery);
+        }
+
+        // Add network at TOP LEVEL if available
+        if (stats && stats.network) {
+            payload.network = stats.network;
+            console.log('[Heartbeat] Including network:', stats.network);
+        }
+
+        // Use OLD version endpoint and auth method
+        const response = await fetch(`${API_URL}/api/heartbeat`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${deviceConfig.deviceApiKey}`
+            },
             body: JSON.stringify(payload)
         });
 
         if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
+            throw new Error(`Server Response: ${response.status}`);
         }
 
-        const data = await response.json();
+        const result = await response.json();
+        
+        // Check both armed and quarantined status like old version
+        const shouldBeLocked = result.armed || result.quarantined;
 
-        if (data.deviceId && !deviceConfig.deviceId) {
-            deviceConfig.deviceId = data.deviceId;
-            await chrome.storage.local.set({ deviceConfig });
-        }
-
-        const newArmedState = data.isArmed || false;
-
-        if (newArmedState !== isArmed) {
-            isArmed = newArmedState;
+        if (shouldBeLocked !== isArmed) {
+            console.log(`[Lockdown] State Transition: ${isArmed} -> ${shouldBeLocked}`);
+            isArmed = shouldBeLocked;
             await chrome.storage.local.set({ isArmed });
             await handleStateChange();
         }
