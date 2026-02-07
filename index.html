@@ -2592,28 +2592,40 @@ function checkSystemRequirements() {
 }
 
 function downloadExtension() {
+    const zipUrl =
+        "https://github.com/Aaks-hatH/Browser-Bricker-Panel/archive/refs/heads/main.zip";
+
     const btn = document.getElementById('download-btn');
     const zone = document.getElementById('download-zone');
-    
+
+    // UI feedback
     btn.disabled = true;
     btn.innerHTML = '<i data-lucide="loader"></i> Downloading...';
     lucide.createIcons();
-    
     zone.style.borderColor = 'var(--accent-info)';
-    
+
+    // 🔹 REAL ZIP DOWNLOAD
+    const link = document.createElement("a");
+    link.href = zipUrl;
+    link.setAttribute("download", "Extension.zip");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Wizard visuals + step progression
     setTimeout(() => {
         zone.style.borderColor = 'var(--accent-success)';
-        btn.innerHTML = '<i data-lucide="check"></i> Download Complete';
+        btn.innerHTML = '<i data-lucide="check"></i> Download Started';
         lucide.createIcons();
-        
+
         confetti({
             particleCount: 150,
             spread: 100,
             origin: { y: 0.5 }
         });
-        
-        setTimeout(() => completeStep(2), 1000);
-    }, 2500);
+
+        completeStep(2);
+    }, 700);
 }
 
 function completeStep(stepNum) {
