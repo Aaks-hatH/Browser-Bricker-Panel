@@ -1042,16 +1042,278 @@ footer {
     </style>
 </head>
 <body>
-    <div id="mobileBlocker" style="display:none; position:fixed; inset:0; z-index:999999; background:#05070c; color:#fff; font-family:system-ui; padding:40px;">
-  <div style="max-width:520px; margin:0 auto; text-align:center; padding-top:80px;">
-    <div style="font-size:70px;">🖥️</div>
-    <h1 style="font-size:28px; margin:18px 0 10px;">Desktop Required</h1>
-    <p style="opacity:.8; line-height:1.6;">
-      This website is not available on mobile devices.<br>
-      Please open it on a laptop or desktop computer.
-    </p>
+    <!-- MOBILE BLOCKER (Desktop Required) -->
+<div id="mobileBlocker" class="bb-mobile-blocker" aria-hidden="true">
+  <div class="bb-mobile-frame">
+    <div class="bb-mobile-header">
+      <div class="bb-mobile-sig">
+        <span class="bb-dot bb-red"></span>
+        <span class="bb-dot bb-yellow"></span>
+        <span class="bb-dot bb-green"></span>
+      </div>
+
+      <div class="bb-mobile-title">
+        <span class="bb-chip">SECURE UI</span>
+        <span class="bb-chip bb-chip2">DESKTOP REQUIRED</span>
+      </div>
+    </div>
+
+    <div class="bb-mobile-body">
+      <div class="bb-mobile-icon" aria-hidden="true">
+        <svg width="70" height="70" viewBox="0 0 24 24" fill="none">
+          <path d="M4 5.5C4 4.67157 4.67157 4 5.5 4H18.5C19.3284 4 20 4.67157 20 5.5V15.5C20 16.3284 19.3284 17 18.5 17H5.5C4.67157 17 4 16.3284 4 15.5V5.5Z"
+                stroke="currentColor" stroke-width="1.6"/>
+          <path d="M9 20H15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M12 17V20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      </div>
+
+      <h1 class="bb-mobile-h1">Access Restricted</h1>
+
+      <p class="bb-mobile-p">
+        This portal is not available on mobile devices.<br>
+        Please open this page using a desktop or laptop computer.
+      </p>
+
+      <div class="bb-mobile-panel">
+        <div class="bb-row">
+          <span class="bb-k">STATUS</span>
+          <span class="bb-v bb-bad">BLOCKED</span>
+        </div>
+        <div class="bb-row">
+          <span class="bb-k">REASON</span>
+          <span class="bb-v">MOBILE CLIENT DETECTED</span>
+        </div>
+        <div class="bb-row">
+          <span class="bb-k">RECOMMENDED</span>
+          <span class="bb-v">CHROME / EDGE (DESKTOP)</span>
+        </div>
+      </div>
+
+      <div class="bb-mobile-links">
+        <a class="bb-link" href="mailto:browserbricker@gmail.com">
+          Contact Support
+        </a>
+
+        <a class="bb-link" href="https://github.com/Aaks-hatH/Browser-Bricker-Panel" target="_blank" rel="noopener">
+          GitHub Repository
+        </a>
+      </div>
+
+      <div class="bb-mobile-foot">
+        <div class="bb-footline">
+          <span class="bb-foot-k">SIGNATURE</span>
+          <span class="bb-foot-v">BROWSERBRICKER UI GATE</span>
+        </div>
+        <div class="bb-footline">
+          <span class="bb-foot-k">SESSION</span>
+          <span class="bb-foot-v" id="bbMobileSession">INITIALIZING...</span>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
+
+<style>
+/* ====== MOBILE BLOCKER THEME (Enterprise / Security UI) ====== */
+.bb-mobile-blocker{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:999999;
+  background:
+    radial-gradient(1200px 800px at 30% 20%, rgba(16,185,129,0.07), transparent 60%),
+    radial-gradient(900px 600px at 70% 80%, rgba(99,102,241,0.06), transparent 55%),
+    #05070c;
+  color:#fff;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+}
+
+.bb-mobile-frame{
+  width:min(720px, 92vw);
+  margin: 70px auto 0;
+  border:1px solid rgba(255,255,255,0.10);
+  background: rgba(10, 12, 18, 0.75);
+  backdrop-filter: blur(18px);
+  box-shadow:
+    0 0 0 1px rgba(16,185,129,0.12),
+    0 40px 120px rgba(0,0,0,0.65);
+  border-radius: 16px;
+  overflow:hidden;
+}
+
+.bb-mobile-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding: 14px 18px;
+  border-bottom:1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.02);
+}
+
+.bb-mobile-sig{ display:flex; gap:8px; }
+.bb-dot{ width:10px; height:10px; border-radius:50%; opacity:.9; }
+.bb-red{ background:#ff5f56; }
+.bb-yellow{ background:#ffbd2e; }
+.bb-green{ background:#27c93f; }
+
+.bb-mobile-title{ display:flex; gap:10px; align-items:center; }
+.bb-chip{
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 1.4px;
+  padding: 6px 10px;
+  border:1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.85);
+  text-transform: uppercase;
+  background: rgba(255,255,255,0.02);
+}
+.bb-chip2{
+  border-color: rgba(16,185,129,0.30);
+  box-shadow: 0 0 0 1px rgba(16,185,129,0.10) inset;
+}
+
+.bb-mobile-body{
+  padding: 42px 42px 30px;
+  text-align:center;
+}
+
+.bb-mobile-icon{
+  width: 90px;
+  height: 90px;
+  margin: 0 auto 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(16,185,129,0.22);
+  background: rgba(16,185,129,0.06);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color: rgba(16,185,129,0.95);
+  box-shadow:
+    0 0 0 1px rgba(16,185,129,0.08) inset,
+    0 18px 70px rgba(0,0,0,0.55);
+}
+
+.bb-mobile-h1{
+  margin: 0 0 12px;
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+}
+
+.bb-mobile-p{
+  margin: 0 auto 26px;
+  max-width: 560px;
+  color: rgba(255,255,255,0.70);
+  line-height: 1.6;
+  font-size: 15px;
+}
+
+.bb-mobile-panel{
+  width: min(560px, 100%);
+  margin: 0 auto 22px;
+  border-radius: 14px;
+  border:1px solid rgba(255,255,255,0.10);
+  background: rgba(0,0,0,0.25);
+  padding: 16px 18px;
+  text-align:left;
+}
+
+.bb-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 18px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.bb-row:last-child{ border-bottom:none; }
+
+.bb-k{
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 1.6px;
+  color: rgba(255,255,255,0.55);
+  text-transform: uppercase;
+}
+
+.bb-v{
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
+  letter-spacing: 1.2px;
+  color: rgba(255,255,255,0.82);
+  text-transform: uppercase;
+}
+
+.bb-bad{
+  color:#ef4444;
+  text-shadow: 0 0 20px rgba(239,68,68,0.20);
+}
+
+.bb-mobile-links{
+  display:flex;
+  gap: 12px;
+  justify-content:center;
+  flex-wrap:wrap;
+  margin-bottom: 20px;
+}
+
+.bb-link{
+  text-decoration:none;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border:1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.02);
+  color: rgba(255,255,255,0.82);
+  font-size: 13px;
+  font-weight: 600;
+  transition: transform .15s ease, border-color .15s ease;
+}
+
+.bb-link:hover{
+  transform: translateY(-2px);
+  border-color: rgba(16,185,129,0.35);
+}
+
+.bb-mobile-foot{
+  width: min(560px, 100%);
+  margin: 0 auto;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding-top: 14px;
+  text-align:left;
+}
+
+.bb-footline{
+  display:flex;
+  justify-content:space-between;
+  gap: 16px;
+  padding: 6px 0;
+}
+
+.bb-foot-k{
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 1.6px;
+  color: rgba(255,255,255,0.55);
+  text-transform: uppercase;
+}
+
+.bb-foot-v{
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 1.3px;
+  color: rgba(255,255,255,0.78);
+  text-transform: uppercase;
+}
+
+/* Responsive */
+@media (max-width: 520px){
+  .bb-mobile-body{ padding: 32px 18px 22px; }
+  .bb-mobile-frame{ margin-top: 35px; }
+  .bb-mobile-h1{ font-size: 26px; }
+}
+</style>
 
 <script>
 (function () {
@@ -1060,7 +1322,19 @@ footer {
     (window.matchMedia && window.matchMedia("(max-width: 900px)").matches);
 
   if (isMobile) {
-    document.getElementById("mobileBlocker").style.display = "block";
+    const blocker = document.getElementById("mobileBlocker");
+    blocker.style.display = "block";
+    blocker.setAttribute("aria-hidden", "false");
+
+    // Generate a simple session token for the UI
+    const token = Array.from(crypto.getRandomValues(new Uint8Array(8)))
+      .map(b => b.toString(16).padStart(2, "0"))
+      .join("")
+      .toUpperCase();
+
+    const sessionEl = document.getElementById("bbMobileSession");
+    if (sessionEl) sessionEl.textContent = token;
+
     document.documentElement.style.overflow = "hidden";
     document.body.style.overflow = "hidden";
   }
