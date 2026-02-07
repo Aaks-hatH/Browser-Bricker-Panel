@@ -1,25 +1,27 @@
 /**
- * DEVICE LOCKDOWN EXTENSION v4.1 - ENTERPRISE SECURITY ENDPOINT
+ * DEVICE LOCKDOWN EXTENSION v5.0 - MAXIMUM SECURITY ENFORCEMENT
  * 
- * Logic Components:
- * 1. PERSISTENCE: High-frequency 2s heartbeat loop + Advanced Keep-Alive System
- * 2. GEOLOCATION: Offscreen Document bridge to bypass Service Worker limits.
- * 3. ENFORCEMENT: Absolute tab redirection and navigation interception.
- * 4. TELEMETRY: Device fingerprinting, network status, and location reporting.
- * 5. ANTI-SUSPENSION: Multiple keep-alive strategies to prevent worker termination
- * 6. FAIL-CLOSED: Auto-lock on connection loss
+ * ENHANCED FEATURES:
+ * - Tab creation prevention (blocks new tabs entirely when locked)
+ * - Aggressive window management (closes unauthorized windows)
+ * - Chrome URL blocking (blocks chrome:// pages)
+ * - Extension page blocking (blocks chrome://extensions)
+ * - Multiple enforcement layers
+ * - Anti-disable protection
+ * - Faster response times
  */
 
 const API_URL = 'https://browserbricker.onrender.com';
-const HEARTBEAT_INTERVAL_MS = 2000; // 2-second heartbeat for real-time control
-const KEEPALIVE_INTERVAL_MS = 20000; // 20-second keep-alive ping
+const HEARTBEAT_INTERVAL_MS = 2000; // 2-second heartbeat
+const ENFORCEMENT_INTERVAL_MS = 100; // Check every 100ms when locked (10x per second)
+const KEEPALIVE_INTERVAL_MS = 20000;
 const ALARM_NAME = 'keepalive-heartbeat';
-const ALARM_PERIOD_MINUTES = 0.5; // 30 seconds
+const ALARM_PERIOD_MINUTES = 0.5;
 
 // Fail-closed configuration
-const MAX_FAILED_HEARTBEATS = 1; // Lock after 1 consecutive failures (2 seconds)
-const GRACE_PERIOD_MS = 10000; // 10-second grace period after startup
-const RECONNECT_UNLOCK_REQUIRED_HEARTBEATS = 1; // Need 1 successful heartbeats to unlock
+const MAX_FAILED_HEARTBEATS = 1;
+const GRACE_PERIOD_MS = 10000;
+const RECONNECT_UNLOCK_REQUIRED_HEARTBEATS = 1;
 
 let deviceConfig = null;
 let isArmed = false;
@@ -28,6 +30,7 @@ let consecutiveErrors = 0;
 let heartbeatTimer = null;
 let keepAliveTimer = null;
 let lastActivity = Date.now();
+let enforcementTimer = null;
 
 // Fail-closed state tracking
 let isFailClosedLocked = false;
@@ -35,13 +38,15 @@ let consecutiveSuccesses = 0;
 let lastSuccessfulHeartbeat = Date.now();
 let startupTime = Date.now();
 
+// Enhanced tracking
+let tabCreationBlocked = 0;
+let navigationBlocked = 0;
+let windowsClosed = 0;
+
 // ==========================================
-// 0. ADVANCED KEEP-ALIVE SYSTEM
+// ENHANCED KEEP-ALIVE SYSTEM
 // ==========================================
 
-/**
- * Strategy 1: Chrome Alarms API
- */
 async function setupAlarms() {
     await chrome.alarms.clear(ALARM_NAME);
     chrome.alarms.create(ALARM_NAME, {
@@ -53,18 +58,15 @@ async function setupAlarms() {
 chrome.alarms.onAlarm.addListener(async (alarm) => {
     if (alarm.name === ALARM_NAME) {
         lastActivity = Date.now();
-        console.log('[KeepAlive] Alarm fired - Worker still alive');
+        console.log('[KeepAlive] Alarm fired');
         await chrome.storage.local.get(['keepAlive']);
         await setupOffscreen();
         if (isArmed || isFailClosedLocked) {
-            await enforceBlockade();
+            await aggressiveEnforcement();
         }
     }
 });
 
-/**
- * Strategy 2: Port Connection Keep-Alive
- */
 let keepAlivePort = null;
 
 function setupPortKeepAlive() {
@@ -105,9 +107,6 @@ chrome.runtime.onConnect.addListener((port) => {
     }
 });
 
-/**
- * Strategy 3: Periodic Storage Access
- */
 function startStorageKeepAlive() {
     if (keepAliveTimer) {
         clearInterval(keepAliveTimer);
@@ -120,13 +119,9 @@ function startStorageKeepAlive() {
             heartbeatCount: (await chrome.storage.local.get('heartbeatCount')).heartbeatCount || 0 + 1
         });
         await chrome.storage.session.set({ alive: true });
-        console.log('[KeepAlive] Storage ping complete');
     }, KEEPALIVE_INTERVAL_MS);
 }
 
-/**
- * Strategy 4: Offscreen Document Persistence
- */
 async function maintainOffscreenDocument() {
     try {
         const hasDocument = await chrome.offscreen.hasDocument();
@@ -149,9 +144,6 @@ async function maintainOffscreenDocument() {
     }
 }
 
-/**
- * Strategy 5: Web Request Listener
- */
 if (chrome.webRequest) {
     chrome.webRequest.onBeforeRequest.addListener(
         (details) => {
@@ -163,9 +155,6 @@ if (chrome.webRequest) {
     );
 }
 
-/**
- * Strategy 6: Self-Message Loop
- */
 function startSelfMessageLoop() {
     setInterval(() => {
         chrome.runtime.sendMessage({ 
@@ -175,9 +164,6 @@ function startSelfMessageLoop() {
     }, 25000);
 }
 
-/**
- * Master Keep-Alive Initialization
- */
 async function initializeKeepAlive() {
     console.log('[KeepAlive] Initializing all keep-alive strategies...');
     await setupAlarms();
@@ -195,7 +181,7 @@ async function initializeKeepAlive() {
 }
 
 // ==========================================
-// 1. INITIALIZATION & STORAGE
+// INITIALIZATION & STORAGE
 // ==========================================
 
 chrome.runtime.onInstalled.addListener(async (details) => {
@@ -217,21 +203,21 @@ self.addEventListener('activate', async (event) => {
     await initializeKeepAlive();
 });
 
-/**
- * Main entry point for the background service
- */
 async function startup() {
     await loadConfig();
     deviceFingerprint = await generateFingerprint();
     await setupOffscreen();
     heartbeatLoop();
-    console.log('[Lockdown] Extension Ready');
-    console.log(`[FAIL-CLOSED] Enabled - locks after ${MAX_FAILED_HEARTBEATS} failures (${MAX_FAILED_HEARTBEATS * 2}s)`);
+    
+    // Start aggressive enforcement if locked
+    if (isArmed || isFailClosedLocked) {
+        startAggressiveEnforcement();
+    }
+    
+    console.log('[Lockdown] Extension Ready (Enhanced v5.0)');
+    console.log(`[FAIL-CLOSED] Enabled - locks after ${MAX_FAILED_HEARTBEATS} failures`);
 }
 
-/**
- * Load device configuration from chrome.storage.local
- */
 async function loadConfig() {
     const data = await chrome.storage.local.get(['deviceConfig', 'isArmed', 'isFailClosedLocked']);
     deviceConfig = data.deviceConfig || null;
@@ -244,204 +230,129 @@ async function loadConfig() {
 }
 
 // ==========================================
-// 2. GPS / GEOLOCATION via Offscreen Bridge
+// OFFSCREEN DOCUMENT
 // ==========================================
 
-/**
- * Offscreen Documents allow geolocation in a service worker context
- */
 async function setupOffscreen() {
     try {
-        // Check if offscreen document already exists
-        const existingContexts = await chrome.runtime.getContexts({
-            contextTypes: ['OFFSCREEN_DOCUMENT']
-        });
-        
-        if (existingContexts.length > 0) {
-            console.log('[Lockdown] Offscreen document already exists');
-            return;
+        const hasDocument = await chrome.offscreen.hasDocument();
+        if (!hasDocument) {
+            await chrome.offscreen.createDocument({
+                url: 'offscreen.html',
+                reasons: ['GEOLOCATION'],
+                justification: 'Required for device location tracking and system telemetry'
+            });
+            console.log('[Offscreen] Document created successfully');
         }
-
-        // Create new offscreen document
-        await chrome.offscreen.createDocument({
-            url: chrome.runtime.getURL('offscreen.html'),
-            reasons: ['GEOLOCATION'],
-            justification: 'Geolocation tracking for security enforcement'
-        });
-        
-        console.log('[Lockdown] Offscreen Geolocation Bridge Created');
-        
-        // Give the offscreen document a moment to initialize
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
     } catch (err) {
-        // If error is about document already existing, that's fine
-        if (err.message?.includes('already exists')) {
-            console.log('[Lockdown] Offscreen document already exists (caught)');
-        } else {
-            console.error('[Lockdown] Error setting up offscreen:', err.message);
-        }
+        console.warn('[Offscreen] Setup warning:', err.message);
     }
 }
 
-/**
- * Requests current GPS coordinates from the offscreen document
- */
 async function getGPSLocation() {
-    if (!deviceConfig?.enableLocation) {
-        console.log('[GPS] Location tracking disabled in config');
-        return null;
-    }
-
+    if (!deviceConfig?.enableLocation) return null;
+    
     try {
-        console.log('[GPS] Requesting location from offscreen...');
+        await setupOffscreen();
         
-        // Use a Promise with timeout to prevent hanging
-        const coords = await Promise.race([
-            chrome.runtime.sendMessage({
-                target: 'offscreen',
-                type: 'get-geolocation'
-            }),
-            new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('GPS request timeout')), 12000)
-            )
-        ]);
+        const response = await chrome.runtime.sendMessage({
+            target: 'offscreen',
+            type: 'get-geolocation'
+        });
         
-        if (coords && coords.lat !== undefined && coords.lon !== undefined) {
-            console.log('[GPS] Location acquired:', coords.lat.toFixed(6), coords.lon.toFixed(6));
-            return coords;
-        } else {
-            console.log('[GPS] No location data returned from offscreen');
-            return null;
-        }
-    } catch (e) {
-        console.warn('[GPS] Error getting location:', e.message);
+        return response;
+    } catch (err) {
+        console.warn('[GPS] Acquisition failed:', err.message);
         return null;
     }
 }
 
-/**
- * Retrieves browser and battery stats
- * Service workers don't have access to navigator.getBattery or navigator.connection
- * We send a message to the offscreen document to get this data
- */
 async function getSystemStats() {
     try {
-        // Use a Promise with timeout to prevent hanging
-        const stats = await Promise.race([
-            chrome.runtime.sendMessage({
-                target: 'offscreen',
-                type: 'get-system-stats'
-            }),
-            new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Stats request timeout')), 5000)
-            )
-        ]);
+        await setupOffscreen();
         
-        if (stats) {
-            console.log('[Stats] Battery:', stats.battery, 'Network:', stats.network);
-            return stats;
-        }
-    } catch (e) {
-        console.warn('[Stats] Could not get system stats:', e.message);
+        const response = await chrome.runtime.sendMessage({
+            target: 'offscreen',
+            type: 'get-system-stats'
+        });
+        
+        return response;
+    } catch (err) {
+        console.warn('[Stats] Collection failed:', err.message);
+        return null;
     }
+}
+
+// ==========================================
+// HEARTBEAT & STATE MANAGEMENT
+// ==========================================
+
+function heartbeatLoop() {
+    if (heartbeatTimer) clearInterval(heartbeatTimer);
     
-    // Fallback
-    return {
-        platform: 'Unknown',
-        language: 'en-US',
-        cores: 4,
-        battery: null,
-        network: null
-    };
+    heartbeatTimer = setInterval(async () => {
+        await checkDeviceState();
+    }, HEARTBEAT_INTERVAL_MS);
+    
+    checkDeviceState();
 }
 
-// ==========================================
-// 3. HEARTBEAT LOOP
-// ==========================================
-
-/**
- * Recursive self-scheduling heartbeat function
- */
-async function heartbeatLoop() {
-    await checkDeviceState();
-    heartbeatTimer = setTimeout(heartbeatLoop, HEARTBEAT_INTERVAL_MS);
-}
-
-/**
- * Check device state with server
- */
 async function checkDeviceState() {
     if (!deviceConfig) return;
 
     try {
-        const coords = await getGPSLocation();
-        const stats = await getSystemStats();
-        const nonce = crypto.randomUUID();
+        const [coords, stats] = await Promise.all([
+            getGPSLocation(),
+            getSystemStats()
+        ]);
 
-        console.log('[Heartbeat] Sending to server with location:', coords);
-
-        // Build payload matching server expectations
         const payload = {
-            nonce,
-            fingerprint: deviceFingerprint
+            deviceApiKey: deviceConfig.deviceApiKey,
+            deviceId: deviceConfig.deviceId,
+            fingerprint: deviceFingerprint,
+            timestamp: Date.now(),
+            location: coords,
+            battery: stats?.battery,
+            network: stats?.network,
+            platform: stats?.platform,
+            isArmed: isArmed
         };
 
-        // Add location fields at TOP LEVEL if available
-        if (coords && coords.lat !== undefined && coords.lon !== undefined) {
-            payload.lat = coords.lat;
-            payload.lon = coords.lon;
-            payload.accuracy = coords.accuracy;
-            console.log('[Heartbeat] Including location:', payload.lat, payload.lon);
-        }
-
-        // Add battery at TOP LEVEL if available
-        if (stats && stats.battery) {
-            payload.battery = stats.battery;
-            console.log('[Heartbeat] Including battery:', stats.battery);
-        }
-
-        // Add network at TOP LEVEL if available
-        if (stats && stats.network) {
-            payload.network = stats.network;
-            console.log('[Heartbeat] Including network:', stats.network);
-        }
-
-        const response = await fetch(`${API_URL}/api/heartbeat`, {
+        const response = await fetch(`${API_URL}/api/device/heartbeat`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${deviceConfig.deviceApiKey}`
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
 
         if (!response.ok) {
-            throw new Error(`Server Response: ${response.status}`);
+            throw new Error(`HTTP ${response.status}`);
         }
 
-        const result = await response.json();
-        
-        const shouldBeLocked = result.armed || result.quarantined;
+        const data = await response.json();
 
-        if (shouldBeLocked !== isArmed) {
-            console.log(`[Lockdown] State Transition: ${isArmed} -> ${shouldBeLocked}`);
-            isArmed = shouldBeLocked;
+        if (data.deviceId && !deviceConfig.deviceId) {
+            deviceConfig.deviceId = data.deviceId;
+            await chrome.storage.local.set({ deviceConfig });
+        }
+
+        const newArmedState = data.isArmed || false;
+
+        if (newArmedState !== isArmed) {
+            isArmed = newArmedState;
             await chrome.storage.local.set({ isArmed });
             await handleStateChange();
         }
 
-        // Successful heartbeat handling
         lastSuccessfulHeartbeat = Date.now();
         consecutiveErrors = 0;
         consecutiveSuccesses++;
         
-        // Check if we should unlock from fail-closed state
         if (isFailClosedLocked && !isArmed) {
             if (consecutiveSuccesses >= RECONNECT_UNLOCK_REQUIRED_HEARTBEATS) {
                 console.log(`[FAIL-CLOSED] Connection restored! Unlocking after ${consecutiveSuccesses} successful heartbeats`);
                 isFailClosedLocked = false;
                 await chrome.storage.local.set({ isFailClosedLocked: false });
+                stopAggressiveEnforcement();
                 showNotification('CONNECTION RESTORED', 'Server connection re-established. Device unlocked.');
             }
         }
@@ -449,76 +360,185 @@ async function checkDeviceState() {
     } catch (error) {
         consecutiveErrors++;
         consecutiveSuccesses = 0;
-        console.warn(`[Lockdown] Heartbeat Link Error (${consecutiveErrors}/${MAX_FAILED_HEARTBEATS}):`, error.message);
+        console.warn(`[Lockdown] Heartbeat Error (${consecutiveErrors}/${MAX_FAILED_HEARTBEATS}):`, error.message);
         
         const gracePeriodExpired = (Date.now() - startupTime) > GRACE_PERIOD_MS;
         
         if (consecutiveErrors >= MAX_FAILED_HEARTBEATS && gracePeriodExpired && !isFailClosedLocked) {
-            console.error(`[FAIL-CLOSED] ⚠️ ACTIVATING - Connection lost for ${consecutiveErrors * 2} seconds`);
+            console.error(`[FAIL-CLOSED] ⚠️ ACTIVATING - Connection lost`);
             isFailClosedLocked = true;
             await chrome.storage.local.set({ isFailClosedLocked: true });
-            await enforceBlockade();
+            await aggressiveEnforcement();
+            startAggressiveEnforcement();
             showNotification('FAIL-CLOSED ACTIVATED', 'Device locked due to connection failure.');
         }
         
-        if (isArmed || isFailClosedLocked) await enforceBlockade();
+        if (isArmed || isFailClosedLocked) {
+            await aggressiveEnforcement();
+        }
     }
 }
 
 // ==========================================
-// 4. LOCKDOWN ENFORCEMENT
+// ENHANCED LOCKDOWN ENFORCEMENT
 // ==========================================
 
-async function enforceBlockade() {
-    if (!isArmed && !isFailClosedLocked) return;
+/**
+ * Start continuous aggressive enforcement
+ */
+function startAggressiveEnforcement() {
+    console.log('[ENFORCEMENT] Starting aggressive mode (10 checks/sec)');
+    
+    if (enforcementTimer) {
+        clearInterval(enforcementTimer);
+    }
+    
+    // Run enforcement check every 100ms
+    enforcementTimer = setInterval(async () => {
+        await aggressiveEnforcement();
+    }, ENFORCEMENT_INTERVAL_MS);
+    
+    // Also do an immediate enforcement
+    aggressiveEnforcement();
+}
+
+/**
+ * Stop aggressive enforcement
+ */
+function stopAggressiveEnforcement() {
+    console.log('[ENFORCEMENT] Stopping aggressive mode');
+    
+    if (enforcementTimer) {
+        clearInterval(enforcementTimer);
+        enforcementTimer = null;
+    }
+}
+
+/**
+ * AGGRESSIVE ENFORCEMENT - Multiple layers
+ */
+async function aggressiveEnforcement() {
+    if (!isArmed && !isFailClosedLocked) {
+        stopAggressiveEnforcement();
+        return;
+    }
 
     const lockUrl = chrome.runtime.getURL('lock.html');
     
     try {
+        // Layer 1: Query all tabs and redirect
         const tabs = await chrome.tabs.query({});
+        
         for (const tab of tabs) {
             if (tab.url && !tab.url.startsWith(lockUrl) && !isSystemPage(tab.url)) {
+                // Redirect to lock page
                 chrome.tabs.update(tab.id, { url: lockUrl }).catch(() => {});
+                navigationBlocked++;
             }
         }
+        
+        // Layer 2: Check for multiple windows - close unauthorized windows
+        const windows = await chrome.windows.getAll({ populate: true });
+        
+        if (windows.length > 1) {
+            console.log(`[ENFORCEMENT] Multiple windows detected (${windows.length}), closing extras...`);
+            
+            // Keep only the first window
+            for (let i = 1; i < windows.length; i++) {
+                chrome.windows.remove(windows[i].id).catch(() => {});
+                windowsClosed++;
+            }
+        }
+        
+        // Layer 3: Ensure we have at least one lock tab
+        const lockTabs = tabs.filter(tab => tab.url && tab.url.startsWith(lockUrl));
+        
+        if (lockTabs.length === 0 && tabs.length > 0) {
+            // No lock tab exists, redirect first tab
+            if (tabs[0]) {
+                chrome.tabs.update(tabs[0].id, { url: lockUrl }).catch(() => {});
+            }
+        }
+        
     } catch (err) {
-        console.error('[Lockdown] Enforcement Error:', err);
+        console.error('[ENFORCEMENT] Error:', err);
     }
 }
 
 function isSystemPage(url) {
     if (!url) return false;
-    const sysPrefixes = [`chrome-extension://${chrome.runtime.id}/lock.html`, `chrome-extension://${chrome.runtime.id}/offscreen.html`];
-    return sysPrefixes.some(prefix => url.startsWith(prefix));
+    
+    const extensionId = chrome.runtime.id;
+    const allowedPages = [
+        `chrome-extension://${extensionId}/lock.html`,
+        `chrome-extension://${extensionId}/offscreen.html`
+    ];
+    
+    // Block chrome:// URLs explicitly
+    if (url.startsWith('chrome://') || url.startsWith('chrome-extension://')) {
+        // Only allow our own lock pages
+        return allowedPages.some(allowed => url.startsWith(allowed));
+    }
+    
+    return false;
 }
 
 async function handleStateChange() {
     if (isArmed) {
-        await enforceBlockade();
+        await aggressiveEnforcement();
+        startAggressiveEnforcement();
         showNotification('SECURITY LOCKDOWN', 'This device has been remotely locked by an administrator.');
     } else {
+        stopAggressiveEnforcement();
         showNotification('ACCESS RESTORED', 'Remote security enforcement has been deactivated.');
     }
 }
 
 // ==========================================
-// 5. EVENT LISTENERS & INTERCEPTORS
+// EVENT LISTENERS & INTERCEPTORS
 // ==========================================
 
-chrome.tabs.onCreated.addListener((tab) => {
+/**
+ * ENHANCED: Block tab creation entirely when locked
+ */
+chrome.tabs.onCreated.addListener(async (tab) => {
     lastActivity = Date.now();
+    
     if (isArmed || isFailClosedLocked) {
         const lockUrl = chrome.runtime.getURL('lock.html');
-        setTimeout(() => {
-            chrome.tabs.update(tab.id, { url: lockUrl }).catch(() => {});
-        }, 50);
+        
+        // Immediately redirect new tab
+        chrome.tabs.update(tab.id, { url: lockUrl }).catch(() => {});
+        tabCreationBlocked++;
+        
+        console.log(`[ENFORCEMENT] New tab blocked (#${tabCreationBlocked})`);
     }
 });
 
+/**
+ * ENHANCED: Intercept ALL navigation attempts
+ */
 chrome.webNavigation.onBeforeNavigate.addListener((details) => {
     lastActivity = Date.now();
+    
     if ((isArmed || isFailClosedLocked) && details.frameId === 0) {
         const lockUrl = chrome.runtime.getURL('lock.html');
+        
+        // Block navigation to any page except lock
+        if (!details.url.startsWith(lockUrl) && !isSystemPage(details.url)) {
+            chrome.tabs.update(details.tabId, { url: lockUrl }).catch(() => {});
+            navigationBlocked++;
+        }
+    }
+});
+
+/**
+ * ENHANCED: Intercept committed navigation (second layer)
+ */
+chrome.webNavigation.onCommitted.addListener((details) => {
+    if ((isArmed || isFailClosedLocked) && details.frameId === 0) {
+        const lockUrl = chrome.runtime.getURL('lock.html');
+        
         if (!details.url.startsWith(lockUrl) && !isSystemPage(details.url)) {
             chrome.tabs.update(details.tabId, { url: lockUrl }).catch(() => {});
         }
@@ -527,14 +547,36 @@ chrome.webNavigation.onBeforeNavigate.addListener((details) => {
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     lastActivity = Date.now();
+    
+    // Extra enforcement on URL changes
+    if ((isArmed || isFailClosedLocked) && changeInfo.url) {
+        const lockUrl = chrome.runtime.getURL('lock.html');
+        
+        if (!changeInfo.url.startsWith(lockUrl) && !isSystemPage(changeInfo.url)) {
+            chrome.tabs.update(tabId, { url: lockUrl }).catch(() => {});
+        }
+    }
 });
 
 chrome.windows.onFocusChanged.addListener((windowId) => {
     lastActivity = Date.now();
 });
 
+/**
+ * ENHANCED: Prevent window creation when locked
+ */
+chrome.windows.onCreated.addListener(async (window) => {
+    if (isArmed || isFailClosedLocked) {
+        console.log('[ENFORCEMENT] New window detected, closing...');
+        
+        // Close the new window
+        chrome.windows.remove(window.id).catch(() => {});
+        windowsClosed++;
+    }
+});
+
 // ==========================================
-// 6. COMMUNICATION (POPUP HANDLER)
+// COMMUNICATION (POPUP HANDLER)
 // ==========================================
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -563,7 +605,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 battery: stats?.battery,
                 network: stats?.network,
                 fingerprint: deviceFingerprint ? deviceFingerprint.substring(0, 16) : null,
-                uptime: Math.floor((Date.now() - lastActivity) / 1000)
+                uptime: Math.floor((Date.now() - lastActivity) / 1000),
+                stats: {
+                    tabsBlocked: tabCreationBlocked,
+                    navBlocked: navigationBlocked,
+                    windowsClosed: windowsClosed
+                }
             });
         });
         return true;
@@ -593,6 +640,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             isFailClosedLocked = false;
             consecutiveErrors = 0;
             consecutiveSuccesses = 0;
+            stopAggressiveEnforcement();
             sendResponse({ success: true });
         });
         return true;
@@ -606,10 +654,37 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         }
         return true;
     }
+
+    if (message.action === 'shakeDetected') {
+        console.log('[SHAKE] 🚨 Device shake detected! Auto-locking...');
+        
+        isArmed = true;
+        chrome.storage.local.set({ isArmed: true }).then(async () => {
+            await aggressiveEnforcement();
+            startAggressiveEnforcement();
+            showNotification(
+                '⚠️ SHAKE DETECTED', 
+                'Device movement detected - Auto-locked for security'
+            );
+        });
+        
+        sendResponse({ success: true, locked: true });
+        return true;
+    }
+
+    if (message.action === 'toggleShakeDetection') {
+        if (deviceConfig) {
+            deviceConfig.enableShakeDetection = message.enabled;
+            chrome.storage.local.set({ deviceConfig });
+            console.log(`[SHAKE] Detection ${message.enabled ? 'enabled' : 'disabled'}`);
+            sendResponse({ success: true });
+        }
+        return true;
+    }
 });
 
 // ==========================================
-// 7. UTILITIES & FINGERPRINTING
+// UTILITIES & FINGERPRINTING
 // ==========================================
 
 async function generateFingerprint() {
@@ -631,7 +706,7 @@ function showNotification(title, message) {
 }
 
 // ==========================================
-// 8. STARTUP
+// STARTUP
 // ==========================================
 
 let isFirstRun = true;
@@ -645,4 +720,5 @@ if (isFirstRun) {
     initializeKeepAlive().then(() => startup());
 }
 
-console.log('[Lockdown] Background Service v4.1 Active with Enhanced Keep-Alive + FAIL-CLOSED');
+console.log('[Lockdown] Background Service v5.0 Enhanced Active');
+console.log('[ENFORCEMENT] Aggressive mode: 100ms intervals when locked');
