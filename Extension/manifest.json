@@ -19,6 +19,18 @@
     "<all_urls>"
   ],
 
+  "content_scripts": [
+    {
+      "matches": [
+        "https://browserbricker.onrender.com/*",
+        "http://localhost/*",
+        "http://127.0.0.1/*"
+      ],
+      "js": ["content-script.js"],
+      "run_at": "document_start"
+    }
+  ],
+
   "background": {
     "service_worker": "background.js",
     "type": "module"
