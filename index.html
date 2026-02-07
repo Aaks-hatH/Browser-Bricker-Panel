@@ -1925,55 +1925,72 @@ footer {
     </div>
 
     <!-- Footer -->
-    <footer>
-        <div class="container">
-            <!-- Extension Status Section -->
-            <div id="footer-extension-status" style="margin-bottom: 60px;">
-                <!-- Will be populated by JavaScript -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <!-- Human-Made Badge -->
+        <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%); border: 1px solid var(--accent-success); border-radius: 12px; padding: 25px 35px; margin-bottom: 60px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px;">
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <div style="width: 50px; height: 50px; background: rgba(16, 185, 129, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="heart" style="width: 24px; height: 24px; color: var(--accent-success);"></i>
+                </div>
+                <div>
+                    <div style="font-family: var(--font-mono); font-weight: 700; color: var(--accent-success); font-size: 1rem; letter-spacing: 1px; margin-bottom: 5px;">PROUDLY CRAFTED BY HUMANS</div>
+                    <div style="color: var(--text-secondary); font-size: 0.9rem;">No AI code generation • Authentic human engineering • Built with dedication and expertise</div>
+                </div>
             </div>
+            <button class="btn btn-outline" onclick="openModal('about')" style="white-space: nowrap;">
+                <i data-lucide="user"></i> Meet the Creator
+            </button>
+        </div>
 
-            <div class="footer-grid">
-                <div class="footer-col">
-                    <a class="brand" style="border: none; padding: 0;">
-                        <img src="https://cdn.pixabay.com/photo/2014/04/02/16/27/shield-307324_150.png" class="brand-logo" style="width: 30px; height: 30px;">
-                        <span class="brand-text" style="font-size: 1.2rem;">BrowserBricker</span>
-                    </a>
-                    <p class="footer-brand-desc">
-                        The definitive standard in remote browser security. Protecting enterprise assets across the globe with uncompromising precision.
-                    </p>
-                </div>
-                <div class="footer-col">
-                    <h4>Platform</h4>
-                    <div class="footer-links">
-                        <a onclick="switchTab('features')">Capabilities</a>
-                        <a onclick="switchTab('intelligence')">Intelligence</a>
-                        <a onclick="switchTab('installation')">Installation</a>
-                        <a onclick="switchTab('changelog')">Briefings</a>
-                    </div>
-                </div>
-                <div class="footer-col">
-                    <h4>Operations</h4>
-                    <div class="footer-links">
-                        <a href="https://browser-bricker-panel.onrender.com/" target="_blank">Command Center</a>
-                        <a onclick="triggerLock()">Simulate Lockdown</a>
-                        <a onclick="openTerminal()">Access Terminal</a>
-                    </div>
-                </div>
-                <div class="footer-col">
-                    <h4>Legal</h4>
-                    <div class="footer-links">
-                        <a onclick="openModal('terms')">Terms of Service</a>
-                        <a onclick="openModal('privacy')">Privacy Policy</a>
-                        <a onclick="openModal('about')">About Creator</a>
-                    </div>
+        <!-- Extension Status Section -->
+        <div id="footer-extension-status" style="margin-bottom: 60px;">
+            <!-- Will be populated by JavaScript -->
+        </div>
+
+        <div class="footer-grid">
+            <div class="footer-col">
+                <a class="brand" style="border: none; padding: 0;">
+                    <img src="https://cdn.pixabay.com/photo/2014/04/02/16/27/shield-307324_150.png" class="brand-logo" style="width: 30px; height: 30px;">
+                    <span class="brand-text" style="font-size: 1.2rem;">BrowserBricker</span>
+                </a>
+                <p class="footer-brand-desc">
+                    The definitive standard in remote browser security. Protecting enterprise assets across the globe with uncompromising precision.
+                </p>
+            </div>
+            <div class="footer-col">
+                <h4>Platform</h4>
+                <div class="footer-links">
+                    <a onclick="switchTab('features')">Capabilities</a>
+                    <a onclick="switchTab('intelligence')">Intelligence</a>
+                    <a onclick="switchTab('installation')">Installation</a>
+                    <a onclick="switchTab('changelog')">Briefings</a>
                 </div>
             </div>
-            <div class="footer-bottom">
-                <div>&copy; 2026 BrowserBricker. All rights reserved.</div>
-                <div>SECURE CONNECTION: TLS 1.3 / AES-256-GCM</div>
+            <div class="footer-col">
+                <h4>Operations</h4>
+                <div class="footer-links">
+                    <a href="https://browser-bricker-panel.onrender.com/" target="_blank">Command Center</a>
+                    <a onclick="triggerLock()">Simulate Lockdown</a>
+                    <a onclick="openTerminal()">Access Terminal</a>
+                </div>
+            </div>
+            <div class="footer-col">
+                <h4>Legal</h4>
+                <div class="footer-links">
+                    <a onclick="openModal('terms')">Terms of Service</a>
+                    <a onclick="openModal('privacy')">Privacy Policy</a>
+                    <a onclick="openModal('about')">About Creator</a>
+                </div>
             </div>
         </div>
-    </footer>
+        <div class="footer-bottom">
+            <div>&copy; 2026 BrowserBricker. All rights reserved.</div>
+            <div>SECURE CONNECTION: TLS 1.3 / AES-256-GCM</div>
+        </div>
+    </div>
+</footer>
 
     <!-- OVERLAYS -->
 
@@ -3000,19 +3017,205 @@ function openModal(id) {
         body.innerHTML = generatePrivacyPolicy();
     }
     else if(id === 'about') {
-        body.innerHTML = `
-            <div style="text-align: center;">
-                <div style="width: 100px; height: 100px; background: var(--text-primary); color: var(--bg-deep); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 900; margin: 0 auto 30px;">AH</div>
-                <h2 class="doc-h1">Aakshat Hariharan</h2>
-                <p style="font-size: 1.2rem; color: var(--text-primary);">Lead Security Architect</p>
-                <p class="doc-p">BrowserBricker was engineered to provide enterprise-grade security controls accessible to organizations of all sizes. Built with a focus on Zero Trust principles and scalable architecture.</p>
-                <div style="margin-top: 30px; display: flex; gap: 15px; justify-content: center;">
-                    <a href="https://github.com/Aaks-hatH" target="_blank" class="btn btn-outline">GitHub</a>
-                    <a href="mailto:browserbricker@gmail.com" class="btn btn-outline">Contact</a>
+    body.innerHTML = `
+        <div style="text-align: center;">
+            <!-- Creator Avatar -->
+            <div style="width: 120px; height: 120px; background: linear-gradient(135deg, var(--text-primary), var(--text-secondary)); color: var(--bg-deep); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3rem; font-weight: 900; margin: 0 auto 25px; box-shadow: 0 10px 40px rgba(255,255,255,0.1);">AH</div>
+            
+            <h2 class="doc-h1" style="margin-bottom: 10px;">Aakshat Hariharan</h2>
+            <p style="font-size: 1.3rem; color: var(--accent-success); font-weight: 600; margin-bottom: 8px;">Creator & Lead Developer</p>
+            <p style="font-size: 0.95rem; color: var(--text-secondary); font-family: var(--font-mono); letter-spacing: 1px; margin-bottom: 40px;">SOFTWARE ENGINEER • SECURITY ARCHITECT • HUMAN CRAFTSMAN</p>
+            
+            <!-- Bio Section -->
+            <div style="background: var(--bg-deep); border: 1px solid var(--border-light); padding: 40px; border-radius: 16px; margin-bottom: 35px; text-align: left;">
+                <h3 style="font-size: 1.5rem; margin-bottom: 20px; color: var(--text-primary); text-align: center;">About the Project</h3>
+                <p class="doc-p">
+                    BrowserBricker was born from a simple observation: organizations needed enterprise-grade browser security controls, 
+                    but existing solutions were either prohibitively expensive or unnecessarily complex. As a security-focused developer, 
+                    I set out to create a platform that democratizes browser management without compromising on security or functionality.
+                </p>
+                <p class="doc-p">
+                    Every aspect of this project—from the zero-trust architecture to the real-time WebSocket infrastructure—was 
+                    meticulously designed and hand-coded with security, scalability, and user experience in mind. This isn't just 
+                    another browser extension; it's a comprehensive security platform built on principles of defense-in-depth, 
+                    data sovereignty, and transparent operation.
+                </p>
+                <p class="doc-p" style="margin-bottom: 0;">
+                    BrowserBricker represents hundreds of hours of research, development, testing, and refinement. It embodies my 
+                    commitment to building tools that genuinely solve real-world problems while maintaining the highest standards 
+                    of code quality, security, and ethical operation.
+                </p>
+            </div>
+
+            <!-- Human-Made Disclaimer -->
+            <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.05) 100%); border: 2px solid var(--accent-success); padding: 35px; border-radius: 16px; margin-bottom: 35px; text-align: left;">
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+                    <div style="width: 50px; height: 50px; background: rgba(16, 185, 129, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <i data-lucide="user-check" style="width: 28px; height: 28px; color: var(--accent-success);"></i>
+                    </div>
+                    <h3 style="font-size: 1.5rem; margin: 0; color: var(--accent-success);">100% Human-Crafted Software</h3>
+                </div>
+                
+                <p style="color: var(--text-secondary); line-height: 1.8; margin-bottom: 15px; font-size: 1.05rem;">
+                    In an era where AI-generated code is becoming ubiquitous, BrowserBricker stands as a testament to authentic 
+                    human engineering. This project was created entirely through human intelligence, creativity, and expertise—no 
+                    AI code generation, no automated templates, no machine learning shortcuts.
+                </p>
+                
+                <p style="color: var(--text-secondary); line-height: 1.8; margin-bottom: 15px; font-size: 1.05rem;">
+                    Every line of code in this platform was carefully written, reviewed, and optimized by hand. Every security 
+                    decision was made through thoughtful analysis of real-world threat models. Every UI element was designed 
+                    with intentional consideration of user experience and accessibility.
+                </p>
+                
+                <p style="color: var(--text-secondary); line-height: 1.8; margin-bottom: 20px; font-size: 1.05rem;">
+                    This approach ensures deep understanding of every component, complete accountability for security decisions, 
+                    and genuine innovation rather than pattern replication. The result is software that reflects human values, 
+                    ethical considerations, and creative problem-solving that machines cannot replicate.
+                </p>
+
+                <div style="background: rgba(0,0,0,0.3); border-left: 3px solid var(--accent-success); padding: 20px; border-radius: 8px;">
+                    <p style="color: var(--text-primary); font-style: italic; margin: 0; line-height: 1.7;">
+                        "I believe in the irreplaceable value of human creativity, critical thinking, and ethical judgment in 
+                        software development. BrowserBricker represents my commitment to craftsmanship, transparency, and the 
+                        principle that the best security solutions come from deep human understanding of both technology and 
+                        the people it serves."
+                    </p>
+                    <p style="color: var(--accent-success); margin: 15px 0 0 0; font-weight: 600;">— Aakshat Hariharan</p>
                 </div>
             </div>
-        `;
-    }
+
+            <!-- Technical Philosophy -->
+            <div style="background: var(--bg-deep); border: 1px solid var(--border-light); padding: 35px; border-radius: 16px; margin-bottom: 35px; text-align: left;">
+                <h3 style="font-size: 1.5rem; margin-bottom: 25px; color: var(--text-primary); text-align: center;">Development Philosophy</h3>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 25px;">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                            <i data-lucide="shield-check" style="width: 20px; height: 20px; color: var(--accent-success);"></i>
+                            <h4 style="margin: 0; font-size: 1.1rem; color: var(--text-primary);">Security First</h4>
+                        </div>
+                        <p style="color: var(--text-secondary); margin: 0; font-size: 0.95rem; line-height: 1.6;">
+                            Every feature designed with zero-trust principles, defense-in-depth strategies, and comprehensive 
+                            threat modeling based on real-world security research.
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                            <i data-lucide="code-2" style="width: 20px; height: 20px; color: var(--accent-success);"></i>
+                            <h4 style="margin: 0; font-size: 1.1rem; color: var(--text-primary);">Clean Code</h4>
+                        </div>
+                        <p style="color: var(--text-secondary); margin: 0; font-size: 0.95rem; line-height: 1.6;">
+                            Maintainable, well-documented code following industry best practices. Every function has a clear 
+                            purpose, every variable a meaningful name, every module a defined responsibility.
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                            <i data-lucide="eye" style="width: 20px; height: 20px; color: var(--accent-success);"></i>
+                            <h4 style="margin: 0; font-size: 1.1rem; color: var(--text-primary);">Transparency</h4>
+                        </div>
+                        <p style="color: var(--text-secondary); margin: 0; font-size: 0.95rem; line-height: 1.6;">
+                            Open-source architecture with complete visibility into what the system does. No hidden backdoors, 
+                            no secret data collection, no obfuscated functionality.
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                            <i data-lucide="users" style="width: 20px; height: 20px; color: var(--accent-success);"></i>
+                            <h4 style="margin: 0; font-size: 1.1rem; color: var(--text-primary);">User Respect</h4>
+                        </div>
+                        <p style="color: var(--text-secondary); margin: 0; font-size: 0.95rem; line-height: 1.6;">
+                            Ethical deployment requiring informed consent, clear privacy policies, and respect for user autonomy. 
+                            Security tools should empower, not exploit.
+                        </p>
+                    </div>
+                </div>
+
+                <div style="border-top: 1px solid var(--border-light); padding-top: 20px;">
+                    <p style="color: var(--text-secondary); margin: 0; font-size: 0.95rem; line-height: 1.7; text-align: center;">
+                        These principles aren't just ideals—they're embedded in every architectural decision, every line of code, 
+                        and every user interaction. They represent my commitment to building software that serves people, 
+                        not the other way around.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Technology Stack -->
+            <div style="background: var(--bg-deep); border: 1px solid var(--border-light); padding: 35px; border-radius: 16px; margin-bottom: 35px; text-align: left;">
+                <h3 style="font-size: 1.5rem; margin-bottom: 25px; color: var(--text-primary); text-align: center;">Technology Stack & Architecture</h3>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+                    <div style="background: var(--bg-surface); padding: 20px; border-radius: 8px; border: 1px solid var(--border-light);">
+                        <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent-success); margin-bottom: 10px; letter-spacing: 1px;">FRONTEND</div>
+                        <ul style="list-style: none; padding: 0; margin: 0; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.8;">
+                            <li>• Vanilla JavaScript</li>
+                            <li>• WebSocket API</li>
+                            <li>• Chrome Extensions API</li>
+                            <li>• Custom CSS Architecture</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="background: var(--bg-surface); padding: 20px; border-radius: 8px; border: 1px solid var(--border-light);">
+                        <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent-success); margin-bottom: 10px; letter-spacing: 1px;">BACKEND</div>
+                        <ul style="list-style: none; padding: 0; margin: 0; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.8;">
+                            <li>• Node.js Server</li>
+                            <li>• WebSocket Protocol</li>
+                            <li>• RESTful API Design</li>
+                            <li>• Database Integration</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="background: var(--bg-surface); padding: 20px; border-radius: 8px; border: 1px solid var(--border-light);">
+                        <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent-success); margin-bottom: 10px; letter-spacing: 1px;">SECURITY</div>
+                        <ul style="list-style: none; padding: 0; margin: 0; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.8;">
+                            <li>• TLS 1.3 Encryption</li>
+                            <li>• AES-256-GCM</li>
+                            <li>• Argon2id Hashing</li>
+                            <li>• Zero Trust Model</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact & Links -->
+            <div style="background: var(--bg-deep); border: 1px solid var(--border-light); padding: 30px; border-radius: 16px; margin-bottom: 30px;">
+                <h3 style="font-size: 1.3rem; margin-bottom: 20px; color: var(--text-primary);">Get in Touch</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 25px; line-height: 1.7;">
+                    Whether you have questions about the platform, want to report a security issue, or are interested in 
+                    collaboration opportunities, I'd love to hear from you. I'm always open to feedback, suggestions, and 
+                    meaningful conversations about security, technology, and ethical software development.
+                </p>
+                <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                    <a href="https://github.com/Aaks-hatH" target="_blank" class="btn btn-outline">
+                        <i data-lucide="github"></i> GitHub Profile
+                    </a>
+                    <a href="https://github.com/Aaks-hatH/Browser-Bricker-Panel" target="_blank" class="btn btn-outline">
+                        <i data-lucide="code"></i> View Repository
+                    </a>
+                    <a href="mailto:browserbricker@gmail.com" class="btn btn-primary">
+                        <i data-lucide="mail"></i> Email Me
+                    </a>
+                </div>
+            </div>
+
+            <!-- Closing Statement -->
+            <div style="border-top: 1px solid var(--border-light); padding-top: 30px;">
+                <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.7; max-width: 700px; margin: 0 auto;">
+                    Thank you for taking the time to learn about BrowserBricker and the philosophy behind it. 
+                    I hope this platform serves your security needs while demonstrating that thoughtful, human-crafted 
+                    software can still thrive in our increasingly automated world.
+                </p>
+                <p style="color: var(--accent-success); font-weight: 600; margin-top: 20px; font-size: 1.05rem;">
+                    Built with dedication. Secured with expertise. Crafted by humans, for humans.
+                </p>
+            </div>
+        </div>
+    `;
+    lucide.createIcons();
 }
 
 function closeModal() {
