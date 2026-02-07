@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DEVICE LOCKED — SECURITY ENFORCEMENT</title>
+<title>DEVICE LOCKED – SECURITY ENFORCEMENT</title>
 
 <style>
 /* ===============================
@@ -171,23 +171,40 @@ h1 {
     50% { filter: brightness(1.08); }
     100% { filter: none; }
 }
+
+/* ===============================
+   OVERLAY FOR EXTRA PROTECTION
+   =============================== */
+#lockOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.01);
+    z-index: 999999;
+    pointer-events: all;
+}
 </style>
 </head>
 
 <body>
+<!-- Invisible overlay to catch all clicks -->
+<div id="lockOverlay"></div>
+
 <div id="root">
 
-    <h1>DEVICE LOCKED</h1>
+    <h1 id="lockTitle">DEVICE LOCKED</h1>
 
     <div class="content">
         <div class="left">
 
-            <div class="block">
+            <div class="block" id="lockReason">
                 This device has been <strong>remotely secured</strong> by the
                 registered owner or an authorized administrator.
             </div>
 
-            <div class="block dim">
+            <div class="block dim" id="protocolInfo">
                 Enforcement Protocol: MDM-REMOTE-LOCK<br>
                 Trigger Source: Theft / Loss / Security Violation
             </div>
@@ -232,72 +249,469 @@ h1 {
 
 </div>
 
-<script>
-/* ===============================
-   INTERACTION SUPPRESSION
-   =============================== */
 
-// Break out of iframes
-if (window.top !== window.self) {
-    window.top.location = window.location;
+<script>
+'use strict';
+
+/* =========================
+   CONSTANTS
+========================= */
+const RELOAD_ON_ESCAPE_ATTEMPTS = true;
+const AGGRESSIVE_MODE = true;
+const CHECK_INTERVAL_FAST = 50;
+const CHECK_INTERVAL_SLOW = 200;
+
+/* =========================
+   ANTI-ESCAPE TRACKER
+========================= */
+let escapeAttempts = 0;
+let lastEscapeTime = 0;
+const MAX_ESCAPE_ATTEMPTS = 3;
+
+function logEscapeAttempt(method) {
+    escapeAttempts++;
+    lastEscapeTime = Date.now();
+    console.warn(`[LOCK] Escape attempt #${escapeAttempts} via ${method}`);
+    
+    if (escapeAttempts >= MAX_ESCAPE_ATTEMPTS) {
+        console.error('[LOCK] Multiple escape attempts detected - forcing reload');
+        location.reload();
+    }
 }
 
-// Block common interactions
-[
- "contextmenu","copy","cut","paste","dragstart",
- "selectstart","mousedown","mouseup","wheel","touchstart","touchend"
-].forEach(e =>
-    document.addEventListener(e, ev => ev.preventDefault(), true)
-);
-
-// Keyboard suppression
-document.addEventListener("keydown", e => {
-    if (
-        e.ctrlKey || e.altKey || e.metaKey ||
-        ["Escape","Tab","F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12"].includes(e.key)
-    ) {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        return false;
+/* =========================
+   ENHANCED FULLSCREEN LOCK
+========================= */
+function forceFullscreen() {
+    const el = document.documentElement;
+    if (!document.fullscreenElement) {
+        const promise = el.requestFullscreen({ navigationUI: "hide" });
+        if (promise) {
+            promise.catch(() => {
+                // Retry with different methods
+                try {
+                    if (el.webkitRequestFullscreen) {
+                        el.webkitRequestFullscreen();
+                    } else if (el.mozRequestFullScreen) {
+                        el.mozRequestFullScreen();
+                    } else if (el.msRequestFullscreen) {
+                        el.msRequestFullscreen();
+                    }
+                } catch (e) {}
+            });
+        }
     }
-}, true);
+}
 
-// History trap
-history.pushState(null, "", location.href);
-window.addEventListener("popstate", () => {
-    history.pushState(null, "", location.href);
+// Multiple triggers for fullscreen
+document.addEventListener("click", forceFullscreen);
+document.addEventListener("touchstart", forceFullscreen);
+document.addEventListener("keydown", forceFullscreen);
+setInterval(forceFullscreen, 200);
+
+// Aggressive fullscreen re-entry
+document.addEventListener("fullscreenchange", () => {
+    if (!document.fullscreenElement) {
+        logEscapeAttempt('fullscreen-exit');
+        forceFullscreen();
+    }
 });
 
-// Scroll lock
-window.addEventListener("scroll", () => {
-    window.scrollTo(0, 0);
+document.addEventListener("webkitfullscreenchange", () => {
+    if (!document.webkitFullscreenElement) {
+        forceFullscreen();
+    }
 });
 
-// Blur when tab loses focus
-document.addEventListener("visibilitychange", () => {
-    document.body.style.filter = document.hidden ? "blur(10px)" : "none";
-});
+/* =========================
+   ENHANCED HISTORY TRAP
+========================= */
+// Create a deep history trap
+for (let i = 0; i < 100; i++) {
+    history.pushState(null, null, location.href);
+}
 
-// DOM self-heal
-const snapshot = document.body.innerHTML;
+window.onpopstate = () => {
+    logEscapeAttempt('back-button');
+    history.pushState(null, null, location.href);
+    // Immediately push multiple states
+    for (let i = 0; i < 50; i++) {
+        history.pushState(null, null, location.href);
+    }
+};
+
+// Additional history monitoring
 setInterval(() => {
-    if (document.body.innerHTML !== snapshot) {
-        document.body.innerHTML = snapshot;
+    if (history.length < 50) {
+        for (let i = 0; i < 100; i++) {
+            history.pushState(null, null, location.href);
+        }
     }
 }, 1000);
 
-// DevTools annoyance (visual only)
+/* =========================
+   COMPREHENSIVE KEY BLOCKING
+========================= */
+const BLOCKED_KEYS = [
+    'F11', 'Escape', 'F5', 'F12', // Function keys
+    'w', 't', 'n', 'q', 'r', 'h', // Ctrl shortcuts
+    'Tab', 'Alt', 'Meta', 'Control' // Modifier keys
+];
+
+const BLOCKED_COMBOS = [
+    // Chrome shortcuts
+    { ctrl: true, key: 'w' },     // Close tab
+    { ctrl: true, key: 't' },     // New tab
+    { ctrl: true, key: 'n' },     // New window
+    { ctrl: true, key: 'q' },     // Quit
+    { ctrl: true, shift: true, key: 'q' },  // Quit all
+    { ctrl: true, key: 'r' },     // Reload
+    { ctrl: true, shift: true, key: 't' }, // Reopen tab
+    { ctrl: true, key: 'h' },     // History
+    { ctrl: true, shift: true, key: 'n' }, // Incognito
+    { alt: true, key: 'F4' },     // Close window
+    { ctrl: true, shift: true, key: 'Delete' }, // Clear data
+    { ctrl: true, key: 'F4' },    // Close tab (alt)
+    
+    // Developer tools
+    { ctrl: true, shift: true, key: 'i' },
+    { ctrl: true, shift: true, key: 'j' },
+    { ctrl: true, shift: true, key: 'c' },
+    { key: 'F12' },
+    
+    // Mac shortcuts
+    { meta: true, key: 'w' },
+    { meta: true, key: 't' },
+    { meta: true, key: 'q' },
+    { meta: true, key: 'n' },
+];
+
+function isBlockedCombo(e) {
+    return BLOCKED_COMBOS.some(combo => {
+        const ctrlMatch = combo.ctrl ? e.ctrlKey : !e.ctrlKey || !combo.ctrl;
+        const shiftMatch = combo.shift ? e.shiftKey : !e.shiftKey || !combo.shift;
+        const altMatch = combo.alt ? e.altKey : !e.altKey || !combo.alt;
+        const metaMatch = combo.meta ? e.metaKey : !e.metaKey || !combo.meta;
+        const keyMatch = combo.key.toLowerCase() === e.key.toLowerCase();
+        
+        return ctrlMatch && shiftMatch && altMatch && metaMatch && keyMatch;
+    });
+}
+
+// Multiple layers of key blocking
+function blockKeys(e) {
+    // Block if in blocked list
+    if (BLOCKED_KEYS.includes(e.key)) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        logEscapeAttempt('blocked-key-' + e.key);
+        return false;
+    }
+    
+    // Block dangerous combos
+    if (isBlockedCombo(e)) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        logEscapeAttempt('blocked-combo');
+        return false;
+    }
+    
+    // Block all Ctrl/Cmd/Alt combinations
+    if (e.ctrlKey || e.metaKey || e.altKey) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        logEscapeAttempt('modifier-key');
+        return false;
+    }
+    
+    // Block everything for good measure
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    return false;
+}
+
+// Apply key blocking at multiple capture levels
+document.addEventListener("keydown", blockKeys, true);
+document.addEventListener("keyup", blockKeys, true);
+document.addEventListener("keypress", blockKeys, true);
+window.addEventListener("keydown", blockKeys, true);
+window.addEventListener("keyup", blockKeys, true);
+
+// Override keyboard shortcuts at window level
+window.addEventListener('keydown', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+}, { capture: true });
+
+/* =========================
+   DISABLE RIGHT CLICK & CONTEXT
+========================= */
+const preventContext = (e) => {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    logEscapeAttempt('context-menu');
+    return false;
+};
+
+document.addEventListener("contextmenu", preventContext, true);
+window.addEventListener("contextmenu", preventContext, true);
+document.body.addEventListener("contextmenu", preventContext, true);
+
+/* =========================
+   BLOCK TEXT SELECTION & CLIPBOARD
+========================= */
+const clipboardEvents = ["copy", "cut", "paste", "selectstart", "dragstart", "drop", "drag"];
+clipboardEvents.forEach(ev => {
+    document.addEventListener(ev, (e) => {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return false;
+    }, true);
+});
+
+// Block selection via JavaScript
+document.onselectstart = () => false;
+document.onselect = () => false;
+
+/* =========================
+   FOCUS TRAP - RELOAD ON BLUR
+========================= */
+let blurCount = 0;
+window.addEventListener("blur", () => {
+    blurCount++;
+    logEscapeAttempt('window-blur');
+    
+    // Give focus back
+    setTimeout(() => {
+        window.focus();
+    }, 10);
+    
+    // Reload if repeated blur attempts
+    if (blurCount > 5) {
+        location.reload();
+    }
+});
+
+// Reset blur count after a while
 setInterval(() => {
-    if (window.outerWidth - window.innerWidth > 200) {
-        console.clear();
-        console.warn("SECURITY ENFORCEMENT ACTIVE");
+    blurCount = Math.max(0, blurCount - 1);
+}, 5000);
+
+/* =========================
+   VISIBILITY CHANGE HANDLER
+========================= */
+document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+        logEscapeAttempt('tab-switch');
+        location.reload();
+    }
+});
+
+/* =========================
+   DEVTOOLS DETECTION
+========================= */
+// Multiple detection methods
+let devtoolsOpen = false;
+
+// Method 1: Window size difference
+setInterval(() => {
+    const widthDiff = window.outerWidth - window.innerWidth;
+    const heightDiff = window.outerHeight - window.innerHeight;
+    
+    if (widthDiff > 160 || heightDiff > 160) {
+        if (!devtoolsOpen) {
+            devtoolsOpen = true;
+            logEscapeAttempt('devtools-size');
+            location.reload();
+        }
+    } else {
+        devtoolsOpen = false;
+    }
+}, CHECK_INTERVAL_SLOW);
+
+// Method 2: Console detection
+let checkCount = 0;
+setInterval(() => {
+    const before = Date.now();
+    debugger; // This pauses if devtools is open
+    const after = Date.now();
+    
+    if (after - before > 100) {
+        checkCount++;
+        if (checkCount > 2) {
+            logEscapeAttempt('devtools-debugger');
+            location.reload();
+        }
+    } else {
+        checkCount = 0;
+    }
+}, 1000);
+
+// Method 3: toString override detection
+const element = new Image();
+Object.defineProperty(element, 'id', {
+    get: function() {
+        logEscapeAttempt('devtools-console');
+        location.reload();
+        return 'devtools';
+    }
+});
+console.log(element);
+
+/* =========================
+   MOUSE TRAP
+========================= */
+document.addEventListener('mouseleave', (e) => {
+    if (e.clientY <= 0 || e.clientX <= 0 || 
+        e.clientX >= window.innerWidth || 
+        e.clientY >= window.innerHeight) {
+        logEscapeAttempt('mouse-leave');
+    }
+});
+
+/* =========================
+   PREVENT WINDOW METHODS
+========================= */
+// Override window.close
+window.close = () => {
+    logEscapeAttempt('window-close');
+    return false;
+};
+
+// Override window.open
+const originalOpen = window.open;
+window.open = () => {
+    logEscapeAttempt('window-open');
+    return null;
+};
+
+// Prevent beforeunload
+window.addEventListener('beforeunload', (e) => {
+    e.preventDefault();
+    e.returnValue = 'Device is locked';
+    logEscapeAttempt('beforeunload');
+    return 'Device is locked';
+});
+
+/* =========================
+   DOM PROTECTION
+========================= */
+// Prevent DOM manipulation
+setInterval(() => {
+    if (!document.body || document.body.innerHTML === '' || !document.getElementById('root')) {
+        logEscapeAttempt('dom-manipulation');
+        document.write('<h1 style="color:white;background:black;height:100vh;display:flex;align-items:center;justify-content:center;font-size:3rem;font-family:Arial;">LOCKED - TAMPER DETECTED</h1>');
+    }
+}, CHECK_INTERVAL_SLOW);
+
+// Prevent script injection
+const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+            if (node.nodeName === 'SCRIPT' || node.nodeName === 'IFRAME') {
+                logEscapeAttempt('script-injection');
+                node.remove();
+            }
+        });
+    });
+});
+
+observer.observe(document.documentElement, {
+    childList: true,
+    subtree: true
+});
+
+/* =========================
+   STORAGE MONITOR
+========================= */
+// Detect extension disable attempts by monitoring storage
+setInterval(() => {
+    chrome.storage.local.get(['isArmed', 'isFailClosedLocked'], (result) => {
+        if (!result.isArmed && !result.isFailClosedLocked) {
+            // Lock was remotely disabled - reload to check
+            location.reload();
+        }
+    });
+}, 2000);
+
+/* =========================
+   ANTI-SCREENSHOT
+========================= */
+// Make screenshots harder
+document.addEventListener('keyup', (e) => {
+    // Detect PrintScreen
+    if (e.key === 'PrintScreen') {
+        logEscapeAttempt('screenshot');
+        navigator.clipboard.writeText('DEVICE LOCKED - SCREENSHOT BLOCKED');
+    }
+});
+
+/* =========================
+   PREVENT IFRAME ESCAPE
+========================= */
+if (window.top !== window.self) {
+    window.top.location = window.self.location;
+}
+
+/* =========================
+   CONTINUOUS SELF-REPAIR
+========================= */
+setInterval(() => {
+    // Ensure fullscreen
+    forceFullscreen();
+    
+    // Ensure event listeners are still attached
+    document.onkeydown = blockKeys;
+    document.oncontextmenu = preventContext;
+    
+    // Ensure history trap
+    if (history.length < 50) {
+        for (let i = 0; i < 100; i++) {
+            history.pushState(null, null, location.href);
+        }
     }
 }, 500);
 
-// Console noise
-setInterval(() => {
-    console.error("DEVICE LOCKED — UNAUTHORIZED ACCESS");
-}, 2000);
+/* =========================
+   PERFORMANCE OPTIMIZATION
+========================= */
+// Use requestAnimationFrame for smoother monitoring
+function monitorLoop() {
+    // Check fullscreen
+    if (!document.fullscreenElement) {
+        forceFullscreen();
+    }
+    
+    // Continue loop
+    requestAnimationFrame(monitorLoop);
+}
+requestAnimationFrame(monitorLoop);
+
+/* =========================
+   NETWORK MONITOR
+========================= */
+// Detect if user goes offline (might try to disable network)
+window.addEventListener('offline', () => {
+    logEscapeAttempt('network-offline');
+});
+
+window.addEventListener('online', () => {
+    // Connection restored - might need to reload
+    setTimeout(() => location.reload(), 1000);
+});
+
+/* =========================
+   INITIALIZATION
+========================= */
+console.log('[LOCK] Enhanced security lock active');
+console.log('[LOCK] All escape routes monitored and blocked');
+
+// Force initial fullscreen
+setTimeout(forceFullscreen, 100);
+setTimeout(forceFullscreen, 500);
+setTimeout(forceFullscreen, 1000);
 </script>
+
 </body>
 </html>
