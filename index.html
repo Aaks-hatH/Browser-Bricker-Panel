@@ -21,6 +21,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 
     <style>
+
         /* ==========================================================================
    BROWSERBRICKER V5 - STYLES
    ========================================================================== */
@@ -868,6 +869,93 @@ nav {
     border-color: var(--accent-success);
 }
 
+/* Extension Detection Status Box */
+.extension-status-box {
+    background: var(--bg-surface);
+    border: 2px solid var(--border-light);
+    border-radius: 16px;
+    padding: 40px;
+    margin-bottom: 30px;
+    transition: all 0.5s;
+}
+
+.extension-status-box.detected {
+    border-color: var(--accent-success);
+    background: rgba(16, 185, 129, 0.05);
+}
+
+.extension-status-box.not-detected {
+    border-color: var(--accent-alert);
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.extension-status-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+.extension-status-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    transition: all 0.3s;
+}
+
+.extension-status-box.detected .extension-status-icon {
+    background: rgba(16, 185, 129, 0.2);
+    border: 2px solid var(--accent-success);
+}
+
+.extension-status-box.not-detected .extension-status-icon {
+    background: rgba(239, 68, 68, 0.2);
+    border: 2px solid var(--accent-alert);
+}
+
+.extension-status-info h3 {
+    font-size: 1.5rem;
+    margin-bottom: 5px;
+}
+
+.extension-status-info p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.extension-details {
+    background: var(--bg-deep);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    padding: 20px;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+}
+
+.extension-detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.extension-detail-row:last-child {
+    border-bottom: none;
+}
+
+.extension-detail-label {
+    color: var(--text-tertiary);
+}
+
+.extension-detail-value {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
 /* Footer */
 footer {
     background: var(--bg-surface);
@@ -921,6 +1009,61 @@ footer {
     color: var(--text-tertiary);
     font-size: 0.8rem;
     font-family: var(--font-mono);
+}
+
+/* Footer Extension Status */
+.footer-extension-panel {
+    background: var(--bg-deep);
+    border: 2px solid var(--border-light);
+    border-radius: 12px;
+    padding: 30px;
+    display: flex;
+    align-items: center;
+    gap: 25px;
+    transition: all 0.3s;
+}
+
+.footer-extension-panel.detected {
+    border-color: var(--accent-success);
+}
+
+.footer-extension-panel.not-detected {
+    border-color: var(--accent-alert);
+}
+
+.footer-ext-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.footer-extension-panel.detected .footer-ext-icon {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--accent-success);
+}
+
+.footer-extension-panel.not-detected .footer-ext-icon {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--accent-alert);
+}
+
+.footer-ext-content {
+    flex: 1;
+}
+
+.footer-ext-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.footer-ext-desc {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
 }
 
 /* Modals */
@@ -1024,6 +1167,315 @@ footer {
     transition: 0.5s cubic-bezier(0.16,1,0.3,1);
 }
 
+/* CIA Mobile Blocker Styles */
+.cia-blocker{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:999999;
+  background:#0b0c0f;
+  color:#ffffff;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  overflow:hidden;
+}
+
+.cia-topbar{
+  height:72px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 26px;
+  border-bottom:1px solid rgba(255,255,255,0.10);
+  background: linear-gradient(to bottom, rgba(0,0,0,0.55), rgba(0,0,0,0.25));
+}
+
+.cia-brand{
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+
+.cia-seal{
+  width:42px;
+  height:42px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,0.16);
+  background:
+    radial-gradient(circle at 30% 25%, rgba(255,255,255,0.10), transparent 55%),
+    radial-gradient(circle at 70% 75%, rgba(255,255,255,0.06), transparent 60%),
+    rgba(255,255,255,0.03);
+}
+
+.cia-brand-title{
+  font-weight:800;
+  letter-spacing:0.5px;
+  font-size:14px;
+  text-transform:uppercase;
+}
+
+.cia-brand-sub{
+  margin-top:2px;
+  font-size:11px;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+  opacity:0.65;
+}
+
+.cia-topbar-right{
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
+
+.cia-top-btn{
+  text-decoration:none;
+  padding:10px 16px;
+  border:1px solid rgba(220,38,38,0.55);
+  color:#fff;
+  font-weight:700;
+  font-size:12px;
+  letter-spacing:1.4px;
+  text-transform:uppercase;
+  background: rgba(220,38,38,0.10);
+}
+
+.cia-top-btn:hover{
+  border-color: rgba(220,38,38,0.85);
+  background: rgba(220,38,38,0.16);
+}
+
+.cia-menu-icon{
+  width:28px;
+  height:18px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  opacity:0.85;
+}
+.cia-menu-icon span{
+  height:2px;
+  width:100%;
+  background: rgba(255,255,255,0.75);
+}
+
+.cia-bg{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+}
+
+.cia-grid{
+  position:absolute;
+  inset:0;
+  opacity:0.40;
+  background:
+    linear-gradient(to right,
+      rgba(255,255,255,0.06) 1px,
+      transparent 1px
+    );
+  background-size: 220px 100%;
+}
+
+.cia-wave{
+  position:absolute;
+  right:-140px;
+  top:120px;
+  width:680px;
+  height:680px;
+  border-radius:999px;
+  background:
+    radial-gradient(circle,
+      rgba(255,255,255,0.06),
+      transparent 60%
+    );
+  filter: blur(0px);
+  opacity:0.55;
+}
+
+.cia-main{
+  position:relative;
+  height:calc(100vh - 72px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding: 0 26px;
+}
+
+.cia-hero{
+  width:min(1200px, 100%);
+  display:grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 48px;
+  align-items:center;
+}
+
+.cia-left{
+  padding-left: 6px;
+  border-left: 3px solid rgba(220,38,38,0.55);
+}
+
+.cia-h1{
+  margin:0 0 16px;
+  font-size: 64px;
+  line-height: 0.95;
+  font-weight: 900;
+  letter-spacing: -1.2px;
+  text-transform: none;
+}
+
+.cia-lead{
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 700;
+  opacity:0.92;
+}
+
+.cia-body{
+  margin: 0 0 22px;
+  font-size: 15px;
+  line-height: 1.7;
+  opacity:0.70;
+  max-width: 560px;
+}
+
+.cia-meta{
+  max-width: 560px;
+  border-top: 1px solid rgba(255,255,255,0.10);
+  border-bottom: 1px solid rgba(255,255,255,0.10);
+  padding: 14px 0;
+  margin: 0 0 22px;
+}
+
+.cia-meta-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.cia-meta-row:last-child{ border-bottom:none; }
+
+.cia-k{
+  font-size: 11px;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  opacity:0.55;
+  font-weight:700;
+}
+
+.cia-v{
+  font-size: 12px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  opacity:0.88;
+  font-weight:700;
+}
+
+.cia-v-bad{
+  color:#ef4444;
+}
+
+.cia-actions{
+  display:flex;
+  gap: 14px;
+  flex-wrap:wrap;
+  margin-bottom: 22px;
+}
+
+.cia-btn{
+  text-decoration:none;
+  padding: 14px 18px;
+  background: rgba(220,38,38,0.92);
+  color:#fff;
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  border: 1px solid rgba(220,38,38,0.90);
+}
+
+.cia-btn:hover{
+  background: rgba(220,38,38,1);
+}
+
+.cia-btn-outline{
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.16);
+  color: rgba(255,255,255,0.88);
+}
+.cia-btn-outline:hover{
+  border-color: rgba(255,255,255,0.30);
+  background: rgba(255,255,255,0.04);
+}
+
+.cia-foot{
+  max-width:560px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding-top: 14px;
+}
+
+.cia-foot-row{
+  display:flex;
+  justify-content:space-between;
+  gap:18px;
+  padding: 6px 0;
+}
+
+.cia-foot-k{
+  font-size: 11px;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  opacity:0.55;
+  font-weight:700;
+}
+
+.cia-foot-v{
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  opacity:0.80;
+  font-weight:700;
+}
+
+.cia-right{
+  display:flex;
+  justify-content:center;
+}
+
+.cia-portrait{
+  width: min(430px, 100%);
+  aspect-ratio: 3 / 4;
+  border: 1px solid rgba(255,255,255,0.10);
+  background:
+    radial-gradient(circle at 40% 30%, rgba(255,255,255,0.10), transparent 55%),
+    linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01)),
+    rgba(0,0,0,0.30);
+  position:relative;
+  overflow:hidden;
+}
+
+.cia-portrait-overlay{
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(to bottom, rgba(0,0,0,0.0), rgba(0,0,0,0.65));
+}
+
+.cia-portrait-lines{
+  position:absolute;
+  inset:-40px;
+  background:
+    repeating-linear-gradient(
+      135deg,
+      rgba(255,255,255,0.05) 0px,
+      rgba(255,255,255,0.05) 1px,
+      transparent 1px,
+      transparent 8px
+    );
+  opacity:0.35;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
     .hero-grid { grid-template-columns: 1fr; }
@@ -1038,6 +1490,22 @@ footer {
     .hero-title { font-size: 2.5rem; }
     .step-content { padding-left: 0; margin-top: 20px; }
     .footer-grid { grid-template-columns: 1fr; gap: 40px; }
+}
+
+@media (max-width: 980px){
+  .cia-hero{
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .cia-right{ display:none; }
+  .cia-h1{ font-size: 52px; }
+}
+
+@media (max-width: 520px){
+  .cia-topbar{ padding: 0 16px; }
+  .cia-main{ padding: 0 16px; }
+  .cia-h1{ font-size: 42px; }
+  .cia-top-btn{ display:none; }
 }
     </style>
 </head>
@@ -1132,372 +1600,6 @@ footer {
     </section>
   </main>
 </div>
-
-<style>
-/* =========================================================
-   CIA-STYLE MOBILE BLOCKER
-   ========================================================= */
-
-.cia-blocker{
-  display:none;
-  position:fixed;
-  inset:0;
-  z-index:999999;
-  background:#0b0c0f;
-  color:#ffffff;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
-  overflow:hidden;
-}
-
-/* Topbar */
-.cia-topbar{
-  height:72px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:0 26px;
-  border-bottom:1px solid rgba(255,255,255,0.10);
-  background: linear-gradient(to bottom, rgba(0,0,0,0.55), rgba(0,0,0,0.25));
-}
-
-.cia-brand{
-  display:flex;
-  align-items:center;
-  gap:14px;
-}
-
-.cia-seal{
-  width:42px;
-  height:42px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,0.16);
-  background:
-    radial-gradient(circle at 30% 25%, rgba(255,255,255,0.10), transparent 55%),
-    radial-gradient(circle at 70% 75%, rgba(255,255,255,0.06), transparent 60%),
-    rgba(255,255,255,0.03);
-}
-
-.cia-brand-title{
-  font-weight:800;
-  letter-spacing:0.5px;
-  font-size:14px;
-  text-transform:uppercase;
-}
-
-.cia-brand-sub{
-  margin-top:2px;
-  font-size:11px;
-  letter-spacing:1.2px;
-  text-transform:uppercase;
-  opacity:0.65;
-}
-
-.cia-topbar-right{
-  display:flex;
-  align-items:center;
-  gap:16px;
-}
-
-.cia-top-btn{
-  text-decoration:none;
-  padding:10px 16px;
-  border:1px solid rgba(220,38,38,0.55);
-  color:#fff;
-  font-weight:700;
-  font-size:12px;
-  letter-spacing:1.4px;
-  text-transform:uppercase;
-  background: rgba(220,38,38,0.10);
-}
-
-.cia-top-btn:hover{
-  border-color: rgba(220,38,38,0.85);
-  background: rgba(220,38,38,0.16);
-}
-
-.cia-menu-icon{
-  width:28px;
-  height:18px;
-  display:flex;
-  flex-direction:column;
-  justify-content:space-between;
-  opacity:0.85;
-}
-.cia-menu-icon span{
-  height:2px;
-  width:100%;
-  background: rgba(255,255,255,0.75);
-}
-
-/* Background grid + subtle wave */
-.cia-bg{
-  position:absolute;
-  inset:0;
-  pointer-events:none;
-}
-
-.cia-grid{
-  position:absolute;
-  inset:0;
-  opacity:0.40;
-  background:
-    linear-gradient(to right,
-      rgba(255,255,255,0.06) 1px,
-      transparent 1px
-    );
-  background-size: 220px 100%;
-}
-
-.cia-wave{
-  position:absolute;
-  right:-140px;
-  top:120px;
-  width:680px;
-  height:680px;
-  border-radius:999px;
-  background:
-    radial-gradient(circle,
-      rgba(255,255,255,0.06),
-      transparent 60%
-    );
-  filter: blur(0px);
-  opacity:0.55;
-}
-
-/* Main layout */
-.cia-main{
-  position:relative;
-  height:calc(100vh - 72px);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding: 0 26px;
-}
-
-.cia-hero{
-  width:min(1200px, 100%);
-  display:grid;
-  grid-template-columns: 1.05fr 0.95fr;
-  gap: 48px;
-  align-items:center;
-}
-
-/* Left side */
-.cia-left{
-  padding-left: 6px;
-  border-left: 3px solid rgba(220,38,38,0.55);
-}
-
-.cia-h1{
-  margin:0 0 16px;
-  font-size: 64px;
-  line-height: 0.95;
-  font-weight: 900;
-  letter-spacing: -1.2px;
-  text-transform: none;
-}
-
-.cia-lead{
-  margin: 0 0 10px;
-  font-size: 15px;
-  font-weight: 700;
-  opacity:0.92;
-}
-
-.cia-body{
-  margin: 0 0 22px;
-  font-size: 15px;
-  line-height: 1.7;
-  opacity:0.70;
-  max-width: 560px;
-}
-
-/* Meta panel */
-.cia-meta{
-  max-width: 560px;
-  border-top: 1px solid rgba(255,255,255,0.10);
-  border-bottom: 1px solid rgba(255,255,255,0.10);
-  padding: 14px 0;
-  margin: 0 0 22px;
-}
-
-.cia-meta-row{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:18px;
-  padding: 10px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-}
-.cia-meta-row:last-child{ border-bottom:none; }
-
-.cia-k{
-  font-size: 11px;
-  letter-spacing: 1.6px;
-  text-transform: uppercase;
-  opacity:0.55;
-  font-weight:700;
-}
-
-.cia-v{
-  font-size: 12px;
-  letter-spacing: 1.4px;
-  text-transform: uppercase;
-  opacity:0.88;
-  font-weight:700;
-}
-
-.cia-v-bad{
-  color:#ef4444;
-}
-
-/* Buttons */
-.cia-actions{
-  display:flex;
-  gap: 14px;
-  flex-wrap:wrap;
-  margin-bottom: 22px;
-}
-
-.cia-btn{
-  text-decoration:none;
-  padding: 14px 18px;
-  background: rgba(220,38,38,0.92);
-  color:#fff;
-  font-weight: 800;
-  font-size: 12px;
-  letter-spacing: 1.6px;
-  text-transform: uppercase;
-  border: 1px solid rgba(220,38,38,0.90);
-}
-
-.cia-btn:hover{
-  background: rgba(220,38,38,1);
-}
-
-.cia-btn-outline{
-  background: transparent;
-  border: 1px solid rgba(255,255,255,0.16);
-  color: rgba(255,255,255,0.88);
-}
-.cia-btn-outline:hover{
-  border-color: rgba(255,255,255,0.30);
-  background: rgba(255,255,255,0.04);
-}
-
-/* Footer info */
-.cia-foot{
-  max-width:560px;
-  border-top: 1px solid rgba(255,255,255,0.06);
-  padding-top: 14px;
-}
-
-.cia-foot-row{
-  display:flex;
-  justify-content:space-between;
-  gap:18px;
-  padding: 6px 0;
-}
-
-.cia-foot-k{
-  font-size: 11px;
-  letter-spacing: 1.6px;
-  text-transform: uppercase;
-  opacity:0.55;
-  font-weight:700;
-}
-
-.cia-foot-v{
-  font-size: 11px;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  opacity:0.80;
-  font-weight:700;
-}
-
-/* Right side portrait placeholder */
-.cia-right{
-  display:flex;
-  justify-content:center;
-}
-
-.cia-portrait{
-  width: min(430px, 100%);
-  aspect-ratio: 3 / 4;
-  border: 1px solid rgba(255,255,255,0.10);
-  background:
-    radial-gradient(circle at 40% 30%, rgba(255,255,255,0.10), transparent 55%),
-    linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01)),
-    rgba(0,0,0,0.30);
-  position:relative;
-  overflow:hidden;
-}
-
-.cia-portrait-overlay{
-  position:absolute;
-  inset:0;
-  background:
-    linear-gradient(to bottom, rgba(0,0,0,0.0), rgba(0,0,0,0.65));
-}
-
-.cia-portrait-lines{
-  position:absolute;
-  inset:-40px;
-  background:
-    repeating-linear-gradient(
-      135deg,
-      rgba(255,255,255,0.05) 0px,
-      rgba(255,255,255,0.05) 1px,
-      transparent 1px,
-      transparent 8px
-    );
-  opacity:0.35;
-}
-
-/* Mobile sizing */
-@media (max-width: 980px){
-  .cia-hero{
-    grid-template-columns: 1fr;
-    gap: 28px;
-  }
-  .cia-right{ display:none; }
-  .cia-h1{ font-size: 52px; }
-}
-
-@media (max-width: 520px){
-  .cia-topbar{ padding: 0 16px; }
-  .cia-main{ padding: 0 16px; }
-  .cia-h1{ font-size: 42px; }
-  .cia-top-btn{ display:none; }
-}
-</style>
-
-<script>
-(function () {
-  const isMobile =
-    /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-    (window.matchMedia && window.matchMedia("(max-width: 900px)").matches);
-
-  if (isMobile) {
-    const blocker = document.getElementById("mobileBlocker");
-    blocker.style.display = "block";
-    blocker.setAttribute("aria-hidden", "false");
-
-    // Session ID for the footer (CIA-style detail)
-    const token = Array.from(crypto.getRandomValues(new Uint8Array(10)))
-      .map(b => b.toString(16).padStart(2, "0"))
-      .join("")
-      .toUpperCase();
-
-    const sessionEl = document.getElementById("ciaSessionId");
-    if (sessionEl) sessionEl.textContent = token;
-
-    document.documentElement.style.overflow = "hidden";
-    document.body.style.overflow = "hidden";
-  }
-})();
-</script>
-    
 
     <div class="grid-overlay"></div>
 
@@ -1796,8 +1898,9 @@ footer {
                         <div class="progress-step-item" data-step="1">Requirements</div>
                         <div class="progress-step-item" data-step="2">Download</div>
                         <div class="progress-step-item" data-step="3">Browser Setup</div>
-                        <div class="progress-step-item" data-step="4">Registration</div>
-                        <div class="progress-step-item" data-step="5">Verification</div>
+                        <div class="progress-step-item" data-step="4">Detection</div>
+                        <div class="progress-step-item" data-step="5">Registration</div>
+                        <div class="progress-step-item" data-step="6">Verification</div>
                     </div>
                 </div>
 
@@ -1824,6 +1927,11 @@ footer {
     <!-- Footer -->
     <footer>
         <div class="container">
+            <!-- Extension Status Section -->
+            <div id="footer-extension-status" style="margin-bottom: 60px;">
+                <!-- Will be populated by JavaScript -->
+            </div>
+
             <div class="footer-grid">
                 <div class="footer-col">
                     <a class="brand" style="border: none; padding: 0;">
@@ -1897,7 +2005,6 @@ footer {
     </div>
 
     <script>
-
         // ============================================================================
 // BROWSERBRICKER V5 - MAIN JAVASCRIPT
 // ============================================================================
@@ -1907,7 +2014,36 @@ document.addEventListener('DOMContentLoaded', () => {
     lucide.createIcons();
     loadIntelligenceContent();
     loadInstallationSteps();
+    initExtensionDetection();
+    initMobileBlocker();
 });
+
+// ============================================================================
+// MOBILE BLOCKER
+// ============================================================================
+
+function initMobileBlocker() {
+    const isMobile =
+        /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+        (window.matchMedia && window.matchMedia("(max-width: 900px)").matches);
+
+    if (isMobile) {
+        const blocker = document.getElementById("mobileBlocker");
+        blocker.style.display = "block";
+        blocker.setAttribute("aria-hidden", "false");
+
+        const token = Array.from(crypto.getRandomValues(new Uint8Array(10)))
+            .map(b => b.toString(16).padStart(2, "0"))
+            .join("")
+            .toUpperCase();
+
+        const sessionEl = document.getElementById("ciaSessionId");
+        if (sessionEl) sessionEl.textContent = token;
+
+        document.documentElement.style.overflow = "hidden";
+        document.body.style.overflow = "hidden";
+    }
+}
 
 // ============================================================================
 // TAB SYSTEM
@@ -2277,10 +2413,53 @@ function loadInstallationSteps() {
             </div>
         </div>
 
-        <!-- STEP 4 -->
+        <!-- STEP 4: EXTENSION DETECTION -->
         <div class="install-step locked" data-step="4" id="step-4">
             <div class="step-header">
                 <div class="step-number">4</div>
+                <div>
+                    <div class="step-title">Verify Extension Detection</div>
+                    <div class="step-subtitle">Confirm extension is communicating with the page</div>
+                </div>
+            </div>
+            <div class="step-content">
+                <p class="step-description">
+                    The BrowserBricker extension should automatically announce its presence to this page.
+                    This verification ensures proper installation and communication capability.
+                </p>
+
+                <div class="extension-status-box not-detected" id="step-extension-status">
+                    <div class="extension-status-header">
+                        <div class="extension-status-icon">
+                            <i data-lucide="search" size="32"></i>
+                        </div>
+                        <div class="extension-status-info">
+                            <h3>Searching for Extension...</h3>
+                            <p>Waiting for BrowserBricker to identify itself</p>
+                        </div>
+                    </div>
+                    <div class="extension-details" id="step-extension-details" style="display: none;">
+                        <!-- Will be populated when detected -->
+                    </div>
+                </div>
+
+                <div class="step-action">
+                    <button class="btn btn-outline" onclick="refreshExtensionDetection()">
+                        <i data-lucide="refresh-cw"></i>
+                        Refresh Detection
+                    </button>
+                    <button class="btn btn-primary" onclick="completeStep(4)" id="step4-continue-btn" style="display: none;">
+                        <i data-lucide="check"></i>
+                        Extension Detected - Continue
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 5 -->
+        <div class="install-step locked" data-step="5" id="step-5">
+            <div class="step-header">
+                <div class="step-number">5</div>
                 <div>
                     <div class="step-title">Register Browser with Control Server</div>
                     <div class="step-subtitle">Obtain and configure your unique API key</div>
@@ -2322,7 +2501,7 @@ function loadInstallationSteps() {
                 </div>
 
                 <div class="step-action">
-                    <button class="btn btn-primary" onclick="completeStep(4)">
+                    <button class="btn btn-primary" onclick="completeStep(5)">
                         <i data-lucide="check"></i>
                         Browser Successfully Registered
                     </button>
@@ -2330,10 +2509,10 @@ function loadInstallationSteps() {
             </div>
         </div>
 
-        <!-- STEP 5 -->
-        <div class="install-step locked" data-step="5" id="step-5">
+        <!-- STEP 6 -->
+        <div class="install-step locked" data-step="6" id="step-6">
             <div class="step-header">
-                <div class="step-number">5</div>
+                <div class="step-number">6</div>
                 <div>
                     <div class="step-title">Verify Lock Functionality</div>
                     <div class="step-subtitle">Test remote control capabilities</div>
@@ -2468,7 +2647,7 @@ function completeStep(stepNum) {
 }
 
 function updateInstallProgress() {
-    const totalSteps = 5;
+    const totalSteps = 6;
     const completed = installState.completedSteps.length;
     const percentage = (completed / totalSteps) * 100;
     
@@ -2492,12 +2671,233 @@ function completeInstallation() {
         colors: ['#10b981', '#ffffff', '#00f0ff']
     });
     
-    alert('🎉 Installation Complete! Your browser is now protected by BrowserBricker.');
+    alert('Installation Complete! Your browser is now protected by BrowserBricker.');
 }
 
 function activateLockDemo() {
     triggerLock();
 }
+
+function refreshExtensionDetection() {
+    if (window.BrowserBrickerDetection) {
+        window.BrowserBrickerDetection.refresh();
+    }
+    const statusBox = document.getElementById('step-extension-status');
+    if (statusBox) {
+        statusBox.className = 'extension-status-box not-detected';
+        statusBox.querySelector('.extension-status-info h3').textContent = 'Searching for Extension...';
+        statusBox.querySelector('.extension-status-info p').textContent = 'Waiting for BrowserBricker to identify itself';
+    }
+}
+
+// ============================================================================
+// EXTENSION DETECTION MODULE
+// ============================================================================
+
+let extensionDetected = false;
+let extensionInfo = null;
+let detectionTimeout = null;
+let sessionNonce = null;
+
+function generateNonce() {
+    const array = new Uint8Array(16);
+    crypto.getRandomValues(array);
+    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
+function initExtensionDetection() {
+    sessionNonce = generateNonce();
+    
+    window.addEventListener('message', handleExtensionMessage);
+    
+    detectionTimeout = setTimeout(() => {
+        if (!extensionDetected) {
+            updateExtensionUI('not-detected');
+            updateFooterExtensionStatus('not-detected');
+        }
+    }, 2000);
+    
+    setTimeout(() => {
+        sendPingToExtension();
+    }, 500);
+    
+    console.log('[BrowserBricker] Extension detection initialized');
+}
+
+function handleExtensionMessage(event) {
+    if (event.origin !== window.location.origin) {
+        return;
+    }
+    
+    const message = event.data;
+    
+    if (message.type === 'BROWSERBRICKER_EXTENSION_IDENTITY' && 
+        message.data && 
+        message.data.source === 'browserbricker-extension') {
+        
+        extensionDetected = true;
+        extensionInfo = message.data;
+        
+        if (detectionTimeout) {
+            clearTimeout(detectionTimeout);
+            detectionTimeout = null;
+        }
+        
+        updateExtensionUI('detected');
+        updateFooterExtensionStatus('detected');
+        updateStepExtensionStatus('detected');
+        console.log('[BrowserBricker] Extension detected:', extensionInfo);
+    }
+    
+    if (message.type === 'BROWSERBRICKER_PONG' && 
+        message.data && 
+        message.data.source === 'browserbricker-extension') {
+        
+        if (message.data.respondingTo === sessionNonce || !message.data.respondingTo) {
+            extensionDetected = true;
+            extensionInfo = message.data;
+            
+            if (detectionTimeout) {
+                clearTimeout(detectionTimeout);
+                detectionTimeout = null;
+            }
+            
+            updateExtensionUI('detected');
+            updateFooterExtensionStatus('detected');
+            updateStepExtensionStatus('detected');
+            console.log('[BrowserBricker] Extension responded to ping:', extensionInfo);
+        }
+    }
+}
+
+function sendPingToExtension() {
+    window.postMessage({
+        type: 'BROWSERBRICKER_PING',
+        nonce: sessionNonce
+    }, window.location.origin);
+}
+
+function updateExtensionUI(status) {
+    // This function is intentionally left minimal as the footer handles the main UI
+}
+
+function updateFooterExtensionStatus(status) {
+    let footerStatus = document.getElementById('footer-extension-status');
+    
+    if (!footerStatus) return;
+    
+    if (status === 'detected') {
+        footerStatus.innerHTML = `
+            <div class="footer-extension-panel detected">
+                <div class="footer-ext-icon">
+                    <i data-lucide="shield-check" size="24"></i>
+                </div>
+                <div class="footer-ext-content">
+                    <div class="footer-ext-title" style="color: var(--accent-success);">Extension Active</div>
+                    <div class="footer-ext-desc">${extensionInfo.name || 'BrowserBricker'} v${extensionInfo.version || 'Unknown'} is installed and communicating</div>
+                </div>
+            </div>
+        `;
+    } else {
+        footerStatus.innerHTML = `
+            <div class="footer-extension-panel not-detected">
+                <div class="footer-ext-icon">
+                    <i data-lucide="shield-alert" size="24"></i>
+                </div>
+                <div class="footer-ext-content">
+                    <div class="footer-ext-title" style="color: var(--accent-alert);">Extension Not Detected</div>
+                    <div class="footer-ext-desc">Install the BrowserBricker extension to enable remote management features</div>
+                </div>
+                <a href="#install" onclick="switchTab('installation')" class="btn btn-outline" style="white-space: nowrap;">
+                    Install Extension
+                </a>
+            </div>
+        `;
+    }
+    
+    lucide.createIcons();
+}
+
+function updateStepExtensionStatus(status) {
+    const statusBox = document.getElementById('step-extension-status');
+    const detailsBox = document.getElementById('step-extension-details');
+    const continueBtn = document.getElementById('step4-continue-btn');
+    
+    if (!statusBox) return;
+    
+    if (status === 'detected') {
+        statusBox.className = 'extension-status-box detected';
+        statusBox.querySelector('.extension-status-icon').innerHTML = '<i data-lucide="check-circle-2" size="32"></i>';
+        statusBox.querySelector('.extension-status-info h3').textContent = 'Extension Detected Successfully';
+        statusBox.querySelector('.extension-status-info h3').style.color = 'var(--accent-success)';
+        statusBox.querySelector('.extension-status-info p').textContent = 'BrowserBricker is installed and communicating with this page';
+        
+        if (detailsBox) {
+            detailsBox.style.display = 'block';
+            detailsBox.innerHTML = `
+                <div class="extension-detail-row">
+                    <span class="extension-detail-label">Extension Name</span>
+                    <span class="extension-detail-value">${extensionInfo.name || 'BrowserBricker'}</span>
+                </div>
+                <div class="extension-detail-row">
+                    <span class="extension-detail-label">Version</span>
+                    <span class="extension-detail-value">${extensionInfo.version || 'Unknown'}</span>
+                </div>
+                <div class="extension-detail-row">
+                    <span class="extension-detail-label">Status</span>
+                    <span class="extension-detail-value" style="color: var(--accent-success);">ACTIVE</span>
+                </div>
+                <div class="extension-detail-row">
+                    <span class="extension-detail-label">Communication</span>
+                    <span class="extension-detail-value" style="color: var(--accent-success);">ESTABLISHED</span>
+                </div>
+            `;
+        }
+        
+        if (continueBtn) {
+            continueBtn.style.display = 'inline-flex';
+        }
+        
+        confetti({
+            particleCount: 100,
+            spread: 60,
+            origin: { y: 0.6 },
+            colors: ['#10b981', '#ffffff']
+        });
+    } else {
+        statusBox.className = 'extension-status-box not-detected';
+        statusBox.querySelector('.extension-status-icon').innerHTML = '<i data-lucide="alert-circle" size="32"></i>';
+        statusBox.querySelector('.extension-status-info h3').textContent = 'Extension Not Detected';
+        statusBox.querySelector('.extension-status-info h3').style.color = 'var(--accent-alert)';
+        statusBox.querySelector('.extension-status-info p').textContent = 'Make sure the extension is installed and enabled in your browser';
+        
+        if (detailsBox) {
+            detailsBox.style.display = 'none';
+        }
+        
+        if (continueBtn) {
+            continueBtn.style.display = 'none';
+        }
+    }
+    
+    lucide.createIcons();
+}
+
+window.BrowserBrickerDetection = {
+    isDetected: () => extensionDetected,
+    getInfo: () => extensionInfo,
+    refresh: () => {
+        extensionDetected = false;
+        extensionInfo = null;
+        sendPingToExtension();
+    }
+};
+
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && !extensionDetected) {
+        sendPingToExtension();
+    }
+});
 
 // ============================================================================
 // TROUBLESHOOTING GUIDE
@@ -2582,32 +2982,10 @@ function openModal(id) {
     modal.classList.add('active');
     
     if(id === 'terms') {
-        body.innerHTML = `
-            <h1 class="doc-h1">Terms of Service</h1>
-            <p class="doc-p">Last Updated: February 2026</p>
-            <div class="doc-section">
-                <h2 class="doc-h2">1. Acceptance of Terms</h2>
-                <p class="doc-p">By accessing and using the BrowserBricker platform, you agree to be bound by these Terms of Service.</p>
-                <h2 class="doc-h2">2. Use License</h2>
-                <p class="doc-p">Permission is granted to download and use BrowserBricker for authorized organizational purposes only.</p>
-                <h2 class="doc-h2">3. Disclaimer</h2>
-                <p class="doc-p">The service is provided "as is" without warranties of any kind, either expressed or implied.</p>
-            </div>
-        `;
+        body.innerHTML = generateTermsOfService();
     }
     else if(id === 'privacy') {
-        body.innerHTML = `
-            <h1 class="doc-h1">Privacy Policy</h1>
-            <p class="doc-p">Last Updated: February 2026</p>
-            <div class="doc-section">
-                <h2 class="doc-h2">1. Data Collection</h2>
-                <p class="doc-p">We collect minimal data necessary for service operation: browser IDs, telemetry, and operational logs.</p>
-                <h2 class="doc-h2">2. Data Usage</h2>
-                <p class="doc-p">Data is used solely for providing browser management features. We do not sell or trade user data.</p>
-                <h2 class="doc-h2">3. Security</h2>
-                <p class="doc-p">All data is encrypted at rest and in transit using industry-standard protocols.</p>
-            </div>
-        `;
+        body.innerHTML = generatePrivacyPolicy();
     }
     else if(id === 'about') {
         body.innerHTML = `
@@ -2630,11 +3008,331 @@ function closeModal() {
 }
 
 // ============================================================================
+// COMPREHENSIVE LEGAL DOCUMENTS
+// ============================================================================
+
+function generateTermsOfService() {
+    return `
+        <h1 class="doc-h1">Terms of Service</h1>
+        <p class="doc-p" style="color: var(--text-tertiary);">Last Updated: February 7, 2026</p>
+        <div class="doc-section">
+            <h2 class="doc-h2">1. Acceptance of Terms</h2>
+            <p class="doc-p">By accessing and using the BrowserBricker platform ("Service"), you agree to be bound by these Terms of Service ("Terms"). If you disagree with any part of these terms, you may not access the Service.</p>
+            <p class="doc-p">These Terms apply to all visitors, users, and others who access or use the Service, including but not limited to system administrators, end users, and organizational representatives.</p>
+            
+            <h2 class="doc-h2">2. Description of Service</h2>
+            <p class="doc-p">BrowserBricker provides remote browser management and security services through a browser extension and accompanying administrative control panel. The Service enables authorized administrators to:</p>
+            <ul class="doc-list">
+                <li>Monitor browser activity and system telemetry</li>
+                <li>Remotely lock and unlock managed browsers</li>
+                <li>Enforce geolocation-based security policies</li>
+                <li>Send broadcast messages to managed browsers</li>
+                <li>Maintain comprehensive audit logs of system activities</li>
+                <li>Execute bulk operations across multiple managed devices</li>
+            </ul>
+            
+            <h2 class="doc-h2">3. User Eligibility</h2>
+            <p class="doc-p">You must be at least 18 years of age to use this Service. By agreeing to these Terms, you represent and warrant that you are of legal age to form a binding contract and meet all eligibility requirements.</p>
+            <p class="doc-p">Organizations deploying BrowserBricker must ensure that all end users are informed of the monitoring and control capabilities enabled by the Service and have provided appropriate consent in accordance with applicable laws.</p>
+            
+            <h2 class="doc-h2">4. Use License and Restrictions</h2>
+            <p class="doc-p">Permission is granted to download, install, and use BrowserBricker for legitimate organizational security and administrative purposes. This license is subject to the following restrictions:</p>
+            <ul class="doc-list">
+                <li>You may not modify, reverse engineer, decompile, or disassemble the Service or any component thereof</li>
+                <li>You may not remove any copyright, trademark, or other proprietary notices from the Service</li>
+                <li>You may not use the Service for any unlawful purpose or to violate any applicable regulations</li>
+                <li>You may not attempt to gain unauthorized access to any systems or networks connected to the Service</li>
+                <li>You may not use the Service to harass, abuse, or harm another person or entity</li>
+                <li>You may not interfere with or disrupt the Service or servers or networks connected to the Service</li>
+            </ul>
+            
+            <h2 class="doc-h2">5. User Accounts and Security</h2>
+            <p class="doc-p">When you create an account with us, you must provide information that is accurate, complete, and current at all times. Failure to do so constitutes a breach of the Terms, which may result in immediate termination of your account.</p>
+            <p class="doc-p">You are responsible for safeguarding the password and API keys associated with your account and for any activities or actions under your account. You agree not to disclose your password or API keys to any third party.</p>
+            <p class="doc-p">You must notify us immediately upon becoming aware of any breach of security or unauthorized use of your account. We will not be liable for any loss or damage arising from your failure to comply with this security obligation.</p>
+            
+            <h2 class="doc-h2">6. Privacy and Data Protection</h2>
+            <p class="doc-p">Your use of the Service is also governed by our Privacy Policy, which is incorporated into these Terms by reference. Please review our Privacy Policy to understand our data collection, use, and sharing practices.</p>
+            <p class="doc-p">By using the Service, you acknowledge and agree that BrowserBricker may collect, process, and store certain data as described in the Privacy Policy, including but not limited to browsing history, geolocation data, system telemetry, and administrative actions.</p>
+            
+            <h2 class="doc-h2">7. Acceptable Use Policy</h2>
+            <p class="doc-p">You agree not to use the Service to:</p>
+            <ul class="doc-list">
+                <li>Violate any local, state, national, or international law or regulation</li>
+                <li>Infringe upon or violate the intellectual property rights of others</li>
+                <li>Transmit any material that is defamatory, obscene, offensive, or otherwise objectionable</li>
+                <li>Impersonate or attempt to impersonate BrowserBricker, a BrowserBricker employee, another user, or any other person or entity</li>
+                <li>Engage in any other conduct that restricts or inhibits anyone's use or enjoyment of the Service</li>
+                <li>Use the Service in any manner that could disable, overburden, damage, or impair the Service</li>
+            </ul>
+            
+            <h2 class="doc-h2">8. Intellectual Property Rights</h2>
+            <p class="doc-p">The Service and its original content, features, and functionality are and will remain the exclusive property of BrowserBricker and its licensors. The Service is protected by copyright, trademark, and other laws of both domestic and foreign countries.</p>
+            <p class="doc-p">Our trademarks and trade dress may not be used in connection with any product or service without the prior written consent of BrowserBricker.</p>
+            
+            <h2 class="doc-h2">9. Third-Party Links and Services</h2>
+            <p class="doc-p">Our Service may contain links to third-party websites or services that are not owned or controlled by BrowserBricker. We have no control over, and assume no responsibility for, the content, privacy policies, or practices of any third-party websites or services.</p>
+            <p class="doc-p">You acknowledge and agree that BrowserBricker shall not be responsible or liable, directly or indirectly, for any damage or loss caused or alleged to be caused by or in connection with the use of or reliance on any such content, goods, or services available on or through any such websites or services.</p>
+            
+            <h2 class="doc-h2">10. Disclaimer of Warranties</h2>
+            <p class="doc-p">THE SERVICE IS PROVIDED ON AN "AS IS" AND "AS AVAILABLE" BASIS. BROWSERBRICKER MAKES NO WARRANTIES, EXPRESSED OR IMPLIED, AND HEREBY DISCLAIMS ALL WARRANTIES INCLUDING, WITHOUT LIMITATION, IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.</p>
+            <p class="doc-p">BrowserBricker does not warrant that the Service will be uninterrupted, timely, secure, or error-free. We do not warrant that the results that may be obtained from the use of the Service will be accurate or reliable.</p>
+            
+            <h2 class="doc-h2">11. Limitation of Liability</h2>
+            <p class="doc-p">IN NO EVENT SHALL BROWSERBRICKER, ITS DIRECTORS, EMPLOYEES, PARTNERS, AGENTS, SUPPLIERS, OR AFFILIATES BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING WITHOUT LIMITATION LOSS OF PROFITS, DATA, USE, GOODWILL, OR OTHER INTANGIBLE LOSSES, RESULTING FROM:</p>
+            <ul class="doc-list">
+                <li>Your access to or use of or inability to access or use the Service</li>
+                <li>Any conduct or content of any third party on the Service</li>
+                <li>Any content obtained from the Service</li>
+                <li>Unauthorized access, use, or alteration of your transmissions or content</li>
+            </ul>
+            <p class="doc-p">WHETHER BASED ON WARRANTY, CONTRACT, TORT (INCLUDING NEGLIGENCE), OR ANY OTHER LEGAL THEORY, WHETHER OR NOT WE HAVE BEEN INFORMED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
+            
+            <h2 class="doc-h2">12. Indemnification</h2>
+            <p class="doc-p">You agree to defend, indemnify, and hold harmless BrowserBricker and its licensee and licensors, and their employees, contractors, agents, officers, and directors, from and against any and all claims, damages, obligations, losses, liabilities, costs or debt, and expenses (including but not limited to attorney's fees) arising from:</p>
+            <ul class="doc-list">
+                <li>Your use and access of the Service</li>
+                <li>Your violation of any term of these Terms</li>
+                <li>Your violation of any third-party right, including without limitation any copyright, property, or privacy right</li>
+                <li>Any claim that your use of the Service caused damage to a third party</li>
+            </ul>
+            
+            <h2 class="doc-h2">13. Termination</h2>
+            <p class="doc-p">We may terminate or suspend your account immediately, without prior notice or liability, for any reason whatsoever, including without limitation if you breach the Terms. Upon termination, your right to use the Service will immediately cease.</p>
+            <p class="doc-p">If you wish to terminate your account, you may simply discontinue using the Service and contact us to request account deletion. All provisions of the Terms which by their nature should survive termination shall survive termination, including, without limitation, ownership provisions, warranty disclaimers, indemnity, and limitations of liability.</p>
+            
+            <h2 class="doc-h2">14. Governing Law and Jurisdiction</h2>
+            <p class="doc-p">These Terms shall be governed and construed in accordance with the laws of the jurisdiction in which BrowserBricker operates, without regard to its conflict of law provisions. Our failure to enforce any right or provision of these Terms will not be considered a waiver of those rights.</p>
+            <p class="doc-p">You agree to submit to the personal and exclusive jurisdiction of the courts located within the specified jurisdiction for the resolution of any disputes arising out of or relating to these Terms or the Service.</p>
+            
+            <h2 class="doc-h2">15. Changes to Terms</h2>
+            <p class="doc-p">We reserve the right, at our sole discretion, to modify or replace these Terms at any time. If a revision is material, we will try to provide at least 30 days' notice prior to any new terms taking effect.</p>
+            <p class="doc-p">What constitutes a material change will be determined at our sole discretion. By continuing to access or use our Service after those revisions become effective, you agree to be bound by the revised terms.</p>
+            
+            <h2 class="doc-h2">16. Severability</h2>
+            <p class="doc-p">If any provision of these Terms is held to be invalid or unenforceable by a court, the remaining provisions of these Terms will remain in effect. These Terms constitute the entire agreement between us regarding our Service and supersede and replace any prior agreements we might have between us regarding the Service.</p>
+            
+            <h2 class="doc-h2">17. Contact Information</h2>
+            <p class="doc-p">If you have any questions about these Terms, please contact us at:</p>
+            <p class="doc-p">Email: browserbricker@gmail.com</p>
+            <p class="doc-p">GitHub: https://github.com/Aaks-hatH/Browser-Bricker-Panel</p>
+        </div>
+    `;
+}
+
+function generatePrivacyPolicy() {
+    return `
+        <h1 class="doc-h1">Privacy Policy</h1>
+        <p class="doc-p" style="color: var(--text-tertiary);">Last Updated: February 7, 2026</p>
+        <div class="doc-section">
+            <h2 class="doc-h2">1. Introduction</h2>
+            <p class="doc-p">BrowserBricker ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our browser security and management platform.</p>
+            <p class="doc-p">Please read this Privacy Policy carefully. By using the Service, you consent to the data practices described in this policy. If you do not agree with the data practices described in this policy, you should not use the Service.</p>
+            
+            <h2 class="doc-h2">2. Information We Collect</h2>
+            <p class="doc-p">We collect several different types of information for various purposes to provide and improve our Service to you.</p>
+            
+            <h3 style="font-size: 1.5rem; margin: 25px 0 15px; color: var(--text-primary);">2.1 Personal Data</h3>
+            <p class="doc-p">While using our Service, we may ask you to provide us with certain personally identifiable information that can be used to contact or identify you. This may include, but is not limited to:</p>
+            <ul class="doc-list">
+                <li>Email address</li>
+                <li>Organization name and details</li>
+                <li>Account credentials (username, encrypted passwords)</li>
+                <li>Payment information (processed securely by third-party payment processors)</li>
+                <li>Administrative contact information</li>
+            </ul>
+            
+            <h3 style="font-size: 1.5rem; margin: 25px 0 15px; color: var(--text-primary);">2.2 Browser and Usage Data</h3>
+            <p class="doc-p">When you use BrowserBricker, we automatically collect certain information about your browser and how you interact with the Service:</p>
+            <ul class="doc-list">
+                <li>Browser type, version, and configuration</li>
+                <li>Operating system and version</li>
+                <li>Active tabs and browsing history (when monitoring is enabled)</li>
+                <li>Extension installation and configuration status</li>
+                <li>Connection timestamps and session duration</li>
+                <li>System performance metrics (CPU usage, memory consumption)</li>
+                <li>Network connectivity status and quality</li>
+            </ul>
+            
+            <h3 style="font-size: 1.5rem; margin: 25px 0 15px; color: var(--text-primary);">2.3 Geolocation Data</h3>
+            <p class="doc-p">If you enable geofencing features, we collect precise geolocation data from your device using the browser's Geolocation API. This data is used exclusively for:</p>
+            <ul class="doc-list">
+                <li>Enforcing location-based security policies</li>
+                <li>Triggering automated lockdown when devices exit designated zones</li>
+                <li>Maintaining audit logs of device locations for compliance purposes</li>
+                <li>Providing location-based analytics to administrators</li>
+            </ul>
+            <p class="doc-p">You may disable location services at any time through your browser settings, though this will deactivate geofencing features.</p>
+            
+            <h3 style="font-size: 1.5rem; margin: 25px 0 15px; color: var(--text-primary);">2.4 Administrative Actions and Audit Logs</h3>
+            <p class="doc-p">We maintain comprehensive logs of all administrative actions performed through the Service, including:</p>
+            <ul class="doc-list">
+                <li>Lock and unlock commands issued to browsers</li>
+                <li>Broadcast messages sent to managed devices</li>
+                <li>Policy modifications and configuration changes</li>
+                <li>User account creation, modification, and deletion</li>
+                <li>API key generation and revocation events</li>
+                <li>System access attempts and authentication events</li>
+            </ul>
+            
+            <h2 class="doc-h2">3. How We Use Your Information</h2>
+            <p class="doc-p">We use the collected data for various purposes:</p>
+            <ul class="doc-list">
+                <li><strong>Service Provision:</strong> To provide, maintain, and improve our Service functionality</li>
+                <li><strong>Security Enforcement:</strong> To enable remote browser management and security policy enforcement</li>
+                <li><strong>Communication:</strong> To notify administrators of security events, system alerts, and service updates</li>
+                <li><strong>Analytics:</strong> To analyze usage patterns and improve Service performance</li>
+                <li><strong>Compliance:</strong> To maintain audit trails for regulatory and organizational compliance requirements</li>
+                <li><strong>Support:</strong> To provide customer support and respond to inquiries</li>
+                <li><strong>Legal Obligations:</strong> To comply with applicable laws, regulations, legal processes, or governmental requests</li>
+            </ul>
+            
+            <h2 class="doc-h2">4. Data Storage and Security</h2>
+            <p class="doc-p">We implement industry-standard security measures to protect your data from unauthorized access, alteration, disclosure, or destruction.</p>
+            
+            <h3 style="font-size: 1.5rem; margin: 25px 0 15px; color: var(--text-primary);">4.1 Encryption</h3>
+            <ul class="doc-list">
+                <li><strong>In Transit:</strong> All data transmitted between your browser and our servers is encrypted using TLS 1.3 with AES-256-GCM cipher suites</li>
+                <li><strong>At Rest:</strong> All stored data is encrypted using AES-256 encryption with cryptographically secure key management</li>
+                <li><strong>Passwords:</strong> User passwords are hashed using Argon2id with appropriate cost parameters and never stored in plaintext</li>
+            </ul>
+            
+            <h3 style="font-size: 1.5rem; margin: 25px 0 15px; color: var(--text-primary);">4.2 Access Controls</h3>
+            <ul class="doc-list">
+                <li>Multi-factor authentication required for administrative panel access</li>
+                <li>Role-based access control (RBAC) limiting data access to authorized personnel</li>
+                <li>Regular access audits and permission reviews</li>
+                <li>Automatic session timeout after periods of inactivity</li>
+            </ul>
+            
+            <h3 style="font-size: 1.5rem; margin: 25px 0 15px; color: var(--text-primary);">4.3 Infrastructure Security</h3>
+            <ul class="doc-list">
+                <li>DDoS protection and Web Application Firewall (WAF) implementation</li>
+                <li>Regular security assessments and penetration testing</li>
+                <li>Automated vulnerability scanning and patch management</li>
+                <li>Intrusion detection and prevention systems (IDS/IPS)</li>
+            </ul>
+            
+            <h2 class="doc-h2">5. Data Retention</h2>
+            <p class="doc-p">We retain your information only for as long as necessary to fulfill the purposes outlined in this Privacy Policy, unless a longer retention period is required or permitted by law.</p>
+            <ul class="doc-list">
+                <li><strong>Active Account Data:</strong> Retained while your account is active and for 90 days after account closure</li>
+                <li><strong>Audit Logs:</strong> Retained for 90 days for compliance and security purposes</li>
+                <li><strong>Browsing History:</strong> Retained for 30 days unless configured otherwise by administrators</li>
+                <li><strong>Geolocation Data:</strong> Retained for 30 days for geofencing enforcement and compliance</li>
+                <li><strong>Backup Data:</strong> Retained in encrypted backups for 30 days for disaster recovery purposes</li>
+            </ul>
+            
+            <h2 class="doc-h2">6. Data Sharing and Disclosure</h2>
+            <p class="doc-p">We do not sell, trade, or rent your personal information to third parties. We may share your information in the following limited circumstances:</p>
+            
+            <h3 style="font-size: 1.5rem; margin: 25px 0 15px; color: var(--text-primary);">6.1 Service Providers</h3>
+            <p class="doc-p">We may employ third-party companies and individuals to facilitate our Service. These third parties have access to your information only to perform specific tasks on our behalf and are obligated not to disclose or use it for any other purpose. Service providers may include:</p>
+            <ul class="doc-list">
+                <li>Cloud infrastructure providers (AWS, Azure, Google Cloud)</li>
+                <li>Payment processors for subscription billing</li>
+                <li>Customer support platforms</li>
+                <li>Analytics and monitoring services</li>
+            </ul>
+            
+            <h3 style="font-size: 1.5rem; margin: 25px 0 15px; color: var(--text-primary);">6.2 Legal Requirements</h3>
+            <p class="doc-p">We may disclose your information if required to do so by law or in response to valid requests by public authorities (e.g., a court or government agency), including to:</p>
+            <ul class="doc-list">
+                <li>Comply with legal obligations</li>
+                <li>Protect and defend the rights or property of BrowserBricker</li>
+                <li>Prevent or investigate possible wrongdoing in connection with the Service</li>
+                <li>Protect the personal safety of users of the Service or the public</li>
+                <li>Protect against legal liability</li>
+            </ul>
+            
+            <h3 style="font-size: 1.5rem; margin: 25px 0 15px; color: var(--text-primary);">6.3 Business Transfers</h3>
+            <p class="doc-p">If BrowserBricker is involved in a merger, acquisition, or asset sale, your information may be transferred as part of that transaction. We will provide notice before your information is transferred and becomes subject to a different Privacy Policy.</p>
+            
+            <h2 class="doc-h2">7. Your Data Protection Rights (GDPR)</h2>
+            <p class="doc-p">If you are a resident of the European Economic Area (EEA), you have certain data protection rights under the General Data Protection Regulation (GDPR):</p>
+            <ul class="doc-list">
+                <li><strong>Right to Access:</strong> You can request copies of your personal data</li>
+                <li><strong>Right to Rectification:</strong> You can request correction of inaccurate or incomplete data</li>
+                <li><strong>Right to Erasure:</strong> You can request deletion of your personal data under certain circumstances</li>
+                <li><strong>Right to Restrict Processing:</strong> You can request restriction of processing of your personal data</li>
+                <li><strong>Right to Data Portability:</strong> You can request transfer of your data to another organization or directly to you</li>
+                <li><strong>Right to Object:</strong> You can object to processing of your personal data</li>
+                <li><strong>Rights Related to Automated Decision-Making:</strong> You have the right not to be subject to decisions based solely on automated processing</li>
+            </ul>
+            <p class="doc-p">To exercise these rights, please contact us at browserbricker@gmail.com. We will respond to your request within 30 days.</p>
+            
+            <h2 class="doc-h2">8. California Privacy Rights (CCPA)</h2>
+            <p class="doc-p">If you are a California resident, you have specific rights regarding your personal information under the California Consumer Privacy Act (CCPA):</p>
+            <ul class="doc-list">
+                <li><strong>Right to Know:</strong> You can request disclosure of the categories and specific pieces of personal information we have collected</li>
+                <li><strong>Right to Delete:</strong> You can request deletion of your personal information</li>
+                <li><strong>Right to Opt-Out:</strong> You can opt-out of the sale of your personal information (note: we do not sell personal information)</li>
+                <li><strong>Right to Non-Discrimination:</strong> We will not discriminate against you for exercising your CCPA rights</li>
+            </ul>
+            
+            <h2 class="doc-h2">9. International Data Transfers</h2>
+            <p class="doc-p">Your information may be transferred to and maintained on servers located outside of your state, province, country, or other governmental jurisdiction where data protection laws may differ from those in your jurisdiction.</p>
+            <p class="doc-p">We ensure that appropriate safeguards are in place for such transfers, including:</p>
+            <ul class="doc-list">
+                <li>Standard Contractual Clauses approved by the European Commission</li>
+                <li>Privacy Shield certification (where applicable)</li>
+                <li>Data Processing Agreements with third-party service providers</li>
+                <li>Binding Corporate Rules for intra-organizational transfers</li>
+            </ul>
+            
+            <h2 class="doc-h2">10. Children's Privacy</h2>
+            <p class="doc-p">Our Service is not intended for use by anyone under the age of 18. We do not knowingly collect personally identifiable information from anyone under the age of 18. If you are a parent or guardian and you are aware that your child has provided us with personal data, please contact us.</p>
+            <p class="doc-p">If we become aware that we have collected personal data from children without verification of parental consent, we will take steps to remove that information from our servers.</p>
+            
+            <h2 class="doc-h2">11. Cookies and Tracking Technologies</h2>
+            <p class="doc-p">We use cookies and similar tracking technologies to track activity on our Service and hold certain information. Cookies are files with small amounts of data which may include an anonymous unique identifier.</p>
+            <p class="doc-p">Types of cookies we use:</p>
+            <ul class="doc-list">
+                <li><strong>Essential Cookies:</strong> Required for the Service to function properly, including authentication and session management</li>
+                <li><strong>Performance Cookies:</strong> Help us understand how visitors interact with the Service by collecting anonymous information</li>
+                <li><strong>Functional Cookies:</strong> Enable enhanced functionality and personalization</li>
+            </ul>
+            <p class="doc-p">You can instruct your browser to refuse all cookies or to indicate when a cookie is being sent. However, if you do not accept cookies, you may not be able to use some portions of our Service.</p>
+            
+            <h2 class="doc-h2">12. Third-Party Services</h2>
+            <p class="doc-p">Our Service may contain links to third-party websites or services that are not operated by us. We have no control over and assume no responsibility for the content, privacy policies, or practices of any third-party sites or services.</p>
+            <p class="doc-p">We strongly advise you to review the Privacy Policy of every site you visit. We are not responsible for the privacy practices or the content of third-party sites.</p>
+            
+            <h2 class="doc-h2">13. Data Breach Notification</h2>
+            <p class="doc-p">In the event of a data breach that affects your personal information, we will:</p>
+            <ul class="doc-list">
+                <li>Notify affected users within 72 hours of becoming aware of the breach</li>
+                <li>Provide details about the nature of the breach and the data affected</li>
+                <li>Describe the measures being taken to address the breach and mitigate its effects</li>
+                <li>Offer guidance on steps you can take to protect yourself</li>
+                <li>Notify relevant supervisory authorities as required by applicable laws</li>
+            </ul>
+            
+            <h2 class="doc-h2">14. Changes to This Privacy Policy</h2>
+            <p class="doc-p">We may update our Privacy Policy from time to time. We will notify you of any changes by:</p>
+            <ul class="doc-list">
+                <li>Posting the new Privacy Policy on this page</li>
+                <li>Updating the "Last Updated" date at the top of this Privacy Policy</li>
+                <li>Sending an email notification for material changes</li>
+                <li>Displaying a prominent notice in the Service interface</li>
+            </ul>
+            <p class="doc-p">You are advised to review this Privacy Policy periodically for any changes. Changes to this Privacy Policy are effective when they are posted on this page.</p>
+            
+            <h2 class="doc-h2">15. Contact Us</h2>
+            <p class="doc-p">If you have any questions about this Privacy Policy, please contact us:</p>
+            <p class="doc-p">Email: browserbricker@gmail.com</p>
+            <p class="doc-p">GitHub: https://github.com/Aaks-hatH/Browser-Bricker-Panel</p>
+            <p class="doc-p">For GDPR-related inquiries, you may also contact our Data Protection Officer at the email address above.</p>
+        </div>
+    `;
+}
+
+// ============================================================================
 // TERMINAL (EASTER EGG)
 // ============================================================================
 
 function openTerminal() {
-    alert('🖥️ Terminal Access\n\nEaster egg hint: Try typing "aakshat", "bricker", "matrix", or "lockdown" anywhere on the page!');
+    alert('Terminal Access\n\nEaster egg hint: Try typing "aakshat", "bricker", "matrix", or "lockdown" anywhere on the page!');
 }
 
 // ============================================================================
@@ -2667,10 +3365,10 @@ const seqs = {
                 }, 2000);
             }, i * 100);
         });
-        alert('🧱 Bricker Mode Activated!\nWebsite elements are temporarily "bricked"!');
+        alert('Bricker Mode Activated!\nWebsite elements are temporarily "bricked"!');
     },
     'matrix': () => {
-        alert('🟢 Matrix Mode\n\nThe Matrix has you...\nFollow the white rabbit.\n\nPress Ctrl+Shift+I to see the code.');
+        alert('Matrix Mode\n\nThe Matrix has you...\nFollow the white rabbit.\n\nPress Ctrl+Shift+I to see the code.');
         console.log('%cWake up, Neo...', 'color: #0f0; font-size: 20px; font-family: monospace;');
         console.log('%cThe Matrix has you...', 'color: #0f0; font-size: 16px; font-family: monospace;');
     },
@@ -2710,7 +3408,7 @@ document.addEventListener('keydown', (e) => {
                 origin: { y: 0.5 },
                 colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff']
             });
-            alert('🎮 KONAMI CODE ACTIVATED!\n\n✓ God Mode Unlocked\n✓ Infinite Lives\n✓ All Features Enabled\n✓ Maximum Security Level\n\n...Just kidding! But nice job finding this! 🎉');
+            alert('KONAMI CODE ACTIVATED!\n\nGod Mode Unlocked\nInfinite Lives\nAll Features Enabled\nMaximum Security Level\n\n...Just kidding! But nice job finding this!');
             konamiIndex = 0;
         }
     } else {
@@ -2718,7 +3416,7 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-console.log('%c🛡️ BrowserBricker V5', 'color: #10b981; font-size: 24px; font-weight: bold;');
+console.log('%cBrowserBricker V5', 'color: #10b981; font-size: 24px; font-weight: bold;');
 console.log('%cEnterprise Browser Security Platform', 'color: #fff; font-size: 14px;');
 console.log('%c\nEaster Eggs Available:', 'color: #fbbf24; font-size: 12px;');
 console.log('%c• Type "aakshat" - Creator Mode', 'color: #888;');
@@ -2727,238 +3425,6 @@ console.log('%c• Type "matrix" - Matrix Mode', 'color: #888;');
 console.log('%c• Type "lockdown" - Trigger Lock Screen', 'color: #888;');
 console.log('%c• Type "security" - Jump to Security Docs', 'color: #888;');
 console.log('%c• Konami Code (↑↑↓↓←→←→BA) - Special Surprise', 'color: #888;');
-
-        // ============================================================================
-    // BROWSERBRICKER EXTENSION DETECTION MODULE
-    // ============================================================================
-
-    (function() {
-        'use strict';
-        
-        let extensionDetected = false;
-        let extensionInfo = null;
-        let detectionTimeout = null;
-        let sessionNonce = null;
-        
-        /**
-         * Generate a cryptographically secure nonce
-         */
-        function generateNonce() {
-            const array = new Uint8Array(16);
-            crypto.getRandomValues(array);
-            return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
-        }
-        
-        /**
-         * Initialize extension detection listener
-         */
-        function initExtensionDetection() {
-            sessionNonce = generateNonce();
-            
-            // Listen for extension identification messages
-            window.addEventListener('message', handleExtensionMessage);
-            
-            // Set timeout to show "not detected" message
-            detectionTimeout = setTimeout(() => {
-                if (!extensionDetected) {
-                    updateExtensionUI('not-detected');
-                }
-            }, 2000); // Wait 2 seconds for extension to announce itself
-            
-            // Send a ping request to check if extension is present
-            // (in case the page loaded before extension announcement)
-            setTimeout(() => {
-                sendPingToExtension();
-            }, 500);
-            
-            console.log('[BrowserBricker] Extension detection initialized');
-        }
-        
-        /**
-         * Handle messages from the extension
-         */
-        function handleExtensionMessage(event) {
-            // Verify message origin
-            if (event.origin !== window.location.origin) {
-                return;
-            }
-            
-            const message = event.data;
-            
-            // Check for extension identity announcement
-            if (message.type === 'BROWSERBRICKER_EXTENSION_IDENTITY' && 
-                message.data && 
-                message.data.source === 'browserbricker-extension') {
-                
-                extensionDetected = true;
-                extensionInfo = message.data;
-                
-                // Clear the timeout
-                if (detectionTimeout) {
-                    clearTimeout(detectionTimeout);
-                    detectionTimeout = null;
-                }
-                
-                updateExtensionUI('detected');
-                console.log('[BrowserBricker] Extension detected:', extensionInfo);
-            }
-            
-            // Check for pong response
-            if (message.type === 'BROWSERBRICKER_PONG' && 
-                message.data && 
-                message.data.source === 'browserbricker-extension') {
-                
-                // Verify nonce if we sent one
-                if (message.data.respondingTo === sessionNonce || !message.data.respondingTo) {
-                    extensionDetected = true;
-                    extensionInfo = message.data;
-                    
-                    if (detectionTimeout) {
-                        clearTimeout(detectionTimeout);
-                        detectionTimeout = null;
-                    }
-                    
-                    updateExtensionUI('detected');
-                    console.log('[BrowserBricker] Extension responded to ping:', extensionInfo);
-                }
-            }
-        }
-        
-        /**
-         * Send ping request to extension
-         */
-        function sendPingToExtension() {
-            window.postMessage({
-                type: 'BROWSERBRICKER_PING',
-                nonce: sessionNonce
-            }, window.location.origin);
-        }
-        
-        /**
-         * Update UI based on extension detection status
-         */
-        function updateExtensionUI(status) {
-            // Find or create extension status element
-            let statusElement = document.getElementById('extension-status');
-            
-            if (!statusElement) {
-                // Create status element dynamically if it doesn't exist
-                statusElement = createExtensionStatusElement();
-            }
-            
-            if (status === 'detected') {
-                statusElement.innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 12px; padding: 16px 20px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px;">
-                        <svg width="24" height="24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                        </svg>
-                        <div style="flex: 1;">
-                            <div style="color: #10b981; font-weight: 600; font-size: 1rem; margin-bottom: 2px;">
-                                Extension Detected
-                            </div>
-                            <div style="color: rgba(255, 255, 255, 0.6); font-size: 0.875rem;">
-                                ${extensionInfo.name || 'BrowserBricker'} v${extensionInfo.version || 'Unknown'} is installed and active
-                            </div>
-                        </div>
-                    </div>
-                `;
-                statusElement.style.display = 'block';
-            } else {
-                statusElement.innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 12px; padding: 16px 20px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px;">
-                        <svg width="24" height="24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <line x1="12" y1="8" x2="12" y2="12"></line>
-                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                        </svg>
-                        <div style="flex: 1;">
-                            <div style="color: #ef4444; font-weight: 600; font-size: 1rem; margin-bottom: 2px;">
-                                Extension Not Detected
-                            </div>
-                            <div style="color: rgba(255, 255, 255, 0.6); font-size: 0.875rem;">
-                                Install the BrowserBricker extension to enable remote management features
-                            </div>
-                        </div>
-                        <a href="#install" 
-                           onclick="switchTab('installation')"
-                           style="padding: 8px 16px; background: #ef4444; color: white; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.875rem; white-space: nowrap; transition: all 0.2s;">
-                            Install Now
-                        </a>
-                    </div>
-                `;
-                statusElement.style.display = 'block';
-            }
-        }
-        
-        /**
-         * Create extension status element dynamically
-         */
-        function createExtensionStatusElement() {
-            const statusElement = document.createElement('div');
-            statusElement.id = 'extension-status';
-            statusElement.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                max-width: 450px;
-                z-index: 10000;
-                animation: slideIn 0.5s ease-out;
-            `;
-            
-            // Add animation
-            const style = document.createElement('style');
-            style.textContent = `
-                @keyframes slideIn {
-                    from {
-                        transform: translateX(500px);
-                        opacity: 0;
-                    }
-                    to {
-                        transform: translateX(0);
-                        opacity: 1;
-                    }
-                }
-            `;
-            document.head.appendChild(style);
-            
-            document.body.appendChild(statusElement);
-            return statusElement;
-        }
-        
-        /**
-         * Public API for manual detection trigger
-         */
-        window.BrowserBrickerDetection = {
-            isDetected: () => extensionDetected,
-            getInfo: () => extensionInfo,
-            refresh: () => {
-                extensionDetected = false;
-                extensionInfo = null;
-                sendPingToExtension();
-            }
-        };
-        
-        // Initialize on DOM ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initExtensionDetection);
-        } else {
-            initExtensionDetection();
-        }
-        
-        // Re-check on page visibility change (handles tab switching)
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden && !extensionDetected) {
-                sendPingToExtension();
-            }
-        });
-        
-    })();
-
-    // ============================================================================
-    // END EXTENSION DETECTION MODULE
-    // ============================================================================
-            
     </script>
 </body>
 </html>
