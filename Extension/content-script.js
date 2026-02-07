@@ -11,12 +11,11 @@
     
     // Only run on official BrowserBricker domains
     const OFFICIAL_DOMAINS = [
-        'browserbricker.onrender.com',
-        'localhost',
-        '127.0.0.1',
-        'browser-bricker-panel.onrender.com'
-        // Add your production domain here when deployed
-    ];
+    'browser-bricker-panel.onrender.com', 
+    'browserbricker.onrender.com',
+    'localhost',
+    '127.0.0.1'
+];
     
     const currentDomain = window.location.hostname;
     const isOfficialDomain = OFFICIAL_DOMAINS.some(domain => 
