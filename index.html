@@ -1042,276 +1042,433 @@ footer {
     </style>
 </head>
 <body>
-    <!-- MOBILE BLOCKER (Desktop Required) -->
-<div id="mobileBlocker" class="bb-mobile-blocker" aria-hidden="true">
-  <div class="bb-mobile-frame">
-    <div class="bb-mobile-header">
-      <div class="bb-mobile-sig">
-        <span class="bb-dot bb-red"></span>
-        <span class="bb-dot bb-yellow"></span>
-        <span class="bb-dot bb-green"></span>
-      </div>
-
-      <div class="bb-mobile-title">
-        <span class="bb-chip">SECURE UI</span>
-        <span class="bb-chip bb-chip2">DESKTOP REQUIRED</span>
+    <!-- CIA-STYLE MOBILE BLOCKER -->
+<div id="mobileBlocker" class="cia-blocker" aria-hidden="true">
+  <header class="cia-topbar">
+    <div class="cia-brand">
+      <div class="cia-seal" aria-hidden="true"></div>
+      <div class="cia-brand-text">
+        <div class="cia-brand-title">BROWSERBRICKER</div>
+        <div class="cia-brand-sub">Central Operations Portal</div>
       </div>
     </div>
 
-    <div class="bb-mobile-body">
-      <div class="bb-mobile-icon" aria-hidden="true">
-        <svg width="70" height="70" viewBox="0 0 24 24" fill="none">
-          <path d="M4 5.5C4 4.67157 4.67157 4 5.5 4H18.5C19.3284 4 20 4.67157 20 5.5V15.5C20 16.3284 19.3284 17 18.5 17H5.5C4.67157 17 4 16.3284 4 15.5V5.5Z"
-                stroke="currentColor" stroke-width="1.6"/>
-          <path d="M9 20H15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-          <path d="M12 17V20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-        </svg>
-      </div>
-
-      <h1 class="bb-mobile-h1">Access Restricted</h1>
-
-      <p class="bb-mobile-p">
-        This portal is not available on mobile devices.<br>
-        Please open this page using a desktop or laptop computer.
-      </p>
-
-      <div class="bb-mobile-panel">
-        <div class="bb-row">
-          <span class="bb-k">STATUS</span>
-          <span class="bb-v bb-bad">BLOCKED</span>
-        </div>
-        <div class="bb-row">
-          <span class="bb-k">REASON</span>
-          <span class="bb-v">MOBILE CLIENT DETECTED</span>
-        </div>
-        <div class="bb-row">
-          <span class="bb-k">RECOMMENDED</span>
-          <span class="bb-v">CHROME / EDGE (DESKTOP)</span>
-        </div>
-      </div>
-
-      <div class="bb-mobile-links">
-        <a class="bb-link" href="mailto:browserbricker@gmail.com">
-          Contact Support
-        </a>
-
-        <a class="bb-link" href="https://github.com/Aaks-hatH/Browser-Bricker-Panel" target="_blank" rel="noopener">
-          GitHub Repository
-        </a>
-      </div>
-
-      <div class="bb-mobile-foot">
-        <div class="bb-footline">
-          <span class="bb-foot-k">SIGNATURE</span>
-          <span class="bb-foot-v">BROWSERBRICKER UI GATE</span>
-        </div>
-        <div class="bb-footline">
-          <span class="bb-foot-k">SESSION</span>
-          <span class="bb-foot-v" id="bbMobileSession">INITIALIZING...</span>
-        </div>
+    <div class="cia-topbar-right">
+      <a class="cia-top-btn" href="https://github.com/Aaks-hatH/Browser-Bricker-Panel" target="_blank" rel="noopener">
+        GITHUB
+      </a>
+      <div class="cia-menu-icon" aria-hidden="true">
+        <span></span><span></span><span></span>
       </div>
     </div>
+  </header>
+
+  <div class="cia-bg">
+    <div class="cia-grid" aria-hidden="true"></div>
+    <div class="cia-wave" aria-hidden="true"></div>
   </div>
+
+  <main class="cia-main">
+    <section class="cia-hero">
+      <div class="cia-left">
+        <h1 class="cia-h1">
+          Desktop access<br>
+          required.
+        </h1>
+
+        <p class="cia-lead">
+          This portal is not available on mobile devices.
+        </p>
+
+        <p class="cia-body">
+          Please open this page on a laptop or desktop computer to continue.
+        </p>
+
+        <div class="cia-meta">
+          <div class="cia-meta-row">
+            <span class="cia-k">STATUS</span>
+            <span class="cia-v cia-v-bad">BLOCKED</span>
+          </div>
+          <div class="cia-meta-row">
+            <span class="cia-k">REASON</span>
+            <span class="cia-v">MOBILE CLIENT DETECTED</span>
+          </div>
+          <div class="cia-meta-row">
+            <span class="cia-k">RECOMMENDED</span>
+            <span class="cia-v">CHROME / EDGE (DESKTOP)</span>
+          </div>
+        </div>
+
+        <div class="cia-actions">
+          <a class="cia-btn" href="mailto:browserbricker@gmail.com">
+            CONTACT SUPPORT
+          </a>
+
+          <a class="cia-btn cia-btn-outline"
+             href="https://github.com/Aaks-hatH/Browser-Bricker-Panel"
+             target="_blank" rel="noopener">
+            VIEW REPOSITORY
+          </a>
+        </div>
+
+        <div class="cia-foot">
+          <div class="cia-foot-row">
+            <span class="cia-foot-k">SESSION</span>
+            <span class="cia-foot-v" id="ciaSessionId">INITIALIZING</span>
+          </div>
+          <div class="cia-foot-row">
+            <span class="cia-foot-k">SIGNATURE</span>
+            <span class="cia-foot-v">ACCESS GATE / UI POLICY</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="cia-right" aria-hidden="true">
+        <div class="cia-portrait">
+          <div class="cia-portrait-overlay"></div>
+          <div class="cia-portrait-lines"></div>
+        </div>
+      </div>
+    </section>
+  </main>
 </div>
 
 <style>
-/* ====== MOBILE BLOCKER THEME (Enterprise / Security UI) ====== */
-.bb-mobile-blocker{
+/* =========================================================
+   CIA-STYLE MOBILE BLOCKER
+   ========================================================= */
+
+.cia-blocker{
   display:none;
   position:fixed;
   inset:0;
   z-index:999999;
-  background:
-    radial-gradient(1200px 800px at 30% 20%, rgba(16,185,129,0.07), transparent 60%),
-    radial-gradient(900px 600px at 70% 80%, rgba(99,102,241,0.06), transparent 55%),
-    #05070c;
-  color:#fff;
+  background:#0b0c0f;
+  color:#ffffff;
   font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
-}
-
-.bb-mobile-frame{
-  width:min(720px, 92vw);
-  margin: 70px auto 0;
-  border:1px solid rgba(255,255,255,0.10);
-  background: rgba(10, 12, 18, 0.75);
-  backdrop-filter: blur(18px);
-  box-shadow:
-    0 0 0 1px rgba(16,185,129,0.12),
-    0 40px 120px rgba(0,0,0,0.65);
-  border-radius: 16px;
   overflow:hidden;
 }
 
-.bb-mobile-header{
+/* Topbar */
+.cia-topbar{
+  height:72px;
   display:flex;
   align-items:center;
   justify-content:space-between;
-  padding: 14px 18px;
-  border-bottom:1px solid rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.02);
+  padding:0 26px;
+  border-bottom:1px solid rgba(255,255,255,0.10);
+  background: linear-gradient(to bottom, rgba(0,0,0,0.55), rgba(0,0,0,0.25));
 }
 
-.bb-mobile-sig{ display:flex; gap:8px; }
-.bb-dot{ width:10px; height:10px; border-radius:50%; opacity:.9; }
-.bb-red{ background:#ff5f56; }
-.bb-yellow{ background:#ffbd2e; }
-.bb-green{ background:#27c93f; }
-
-.bb-mobile-title{ display:flex; gap:10px; align-items:center; }
-.bb-chip{
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-  font-size: 11px;
-  letter-spacing: 1.4px;
-  padding: 6px 10px;
-  border:1px solid rgba(255,255,255,0.12);
-  color: rgba(255,255,255,0.85);
-  text-transform: uppercase;
-  background: rgba(255,255,255,0.02);
-}
-.bb-chip2{
-  border-color: rgba(16,185,129,0.30);
-  box-shadow: 0 0 0 1px rgba(16,185,129,0.10) inset;
+.cia-brand{
+  display:flex;
+  align-items:center;
+  gap:14px;
 }
 
-.bb-mobile-body{
-  padding: 42px 42px 30px;
-  text-align:center;
+.cia-seal{
+  width:42px;
+  height:42px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,0.16);
+  background:
+    radial-gradient(circle at 30% 25%, rgba(255,255,255,0.10), transparent 55%),
+    radial-gradient(circle at 70% 75%, rgba(255,255,255,0.06), transparent 60%),
+    rgba(255,255,255,0.03);
 }
 
-.bb-mobile-icon{
-  width: 90px;
-  height: 90px;
-  margin: 0 auto 18px;
-  border-radius: 18px;
-  border: 1px solid rgba(16,185,129,0.22);
-  background: rgba(16,185,129,0.06);
+.cia-brand-title{
+  font-weight:800;
+  letter-spacing:0.5px;
+  font-size:14px;
+  text-transform:uppercase;
+}
+
+.cia-brand-sub{
+  margin-top:2px;
+  font-size:11px;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+  opacity:0.65;
+}
+
+.cia-topbar-right{
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
+
+.cia-top-btn{
+  text-decoration:none;
+  padding:10px 16px;
+  border:1px solid rgba(220,38,38,0.55);
+  color:#fff;
+  font-weight:700;
+  font-size:12px;
+  letter-spacing:1.4px;
+  text-transform:uppercase;
+  background: rgba(220,38,38,0.10);
+}
+
+.cia-top-btn:hover{
+  border-color: rgba(220,38,38,0.85);
+  background: rgba(220,38,38,0.16);
+}
+
+.cia-menu-icon{
+  width:28px;
+  height:18px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  opacity:0.85;
+}
+.cia-menu-icon span{
+  height:2px;
+  width:100%;
+  background: rgba(255,255,255,0.75);
+}
+
+/* Background grid + subtle wave */
+.cia-bg{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+}
+
+.cia-grid{
+  position:absolute;
+  inset:0;
+  opacity:0.40;
+  background:
+    linear-gradient(to right,
+      rgba(255,255,255,0.06) 1px,
+      transparent 1px
+    );
+  background-size: 220px 100%;
+}
+
+.cia-wave{
+  position:absolute;
+  right:-140px;
+  top:120px;
+  width:680px;
+  height:680px;
+  border-radius:999px;
+  background:
+    radial-gradient(circle,
+      rgba(255,255,255,0.06),
+      transparent 60%
+    );
+  filter: blur(0px);
+  opacity:0.55;
+}
+
+/* Main layout */
+.cia-main{
+  position:relative;
+  height:calc(100vh - 72px);
   display:flex;
   align-items:center;
   justify-content:center;
-  color: rgba(16,185,129,0.95);
-  box-shadow:
-    0 0 0 1px rgba(16,185,129,0.08) inset,
-    0 18px 70px rgba(0,0,0,0.55);
+  padding: 0 26px;
 }
 
-.bb-mobile-h1{
-  margin: 0 0 12px;
-  font-size: 32px;
-  font-weight: 800;
-  letter-spacing: 0.2px;
-  text-transform: uppercase;
+.cia-hero{
+  width:min(1200px, 100%);
+  display:grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 48px;
+  align-items:center;
 }
 
-.bb-mobile-p{
-  margin: 0 auto 26px;
-  max-width: 560px;
-  color: rgba(255,255,255,0.70);
-  line-height: 1.6;
+/* Left side */
+.cia-left{
+  padding-left: 6px;
+  border-left: 3px solid rgba(220,38,38,0.55);
+}
+
+.cia-h1{
+  margin:0 0 16px;
+  font-size: 64px;
+  line-height: 0.95;
+  font-weight: 900;
+  letter-spacing: -1.2px;
+  text-transform: none;
+}
+
+.cia-lead{
+  margin: 0 0 10px;
   font-size: 15px;
+  font-weight: 700;
+  opacity:0.92;
 }
 
-.bb-mobile-panel{
-  width: min(560px, 100%);
-  margin: 0 auto 22px;
-  border-radius: 14px;
-  border:1px solid rgba(255,255,255,0.10);
-  background: rgba(0,0,0,0.25);
-  padding: 16px 18px;
-  text-align:left;
+.cia-body{
+  margin: 0 0 22px;
+  font-size: 15px;
+  line-height: 1.7;
+  opacity:0.70;
+  max-width: 560px;
 }
 
-.bb-row{
+/* Meta panel */
+.cia-meta{
+  max-width: 560px;
+  border-top: 1px solid rgba(255,255,255,0.10);
+  border-bottom: 1px solid rgba(255,255,255,0.10);
+  padding: 14px 0;
+  margin: 0 0 22px;
+}
+
+.cia-meta-row{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap: 18px;
+  gap:18px;
   padding: 10px 0;
   border-bottom: 1px solid rgba(255,255,255,0.06);
 }
-.bb-row:last-child{ border-bottom:none; }
+.cia-meta-row:last-child{ border-bottom:none; }
 
-.bb-k{
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+.cia-k{
   font-size: 11px;
   letter-spacing: 1.6px;
-  color: rgba(255,255,255,0.55);
   text-transform: uppercase;
+  opacity:0.55;
+  font-weight:700;
 }
 
-.bb-v{
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+.cia-v{
   font-size: 12px;
-  letter-spacing: 1.2px;
-  color: rgba(255,255,255,0.82);
+  letter-spacing: 1.4px;
   text-transform: uppercase;
+  opacity:0.88;
+  font-weight:700;
 }
 
-.bb-bad{
+.cia-v-bad{
   color:#ef4444;
-  text-shadow: 0 0 20px rgba(239,68,68,0.20);
 }
 
-.bb-mobile-links{
+/* Buttons */
+.cia-actions{
   display:flex;
-  gap: 12px;
-  justify-content:center;
+  gap: 14px;
   flex-wrap:wrap;
-  margin-bottom: 20px;
+  margin-bottom: 22px;
 }
 
-.bb-link{
+.cia-btn{
   text-decoration:none;
-  padding: 12px 16px;
-  border-radius: 12px;
-  border:1px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.02);
-  color: rgba(255,255,255,0.82);
-  font-size: 13px;
-  font-weight: 600;
-  transition: transform .15s ease, border-color .15s ease;
+  padding: 14px 18px;
+  background: rgba(220,38,38,0.92);
+  color:#fff;
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  border: 1px solid rgba(220,38,38,0.90);
 }
 
-.bb-link:hover{
-  transform: translateY(-2px);
-  border-color: rgba(16,185,129,0.35);
+.cia-btn:hover{
+  background: rgba(220,38,38,1);
 }
 
-.bb-mobile-foot{
-  width: min(560px, 100%);
-  margin: 0 auto;
+.cia-btn-outline{
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.16);
+  color: rgba(255,255,255,0.88);
+}
+.cia-btn-outline:hover{
+  border-color: rgba(255,255,255,0.30);
+  background: rgba(255,255,255,0.04);
+}
+
+/* Footer info */
+.cia-foot{
+  max-width:560px;
   border-top: 1px solid rgba(255,255,255,0.06);
   padding-top: 14px;
-  text-align:left;
 }
 
-.bb-footline{
+.cia-foot-row{
   display:flex;
   justify-content:space-between;
-  gap: 16px;
+  gap:18px;
   padding: 6px 0;
 }
 
-.bb-foot-k{
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+.cia-foot-k{
   font-size: 11px;
   letter-spacing: 1.6px;
-  color: rgba(255,255,255,0.55);
   text-transform: uppercase;
+  opacity:0.55;
+  font-weight:700;
 }
 
-.bb-foot-v{
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+.cia-foot-v{
   font-size: 11px;
-  letter-spacing: 1.3px;
-  color: rgba(255,255,255,0.78);
+  letter-spacing: 1.5px;
   text-transform: uppercase;
+  opacity:0.80;
+  font-weight:700;
 }
 
-/* Responsive */
+/* Right side portrait placeholder */
+.cia-right{
+  display:flex;
+  justify-content:center;
+}
+
+.cia-portrait{
+  width: min(430px, 100%);
+  aspect-ratio: 3 / 4;
+  border: 1px solid rgba(255,255,255,0.10);
+  background:
+    radial-gradient(circle at 40% 30%, rgba(255,255,255,0.10), transparent 55%),
+    linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01)),
+    rgba(0,0,0,0.30);
+  position:relative;
+  overflow:hidden;
+}
+
+.cia-portrait-overlay{
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(to bottom, rgba(0,0,0,0.0), rgba(0,0,0,0.65));
+}
+
+.cia-portrait-lines{
+  position:absolute;
+  inset:-40px;
+  background:
+    repeating-linear-gradient(
+      135deg,
+      rgba(255,255,255,0.05) 0px,
+      rgba(255,255,255,0.05) 1px,
+      transparent 1px,
+      transparent 8px
+    );
+  opacity:0.35;
+}
+
+/* Mobile sizing */
+@media (max-width: 980px){
+  .cia-hero{
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .cia-right{ display:none; }
+  .cia-h1{ font-size: 52px; }
+}
+
 @media (max-width: 520px){
-  .bb-mobile-body{ padding: 32px 18px 22px; }
-  .bb-mobile-frame{ margin-top: 35px; }
-  .bb-mobile-h1{ font-size: 26px; }
+  .cia-topbar{ padding: 0 16px; }
+  .cia-main{ padding: 0 16px; }
+  .cia-h1{ font-size: 42px; }
+  .cia-top-btn{ display:none; }
 }
 </style>
 
@@ -1326,13 +1483,13 @@ footer {
     blocker.style.display = "block";
     blocker.setAttribute("aria-hidden", "false");
 
-    // Generate a simple session token for the UI
-    const token = Array.from(crypto.getRandomValues(new Uint8Array(8)))
+    // Session ID for the footer (CIA-style detail)
+    const token = Array.from(crypto.getRandomValues(new Uint8Array(10)))
       .map(b => b.toString(16).padStart(2, "0"))
       .join("")
       .toUpperCase();
 
-    const sessionEl = document.getElementById("bbMobileSession");
+    const sessionEl = document.getElementById("ciaSessionId");
     if (sessionEl) sessionEl.textContent = token;
 
     document.documentElement.style.overflow = "hidden";
