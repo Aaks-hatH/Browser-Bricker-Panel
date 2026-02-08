@@ -2708,35 +2708,22 @@ function activateLockDemo() {
 }
 
 function refreshExtensionDetection() {
-    console.log('==========================================================');
-    console.log('[DEBUG] refreshExtensionDetection() called');
-    console.log('[DEBUG] Current extensionDetected state:', extensionDetected);
-    console.log('[DEBUG] Current extensionInfo:', extensionInfo);
-    console.log('==========================================================');
+    console.log('[DETECTION] Refresh button clicked - starting detection');
     
     // Reset global detection state
     extensionDetected = false;
     extensionInfo = null;
     
-    console.log('[DEBUG] Reset detection state');
-    
     // Clear any existing timeout
     if (detectionTimeout) {
         clearTimeout(detectionTimeout);
         detectionTimeout = null;
-        console.log('[DEBUG] Cleared existing timeout');
     }
     
-    // Reset UI to "searching" state
+    // Update UI to "searching" state
     const statusBox = document.getElementById('step-extension-status');
     const detailsBox = document.getElementById('step-extension-details');
     const continueBtn = document.getElementById('step4-continue-btn');
-    
-    console.log('[DEBUG] UI Elements:', {
-        statusBox: statusBox ? 'found' : 'NOT FOUND',
-        detailsBox: detailsBox ? 'found' : 'NOT FOUND', 
-        continueBtn: continueBtn ? 'found' : 'NOT FOUND'
-    });
     
     if (statusBox) {
         statusBox.className = 'extension-status-box not-detected';
@@ -2744,10 +2731,15 @@ function refreshExtensionDetection() {
         if (icon) {
             icon.innerHTML = '<i data-lucide="search" size="32"></i>';
         }
-        statusBox.querySelector('.extension-status-info h3').textContent = 'Searching for Extension...';
-        statusBox.querySelector('.extension-status-info h3').style.color = '';
-        statusBox.querySelector('.extension-status-info p').textContent = 'Sending ping requests to extension...';
-        console.log('[DEBUG] Updated status box UI');
+        const h3 = statusBox.querySelector('.extension-status-info h3');
+        const p = statusBox.querySelector('.extension-status-info p');
+        if (h3) {
+            h3.textContent = 'Searching for Extension...';
+            h3.style.color = '';
+        }
+        if (p) {
+            p.textContent = 'Sending ping requests to extension...';
+        }
     }
     
     if (detailsBox) {
@@ -2758,100 +2750,101 @@ function refreshExtensionDetection() {
         continueBtn.style.display = 'none';
     }
     
-    // Recreate icons after changing innerHTML
+    // Recreate icons
     if (typeof lucide !== 'undefined' && lucide.createIcons) {
         lucide.createIcons();
-        console.log('[DEBUG] Recreated Lucide icons');
     }
     
-    // Generate new nonce for this detection attempt
+    // Generate new nonce
     sessionNonce = generateNonce();
-    console.log('[DEBUG] Generated new session nonce:', sessionNonce.substring(0, 8) + '...');
+    console.log('[DETECTION] New session nonce:', sessionNonce.substring(0, 8) + '...');
     
     // ============================================================================
-    // PERSISTENT PINGING LOGIC
+    // PERSISTENT PING SYSTEM
     // ============================================================================
     
     let pingCount = 0;
     const maxPings = 15;
-    let pingInterval = null;
+    let pingIntervalId = null;
     
-    function sendPing() {
-        console.log('[DEBUG] sendPing() called, extensionDetected:', extensionDetected);
-        
+    // Function to send a single ping
+    function sendSinglePing() {
         if (extensionDetected) {
-            console.log('[DEBUG] ✅ Extension detected, stopping pings');
-            if (pingInterval) {
-                clearInterval(pingInterval);
-                pingInterval = null;
+            console.log('[DETECTION] Extension already detected, stopping pings');
+            if (pingIntervalId) {
+                clearInterval(pingIntervalId);
+                pingIntervalId = null;
             }
             return;
         }
         
         pingCount++;
-        console.log(`[DEBUG] 📡 Sending ping #${pingCount}/${maxPings}`);
-        console.log('[DEBUG] Ping data:', {
-            type: 'BROWSERBRICKER_PING',
-            nonce: sessionNonce.substring(0, 8) + '...',
-            origin: window.location.origin
-        });
+        console.log(`[DETECTION] Sending ping #${pingCount}/${maxPings}`);
         
-        // Send the ping
+        // Send the ping message
         window.postMessage({
             type: 'BROWSERBRICKER_PING',
             nonce: sessionNonce
         }, window.location.origin);
         
-        console.log('[DEBUG] Ping sent via postMessage');
-        
+        // Check if we've reached max pings
         if (pingCount >= maxPings) {
-            console.log('[DEBUG] ⚠️ Max ping attempts reached');
-            if (pingInterval) {
-                clearInterval(pingInterval);
-                pingInterval = null;
+            console.log('[DETECTION] Max ping attempts reached');
+            if (pingIntervalId) {
+                clearInterval(pingIntervalId);
+                pingIntervalId = null;
             }
             
-            // Show final "not detected" message
-            if (!extensionDetected) {
-                console.log('[DEBUG] Still not detected after max pings, showing error message');
-                const statusBox = document.getElementById('step-extension-status');
-                if (statusBox) {
-                    statusBox.className = 'extension-status-box not-detected';
-                    const icon = statusBox.querySelector('.extension-status-icon');
-                    if (icon) {
-                        icon.innerHTML = '<i data-lucide="alert-circle" size="32"></i>';
-                        if (typeof lucide !== 'undefined' && lucide.createIcons) {
-                            lucide.createIcons();
-                        }
-                    }
-                    statusBox.querySelector('.extension-status-info h3').textContent = 'Extension Not Detected';
-                    statusBox.querySelector('.extension-status-info h3').style.color = 'var(--accent-alert)';
-                    statusBox.querySelector('.extension-status-info p').textContent = 'Extension not responding. Please refresh this page if you just installed it.';
+            // Show "not detected" message if still not found
+            if (!extensionDetected && statusBox) {
+                statusBox.className = 'extension-status-box not-detected';
+                const icon = statusBox.querySelector('.extension-status-icon');
+                if (icon) {
+                    icon.innerHTML = '<i data-lucide="alert-circle" size="32"></i>';
+                }
+                const h3 = statusBox.querySelector('.extension-status-info h3');
+                const p = statusBox.querySelector('.extension-status-info p');
+                if (h3) {
+                    h3.textContent = 'Extension Not Detected';
+                    h3.style.color = 'var(--accent-alert)';
+                }
+                if (p) {
+                    p.textContent = 'Extension not responding. Please ensure it\'s installed and refresh the page.';
+                }
+                
+                if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                    lucide.createIcons();
                 }
             }
         }
     }
     
-    console.log('[DEBUG] Starting persistent pinging...');
-    
     // Send first ping immediately
-    sendPing();
+    sendSinglePing();
     
-    // Then send a ping every 2 seconds
-    pingInterval = setInterval(sendPing, 2000);
-    console.log('[DEBUG] Ping interval started (every 2000ms)');
+    // Set up interval to send pings every 2 seconds
+    pingIntervalId = setInterval(sendSinglePing, 2000);
     
     // Show additional message after 5 seconds
     setTimeout(() => {
-        console.log('[DEBUG] 5 second timeout reached, extensionDetected:', extensionDetected);
         if (!extensionDetected && statusBox) {
-            statusBox.querySelector('.extension-status-info p').textContent = 'Still searching... If you just installed the extension, please refresh this page.';
-            console.log('[DEBUG] Updated message to show refresh instruction');
+            const p = statusBox.querySelector('.extension-status-info p');
+            if (p) {
+                p.textContent = 'Still searching... If you just installed the extension, try refreshing this page.';
+            }
         }
     }, 5000);
     
-    console.log('[DEBUG] refreshExtensionDetection() setup complete');
-    console.log('==========================================================');
+    // Set a timeout to stop pinging after 30 seconds regardless
+    setTimeout(() => {
+        if (pingIntervalId) {
+            clearInterval(pingIntervalId);
+            pingIntervalId = null;
+            console.log('[DETECTION] Detection timeout reached, stopping pings');
+        }
+    }, 30000);
+    
+    console.log('[DETECTION] Detection system initialized');
 }
 
 // ============================================================================
