@@ -2708,17 +2708,71 @@ function activateLockDemo() {
 }
 
 function refreshExtensionDetection() {
-    if (window.BrowserBrickerDetection) {
-        window.BrowserBrickerDetection.refresh();
+    // Reset global detection state
+    extensionDetected = false;
+    extensionInfo = null;
+    
+    // Clear any existing timeout
+    if (detectionTimeout) {
+        clearTimeout(detectionTimeout);
+        detectionTimeout = null;
     }
+    
+    // Reset UI to "searching" state
     const statusBox = document.getElementById('step-extension-status');
+    const detailsBox = document.getElementById('step-extension-details');
+    const continueBtn = document.getElementById('step4-continue-btn');
+    
     if (statusBox) {
         statusBox.className = 'extension-status-box not-detected';
+        const icon = statusBox.querySelector('.extension-status-icon');
+        if (icon) {
+            icon.innerHTML = '<i data-lucide="search" size="32"></i>';
+        }
         statusBox.querySelector('.extension-status-info h3').textContent = 'Searching for Extension...';
+        statusBox.querySelector('.extension-status-info h3').style.color = '';
         statusBox.querySelector('.extension-status-info p').textContent = 'Waiting for BrowserBricker to identify itself';
     }
+    
+    if (detailsBox) {
+        detailsBox.style.display = 'none';
+    }
+    
+    if (continueBtn) {
+        continueBtn.style.display = 'none';
+    }
+    
+    // Recreate icons after changing innerHTML
+    lucide.createIcons();
+    
+    // Generate new nonce for this detection attempt
+    sessionNonce = generateNonce();
+    
+    // Set new timeout for detection failure
+    detectionTimeout = setTimeout(() => {
+        if (!extensionDetected) {
+            const statusBox = document.getElementById('step-extension-status');
+            if (statusBox) {
+                statusBox.className = 'extension-status-box not-detected';
+                const icon = statusBox.querySelector('.extension-status-icon');
+                if (icon) {
+                    icon.innerHTML = '<i data-lucide="alert-circle" size="32"></i>';
+                    lucide.createIcons();
+                }
+                statusBox.querySelector('.extension-status-info h3').textContent = 'Extension Not Detected';
+                statusBox.querySelector('.extension-status-info h3').style.color = 'var(--accent-alert)';
+                statusBox.querySelector('.extension-status-info p').textContent = 'Make sure the extension is installed and enabled in your browser';
+            }
+        }
+    }, 2000);
+    
+    // Send ping to extension after a brief delay
+    setTimeout(() => {
+        sendPingToExtension();
+    }, 300);
+    
+    console.log('[BrowserBricker] Manual detection refresh initiated');
 }
-
 // ============================================================================
 // EXTENSION DETECTION MODULE
 // ============================================================================
