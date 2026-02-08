@@ -2707,38 +2707,82 @@ function activateLockDemo() {
     triggerLock();
 }
 
+// ============================================================================
+// DIAGNOSTIC VERSION - Test this first to see what's happening
+// ============================================================================
+// Replace your refreshExtensionDetection() function with this to debug
+// ============================================================================
+
 function refreshExtensionDetection() {
-    console.log('[DETECTION] Refresh button clicked - starting detection');
+    console.log('='.repeat(80));
+    console.log('[DIAGNOSTIC] REFRESH BUTTON CLICKED');
+    console.log('='.repeat(80));
     
-    // Reset global detection state
-    extensionDetected = false;
-    extensionInfo = null;
+    // Check if global variables exist
+    console.log('[DIAGNOSTIC] Checking global variables:');
+    console.log('  - extensionDetected:', typeof extensionDetected !== 'undefined' ? extensionDetected : 'UNDEFINED');
+    console.log('  - extensionInfo:', typeof extensionInfo !== 'undefined' ? extensionInfo : 'UNDEFINED');
+    console.log('  - sessionNonce:', typeof sessionNonce !== 'undefined' ? sessionNonce : 'UNDEFINED');
     
-    // Clear any existing timeout
-    if (detectionTimeout) {
-        clearTimeout(detectionTimeout);
-        detectionTimeout = null;
-    }
-    
-    // Update UI to "searching" state
+    // Check if UI elements exist
+    console.log('[DIAGNOSTIC] Checking UI elements:');
     const statusBox = document.getElementById('step-extension-status');
     const detailsBox = document.getElementById('step-extension-details');
     const continueBtn = document.getElementById('step4-continue-btn');
+    console.log('  - statusBox:', statusBox ? 'FOUND' : 'NOT FOUND');
+    console.log('  - detailsBox:', detailsBox ? 'FOUND' : 'NOT FOUND');
+    console.log('  - continueBtn:', continueBtn ? 'FOUND' : 'NOT FOUND');
     
+    // Check if functions exist
+    console.log('[DIAGNOSTIC] Checking required functions:');
+    console.log('  - generateNonce:', typeof generateNonce !== 'undefined' ? 'EXISTS' : 'MISSING');
+    console.log('  - updateStepExtensionStatus:', typeof updateStepExtensionStatus !== 'undefined' ? 'EXISTS' : 'MISSING');
+    console.log('  - lucide.createIcons:', typeof lucide !== 'undefined' && lucide.createIcons ? 'EXISTS' : 'MISSING');
+    
+    // Reset state
+    if (typeof extensionDetected !== 'undefined') {
+        extensionDetected = false;
+    } else {
+        console.error('[DIAGNOSTIC] ❌ extensionDetected is not defined!');
+        window.extensionDetected = false;
+    }
+    
+    if (typeof extensionInfo !== 'undefined') {
+        extensionInfo = null;
+    } else {
+        console.error('[DIAGNOSTIC] ❌ extensionInfo is not defined!');
+        window.extensionInfo = null;
+    }
+    
+    // Generate new nonce
+    if (typeof generateNonce !== 'undefined') {
+        sessionNonce = generateNonce();
+        console.log('[DIAGNOSTIC] Generated new nonce:', sessionNonce.substring(0, 8) + '...');
+    } else {
+        console.error('[DIAGNOSTIC] ❌ generateNonce function not found!');
+        // Create a simple nonce manually
+        sessionNonce = Math.random().toString(36).substring(2);
+        console.log('[DIAGNOSTIC] Created fallback nonce:', sessionNonce);
+    }
+    
+    // Update UI
     if (statusBox) {
         statusBox.className = 'extension-status-box not-detected';
         const icon = statusBox.querySelector('.extension-status-icon');
         if (icon) {
             icon.innerHTML = '<i data-lucide="search" size="32"></i>';
+            console.log('[DIAGNOSTIC] Updated icon to search');
         }
         const h3 = statusBox.querySelector('.extension-status-info h3');
-        const p = statusBox.querySelector('.extension-status-info p');
         if (h3) {
             h3.textContent = 'Searching for Extension...';
             h3.style.color = '';
+            console.log('[DIAGNOSTIC] Updated h3 text');
         }
+        const p = statusBox.querySelector('.extension-status-info p');
         if (p) {
-            p.textContent = 'Sending ping requests to extension...';
+            p.textContent = 'Listening for extension announcements...';
+            console.log('[DIAGNOSTIC] Updated p text');
         }
     }
     
@@ -2753,63 +2797,66 @@ function refreshExtensionDetection() {
     // Recreate icons
     if (typeof lucide !== 'undefined' && lucide.createIcons) {
         lucide.createIcons();
+        console.log('[DIAGNOSTIC] Recreated Lucide icons');
     }
     
-    // Generate new nonce
-    sessionNonce = generateNonce();
-    console.log('[DETECTION] New session nonce:', sessionNonce.substring(0, 8) + '...');
+    // Check if message listener is set up
+    console.log('[DIAGNOSTIC] Checking window message listeners...');
+    // We can't directly check listeners, but we can test by sending a message
     
-    // ============================================================================
-    // PERSISTENT PING SYSTEM
-    // ============================================================================
+    // Send a test ping
+    console.log('[DIAGNOSTIC] Sending test PING message...');
+    window.postMessage({
+        type: 'BROWSERBRICKER_PING',
+        nonce: sessionNonce,
+        test: true
+    }, window.location.origin);
+    console.log('[DIAGNOSTIC] Test PING sent');
     
+    // Set up ping interval
     let pingCount = 0;
-    const maxPings = 15;
-    let pingIntervalId = null;
+    const maxPings = 5; // Reduced for testing
     
-    // Function to send a single ping
-    function sendSinglePing() {
-        if (extensionDetected) {
-            console.log('[DETECTION] Extension already detected, stopping pings');
-            if (pingIntervalId) {
-                clearInterval(pingIntervalId);
-                pingIntervalId = null;
-            }
+    const pingInterval = setInterval(() => {
+        pingCount++;
+        console.log(`[DIAGNOSTIC] Ping #${pingCount}/${maxPings}`);
+        
+        // Check if detected
+        const currentDetected = typeof extensionDetected !== 'undefined' ? extensionDetected : window.extensionDetected;
+        console.log(`[DIAGNOSTIC] Current detection state: ${currentDetected}`);
+        
+        if (currentDetected) {
+            console.log('[DIAGNOSTIC] ✅ EXTENSION DETECTED! Stopping pings.');
+            clearInterval(pingInterval);
             return;
         }
         
-        pingCount++;
-        console.log(`[DETECTION] Sending ping #${pingCount}/${maxPings}`);
-        
-        // Send the ping message
+        // Send ping
+        console.log('[DIAGNOSTIC] Sending PING via postMessage');
         window.postMessage({
             type: 'BROWSERBRICKER_PING',
             nonce: sessionNonce
         }, window.location.origin);
         
-        // Check if we've reached max pings
         if (pingCount >= maxPings) {
-            console.log('[DETECTION] Max ping attempts reached');
-            if (pingIntervalId) {
-                clearInterval(pingIntervalId);
-                pingIntervalId = null;
-            }
+            console.log('[DIAGNOSTIC] ❌ Max pings reached, extension not detected');
+            clearInterval(pingInterval);
             
-            // Show "not detected" message if still not found
-            if (!extensionDetected && statusBox) {
+            // Update UI to show not detected
+            if (statusBox) {
                 statusBox.className = 'extension-status-box not-detected';
                 const icon = statusBox.querySelector('.extension-status-icon');
                 if (icon) {
                     icon.innerHTML = '<i data-lucide="alert-circle" size="32"></i>';
                 }
                 const h3 = statusBox.querySelector('.extension-status-info h3');
-                const p = statusBox.querySelector('.extension-status-info p');
                 if (h3) {
                     h3.textContent = 'Extension Not Detected';
                     h3.style.color = 'var(--accent-alert)';
                 }
+                const p = statusBox.querySelector('.extension-status-info p');
                 if (p) {
-                    p.textContent = 'Extension not responding. Please ensure it\'s installed and refresh the page.';
+                    p.textContent = 'No response from extension. Check console for details.';
                 }
                 
                 if (typeof lucide !== 'undefined' && lucide.createIcons) {
@@ -2817,69 +2864,49 @@ function refreshExtensionDetection() {
                 }
             }
         }
-    }
+    }, 2000);
     
-    // Send first ping immediately
-    sendSinglePing();
-    
-    // Set up interval to send pings every 2 seconds
-    pingIntervalId = setInterval(sendSinglePing, 2000);
-    
-    // Show additional message after 5 seconds
-    setTimeout(() => {
-        if (!extensionDetected && statusBox) {
-            const p = statusBox.querySelector('.extension-status-info p');
-            if (p) {
-                p.textContent = 'Still searching... If you just installed the extension, try refreshing this page.';
-            }
-        }
-    }, 5000);
-    
-    // Set a timeout to stop pinging after 30 seconds regardless
-    setTimeout(() => {
-        if (pingIntervalId) {
-            clearInterval(pingIntervalId);
-            pingIntervalId = null;
-            console.log('[DETECTION] Detection timeout reached, stopping pings');
-        }
-    }, 30000);
-    
-    console.log('[DETECTION] Detection system initialized');
+    console.log('[DIAGNOSTIC] Ping interval started (every 2000ms)');
+    console.log('='.repeat(80));
+    console.log('[DIAGNOSTIC] Waiting for extension response...');
+    console.log('[DIAGNOSTIC] Check console for PONG messages');
+    console.log('='.repeat(80));
 }
 
 // ============================================================================
-// ALSO CHECK IF MESSAGE HANDLER IS RECEIVING ANYTHING
+// TEST LISTENER - Add this to your page to see if messages are being received
 // ============================================================================
-
-// Add this temporary listener to see ALL messages
-console.log('[DEBUG] Installing temporary message listener to see all postMessages...');
+console.log('[DIAGNOSTIC] Installing test message listener...');
 window.addEventListener('message', function(event) {
-    console.log('[DEBUG] 📨 postMessage received:', {
-        origin: event.origin,
-        type: event.data ? event.data.type : 'no type',
-        data: event.data
-    });
+    if (event.data && event.data.type) {
+        if (event.data.type.includes('BROWSERBRICKER')) {
+            console.log('[DIAGNOSTIC] 📨 BrowserBricker message received:');
+            console.log('  Type:', event.data.type);
+            console.log('  Data:', event.data);
+            console.log('  Origin:', event.origin);
+        }
+    }
 });
 
 // ============================================================================
-// TEST FUNCTION - Call this in console to simulate extension response
+// MANUAL TEST FUNCTION - Call this in console to simulate extension response
 // ============================================================================
-
-window.testExtensionResponse = function() {
+window.testExtensionPong = function() {
     console.log('[TEST] Simulating extension PONG response...');
     window.postMessage({
         type: 'BROWSERBRICKER_PONG',
         data: {
             source: 'browserbricker-extension',
-            name: 'Test Extension',
-            version: '99.99',
+            name: 'Device Lockdown',
+            version: '5.0.1',
             timestamp: Date.now()
         }
     }, window.location.origin);
-    console.log('[TEST] Test PONG sent');
+    console.log('[TEST] Simulated PONG sent');
 };
 
-console.log('[DEBUG] Debugging version loaded. You can call window.testExtensionResponse() to test detection.');
+console.log('[DIAGNOSTIC] Diagnostic version loaded');
+console.log('[DIAGNOSTIC] To test manually, run: window.testExtensionPong()');
 
 // ============================================================================
 // EXTENSION DETECTION MODULE
