@@ -1207,7 +1207,8 @@ async function deleteSystemAdmin(adminId, adminName) {
     }
 
     try {
-        await apiCall(`/api/admin/system-admins/${adminId}`, 'DELETE');
+        // FIXED: Changed from /api/admin/system-admins/ to /api/admin/system-admin/ to match backend route
+        await apiCall(`/api/admin/system-admin/${adminId}`, 'DELETE');
         
         showToast('Success', 'System administrator deleted', 'success');
         logTerminal(`System admin ${adminName} and all associated data deleted`, 'error');
