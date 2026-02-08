@@ -106,13 +106,14 @@ async function handleRegister(event) {
         const response = await fetch(`${API_URL}/api/system/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code: code, name, email, password })
+            body: JSON.stringify({ registrationCode: code, name, email, password })
         });
         
         const data = await response.json();
         
         if (response.ok) {
-            document.getElementById('newApiKey').textContent = data.systemAdminKey;
+            // FIXED: Changed from data.systemAdminKey to data.apiKey to match backend response
+            document.getElementById('newApiKey').textContent = data.apiKey;
             document.querySelector('#registerForm form').style.display = 'none';
             document.getElementById('regSuccess').style.display = 'block';
             showToast('Success', 'Registration successful!', 'success');
