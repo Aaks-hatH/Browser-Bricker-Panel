@@ -1197,6 +1197,48 @@ async function activateSystemAdmin(adminId, adminName) {
     }
 }
 
+// FIXED: Added missing createSystemAdmin function
+async function createSystemAdmin(event) {
+    event.preventDefault();
+    
+    const groupName = document.getElementById('newAdminGroupName').value.trim();
+    const name = document.getElementById('newAdminName').value.trim();
+    const email = document.getElementById('newAdminEmail').value.trim();
+    
+    if (!groupName || !name) {
+        showToast('Error', 'Group name and administrator name are required', 'error');
+        return;
+    }
+    
+    try {
+        // Generate unique IDs for the new system admin
+        const systemAdminId = 'SA_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+        const groupId = 'GRP_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+        
+        const response = await apiCall('/api/admin/registration-code', 'POST', {
+            systemAdminId,
+            groupId,
+            groupName,
+            name,
+            email: email || undefined
+        });
+        
+        showToast('Success', 'Registration code generated successfully!', 'success');
+        logTerminal(`Registration code generated for ${name} (${groupName})`, 'success');
+        
+        // Clear the form
+        document.getElementById('createAdminForm').reset();
+        
+        // Reload registration codes to show the new one
+        await loadRegistrationCodes();
+        await loadStats();
+        
+    } catch (error) {
+        console.error('Create system admin error:', error);
+        showToast('Error', error.message || 'Failed to generate registration code', 'error');
+    }
+}
+
 async function deleteSystemAdmin(adminId, adminName) {
     if (!confirm(`DELETE system administrator "${adminName}"?\n\nThis will also delete all their users and devices. This action cannot be undone.`)) return;
 
