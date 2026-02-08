@@ -1,11 +1,20 @@
 // System Administrator Panel JavaScript - Complete Version
-// Version: 4.2.0 - Full Feature Set
+// Version: 5.0.1 - Full Feature Set
 
 const API_URL = 'https://browserbricker.onrender.com';
 
 let systemAdminKey = null;
 let refreshInterval = null;
 let locationRefreshInterval = null;
+
+// Map variables
+let locationsMap = null;
+let locationsMapInitialized = false;
+let geofenceMap = null;
+let geofenceMapInitialized = false;
+let locationMarkers = [];
+let geofenceCircles = [];
+let isMapView = false;
 
 // ========== INITIALIZATION ==========
 document.addEventListener('DOMContentLoaded', () => {
@@ -231,6 +240,56 @@ async function loadUsers() {
     }
 }
 
+// ========== MAP FUNCTIONS ==========
+function initializeMap(containerId, centerLat = 40.7128, centerLon = -74.0060, zoom = 12) {
+    const container = document.getElementById(containerId);
+    if (!container) return null;
+    
+    if (container._leaflet_id) {
+        container._leaflet_id = null;
+        container.innerHTML = '';
+    }
+    
+    const map = L.map(containerId).setView([centerLat, centerLon], zoom);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+    }).addTo(map);
+    
+    setTimeout(() => {
+        map.invalidateSize();
+    }, 100);
+    
+    return map;
+}
+
+function toggleMapView() {
+    isMapView = !isMapView;
+    const mapView = document.getElementById('locationsMapView');
+    const listView = document.getElementById('locationsListView');
+    const toggleBtn = document.getElementById('mapViewToggleText');
+    
+    if (isMapView) {
+        mapView.style.display = 'block';
+        listView.style.display = 'none';
+        toggleBtn.textContent = 'Show List';
+        
+        if (!locationsMapInitialized) {
+            locationsMap = initializeMap('locationsMap', 40.7128, -74.0060, 4);
+            locationsMapInitialized = true;
+        }
+        
+        loadLocations();
+    } else {
+        mapView.style.display = 'none';
+        listView.style.display = 'block';
+        toggleBtn.textContent = 'Show Map';
+    }
+    
+    lucide.createIcons();
+}
+
 async function loadGeofences() {
     try {
         const response = await fetch(`${API_URL}/api/system/geofences`, {
@@ -454,10 +513,39 @@ function renderGeofences(geofences) {
                 <p style="color: var(--zinc-500); font-size: 0.9rem;">Create geofences to restrict device locations</p>
             </div>
         `;
+        
+        if (geofenceMap && geofenceCircles.length > 0) {
+            geofenceCircles.forEach(circle => circle.remove());
+            geofenceCircles = [];
+        }
         return;
     }
     
+    if (!geofenceMapInitialized) {
+        geofenceMap = initializeMap('geofenceMap', geofences[0].lat, geofences[0].lon, 10);
+        geofenceMapInitialized = true;
+        
+        geofenceMap.on('click', function(e) {
+            document.getElementById('geofenceLat').value = e.latlng.lat.toFixed(6);
+            document.getElementById('geofenceLon').value = e.latlng.lng.toFixed(6);
+            
+            L.circle([e.latlng.lat, e.latlng.lng], {
+                radius: parseInt(document.getElementById('geofenceRadius').value) || 1000,
+                color: '#8b5cf6',
+                fillColor: '#a78bfa',
+                fillOpacity: 0.2,
+                weight: 2,
+                dashArray: '5, 5'
+            }).addTo(geofenceMap).bindPopup('New geofence location (preview)').openPopup();
+        });
+    }
+    
+    geofenceCircles.forEach(circle => circle.remove());
+    geofenceCircles = [];
+    
     let html = '';
+    const bounds = [];
+    
     geofences.forEach(geo => {
         const statusBadge = geo.enabled ? 
             '<span class="badge badge-safe">ACTIVE</span>' : 
@@ -481,9 +569,50 @@ function renderGeofences(geofences) {
                 </button>
             </div>
         `;
+        
+        const circleColor = geo.enabled ? '#10b981' : '#f59e0b';
+        const circle = L.circle([geo.lat, geo.lon], {
+            radius: geo.radius,
+            color: circleColor,
+            fillColor: circleColor,
+            fillOpacity: 0.15,
+            weight: 3
+        }).addTo(geofenceMap);
+        
+        const marker = L.marker([geo.lat, geo.lon], {
+            icon: L.divIcon({
+                className: 'geofence-marker',
+                html: `<div style="background: ${circleColor}; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);"></div>`,
+                iconSize: [16, 16],
+                iconAnchor: [8, 8]
+            })
+        }).addTo(geofenceMap);
+        
+        const popupContent = `
+            <div style="min-width: 180px;">
+                <div style="font-weight: 700; margin-bottom: 4px;">${escapeHtml(geo.deviceName)}</div>
+                <div style="font-family: monospace; font-size: 0.7rem; color: #71717a; margin-bottom: 6px;">${geo.deviceId}</div>
+                <div style="font-size: 0.8rem; margin-bottom: 4px;"><strong>Radius:</strong> ${geo.radius}m</div>
+                <div style="font-size: 0.8rem;"><strong>Status:</strong> ${geo.enabled ? '<span style="color: #10b981;">● Active</span>' : '<span style="color: #f59e0b;">● Disabled</span>'}</div>
+            </div>
+        `;
+        
+        marker.bindPopup(popupContent);
+        circle.bindPopup(popupContent);
+        
+        geofenceCircles.push(circle);
+        geofenceCircles.push(marker);
+        bounds.push([geo.lat, geo.lon]);
     });
     
     container.innerHTML = html;
+    
+    if (bounds.length > 0 && geofenceMap) {
+        geofenceMap.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+    }
+    
+    lucide.createIcons();
+    
     lucide.createIcons();
 }
 
@@ -498,13 +627,18 @@ function renderLocations(locations) {
                 <p style="color: var(--zinc-500); font-size: 0.9rem;">Location data will appear when devices report their positions</p>
             </div>
         `;
+        
+        if (locationsMap && locationMarkers.length > 0) {
+            locationMarkers.forEach(marker => marker.remove());
+            locationMarkers = [];
+        }
         return;
     }
     
     let html = '';
     locations.forEach(loc => {
         const timeDiff = Date.now() - new Date(loc.timestamp).getTime();
-        const isRecent = timeDiff < 30000; // Less than 30 seconds
+        const isRecent = timeDiff < 30000;
         
         html += `
             <div class="location-item">
@@ -529,6 +663,55 @@ function renderLocations(locations) {
     });
     
     container.innerHTML = html;
+    
+    if (locationsMap && isMapView) {
+        locationMarkers.forEach(marker => marker.remove());
+        locationMarkers = [];
+        
+        const bounds = [];
+        locations.forEach(loc => {
+            const timeDiff = Date.now() - new Date(loc.timestamp).getTime();
+            const isRecent = timeDiff < 30000;
+            const markerColor = isRecent ? '#10b981' : '#06b6d4';
+            
+            const customIcon = L.divIcon({
+                className: 'custom-marker',
+                html: `<div style="background: ${markerColor}; width: 24px; height: 24px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>`,
+                iconSize: [24, 24],
+                iconAnchor: [12, 24],
+                popupAnchor: [0, -24]
+            });
+            
+            const marker = L.marker([loc.location.lat, loc.location.lon], { icon: customIcon }).addTo(locationsMap);
+            
+            const popupContent = `
+                <div style="min-width: 200px;">
+                    <div style="font-weight: 700; margin-bottom: 6px; font-size: 0.95rem;">${escapeHtml(loc.deviceName)}</div>
+                    <div style="font-family: monospace; font-size: 0.75rem; color: #71717a; margin-bottom: 8px;">${loc.deviceId}</div>
+                    <div style="background: #f4f4f5; padding: 8px; border-radius: 6px; margin-bottom: 8px; font-size: 0.8rem;">
+                        <strong>📍 Coordinates:</strong><br>
+                        ${loc.location.lat.toFixed(6)}, ${loc.location.lon.toFixed(6)}
+                    </div>
+                    <div style="font-size: 0.75rem; color: #71717a; margin-bottom: 6px;">
+                        <strong>Status:</strong> ${isRecent ? '<span style="color: #10b981;">● LIVE</span>' : '<span style="color: #06b6d4;">● Recent</span>'}
+                    </div>
+                    ${loc.geofenced ? '<div style="font-size: 0.75rem; color: #06b6d4;">🔒 Geofenced</div>' : ''}
+                    <div style="font-size: 0.7rem; color: #a1a1aa; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e4e4e7;">
+                        Last updated: ${timeSince(loc.timestamp)}
+                    </div>
+                </div>
+            `;
+            
+            marker.bindPopup(popupContent);
+            locationMarkers.push(marker);
+            bounds.push([loc.location.lat, loc.location.lon]);
+        });
+        
+        if (bounds.length > 0) {
+            locationsMap.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+        }
+    }
+    
     lucide.createIcons();
 }
 
@@ -652,8 +835,22 @@ function switchView(viewName) {
         // Load data for specific views
         if (viewName === 'devices') loadDevices();
         else if (viewName === 'users') loadUsers();
-        else if (viewName === 'geofencing') loadGeofences();
-        else if (viewName === 'locations') loadLocations();
+        else if (viewName === 'geofencing') {
+            loadGeofences();
+            setTimeout(() => {
+                if (geofenceMap) {
+                    geofenceMap.invalidateSize();
+                }
+            }, 100);
+        }
+        else if (viewName === 'locations') {
+            loadLocations();
+            setTimeout(() => {
+                if (locationsMap && isMapView) {
+                    locationsMap.invalidateSize();
+                }
+            }, 100);
+        }
         else if (viewName === 'breaches') loadBreaches();
         else if (viewName === 'activity') loadActivity();
     }
