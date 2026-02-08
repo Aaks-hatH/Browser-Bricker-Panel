@@ -2708,6 +2708,8 @@ function activateLockDemo() {
 }
 
 function refreshExtensionDetection() {
+    console.log('[BrowserBricker] 🔄 Manual refresh triggered');
+    
     // Reset global detection state
     extensionDetected = false;
     extensionInfo = null;
@@ -2731,7 +2733,7 @@ function refreshExtensionDetection() {
         }
         statusBox.querySelector('.extension-status-info h3').textContent = 'Searching for Extension...';
         statusBox.querySelector('.extension-status-info h3').style.color = '';
-        statusBox.querySelector('.extension-status-info p').textContent = 'Waiting for BrowserBricker to identify itself';
+        statusBox.querySelector('.extension-status-info p').textContent = 'Sending ping requests to extension...';
     }
     
     if (detailsBox) {
@@ -2748,31 +2750,73 @@ function refreshExtensionDetection() {
     // Generate new nonce for this detection attempt
     sessionNonce = generateNonce();
     
-    // Set new timeout for detection failure
-    detectionTimeout = setTimeout(() => {
-        if (!extensionDetected) {
-            const statusBox = document.getElementById('step-extension-status');
-            if (statusBox) {
-                statusBox.className = 'extension-status-box not-detected';
-                const icon = statusBox.querySelector('.extension-status-icon');
-                if (icon) {
-                    icon.innerHTML = '<i data-lucide="alert-circle" size="32"></i>';
-                    lucide.createIcons();
+    // ============================================================================
+    // PERSISTENT PINGING LOGIC - KEEPS SENDING PINGS UNTIL DETECTED
+    // ============================================================================
+    
+    let pingCount = 0;
+    const maxPings = 15;  // Send 15 pings (30 seconds total at 2 second intervals)
+    let pingInterval = null;
+    
+    function sendPing() {
+        if (extensionDetected) {
+            console.log('[BrowserBricker] Extension detected, stopping pings');
+            if (pingInterval) {
+                clearInterval(pingInterval);
+                pingInterval = null;
+            }
+            return;
+        }
+        
+        pingCount++;
+        console.log(`[BrowserBricker] 📡 Sending ping #${pingCount}/${maxPings}...`);
+        
+        window.postMessage({
+            type: 'BROWSERBRICKER_PING',
+            nonce: sessionNonce
+        }, window.location.origin);
+        
+        if (pingCount >= maxPings) {
+            console.log('[BrowserBricker] Max ping attempts reached, stopping');
+            if (pingInterval) {
+                clearInterval(pingInterval);
+                pingInterval = null;
+            }
+            
+            // Show final "not detected" message
+            if (!extensionDetected) {
+                const statusBox = document.getElementById('step-extension-status');
+                if (statusBox) {
+                    statusBox.className = 'extension-status-box not-detected';
+                    const icon = statusBox.querySelector('.extension-status-icon');
+                    if (icon) {
+                        icon.innerHTML = '<i data-lucide="alert-circle" size="32"></i>';
+                        lucide.createIcons();
+                    }
+                    statusBox.querySelector('.extension-status-info h3').textContent = 'Extension Not Detected';
+                    statusBox.querySelector('.extension-status-info h3').style.color = 'var(--accent-alert)';
+                    statusBox.querySelector('.extension-status-info p').textContent = 'Make sure the extension is installed and enabled. If you just installed it, try refreshing this page.';
                 }
-                statusBox.querySelector('.extension-status-info h3').textContent = 'Extension Not Detected';
-                statusBox.querySelector('.extension-status-info h3').style.color = 'var(--accent-alert)';
-                statusBox.querySelector('.extension-status-info p').textContent = 'Make sure the extension is installed and enabled in your browser';
             }
         }
-    }, 2000);
+    }
     
-    // Send ping to extension after a brief delay
+    // Send first ping immediately
+    sendPing();
+    
+    // Then send a ping every 2 seconds
+    pingInterval = setInterval(sendPing, 2000);
+    
+    // Also set a timeout to show instructions if not detected after 5 seconds
     setTimeout(() => {
-        sendPingToExtension();
-    }, 300);
+        if (!extensionDetected && statusBox) {
+            statusBox.querySelector('.extension-status-info p').textContent = 'Still searching... If you just installed the extension, please refresh this page.';
+        }
+    }, 5000);
     
-    console.log('[BrowserBricker] Manual detection refresh initiated');
+    console.log('[BrowserBricker] Started persistent pinging (every 2s, max 15 attempts)');
 }
+
 // ============================================================================
 // EXTENSION DETECTION MODULE
 // ============================================================================
