@@ -9,6 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     
     <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
         :root {
@@ -563,6 +565,32 @@
         }
 
         .hidden { display: none !important; }
+
+        /* Map Styles */
+        .map-container {
+            width: 100%;
+            height: 500px;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            border: var(--border);
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .leaflet-popup-content-wrapper {
+            border-radius: 8px;
+            font-family: var(--pjs);
+        }
+
+        .leaflet-popup-content {
+            margin: 12px;
+            font-size: 0.85rem;
+        }
+
+        .custom-marker {
+            background: none;
+            border: none;
+        }
     </style>
 </head>
 <body>
@@ -886,7 +914,15 @@
                                 <i data-lucide="map-pin" size="20"></i>
                                 Active Geofences
                             </h2>
+                            <button class="btn btn-ghost" onclick="loadGeofences()">
+                                <i data-lucide="refresh-cw" size="16"></i>
+                            </button>
                         </div>
+                        
+                        <!-- Geofence Map -->
+                        <div id="geofenceMap" class="map-container" style="margin-bottom: 20px;"></div>
+                        
+                        <!-- Geofence List -->
                         <div id="geofencesList">
                             <div style="text-align: center; padding: 40px; color: var(--zinc-400);">
                                 Loading geofences...
@@ -907,6 +943,9 @@
                             <div class="field-group">
                                 <label class="field-label">Latitude</label>
                                 <input type="number" id="geofenceLat" class="input-control" step="any" placeholder="40.712776" required>
+                                <small style="font-size: 0.75rem; color: var(--zinc-500); margin-top: 4px; display: block;">
+                                    Click on the map to set coordinates
+                                </small>
                             </div>
                             <div class="field-group">
                                 <label class="field-label">Longitude</label>
@@ -914,7 +953,7 @@
                             </div>
                             <div class="field-group">
                                 <label class="field-label">Radius (meters)</label>
-                                <input type="number" id="geofenceRadius" class="input-control" min="10" max="100000" placeholder="1000" required>
+                                <input type="number" id="geofenceRadius" class="input-control" min="10" max="100000" placeholder="1000" value="1000" required>
                             </div>
                             <button type="submit" class="btn btn-primary" style="width: 100%;">
                                 <i data-lucide="map-pin" size="16"></i>
@@ -933,14 +972,33 @@
                             <i data-lucide="map" size="20"></i>
                             Live Device Locations
                         </h2>
+                        <div style="display: flex; gap: 12px;">
+                            <button class="btn btn-ghost" onclick="toggleMapView()" id="mapViewToggle">
+                                <i data-lucide="layers" size="16"></i>
+                                <span id="mapViewToggleText">Show Map</span>
+                            </button>
+                            <button class="btn btn-ghost" onclick="loadLocations()">
+                                <i data-lucide="refresh-cw" size="16"></i>
+                                Refresh
+                            </button>
+                        </div>
                     </div>
                     <div style="background: var(--zinc-50); padding: 12px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
                         <div style="width: 8px; height: 8px; background: var(--status-safe); border-radius: 50%; animation: pulse 2s infinite;"></div>
                         <span style="font-size: 0.75rem; font-weight: 600; color: var(--zinc-600);">Auto-refreshing every 5 seconds</span>
                     </div>
-                    <div id="locationsList">
-                        <div style="text-align: center; padding: 40px; color: var(--zinc-400);">
-                            Loading locations...
+                    
+                    <!-- Map View -->
+                    <div id="locationsMapView" style="display: none;">
+                        <div id="locationsMap" class="map-container"></div>
+                    </div>
+                    
+                    <!-- List View -->
+                    <div id="locationsListView">
+                        <div id="locationsList">
+                            <div style="text-align: center; padding: 40px; color: var(--zinc-400);">
+                                Loading locations...
+                            </div>
                         </div>
                     </div>
                 </div>
