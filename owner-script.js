@@ -1,5 +1,5 @@
 // BrowserBricker Owner Panel - Complete Enhanced JavaScript
-// Version: 4.2.0 - Hierarchical Edition
+// Version: 5.0.1 - Hierarchical Edition
 // Features: System Admins, Registration Codes, Geofencing, Live Tracking, Bulk Operations
 
 lucide.createIcons();
@@ -11,6 +11,15 @@ let locationRefreshInterval = null;
 let sessionStartTime = Date.now();
 let activityChart = null;
 let searchTimeout = null;
+
+// Map variables
+let ownerLocationsMap = null;
+let ownerLocationsMapInitialized = false;
+let ownerGeofenceMap = null;
+let ownerGeofenceMapInitialized = false;
+let ownerLocationMarkers = [];
+let ownerGeofenceCircles = [];
+let isOwnerMapView = false;
 
 // ========== INITIALIZATION ==========
 window.onload = function() {
@@ -779,29 +788,98 @@ async function loadGeofences() {
         
         if (!data.geofences || data.geofences.length === 0) {
             list.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--zinc-400);">No geofences configured</div>';
+            
+            if (ownerGeofenceMap && ownerGeofenceCircles.length > 0) {
+                ownerGeofenceCircles.forEach(circle => circle.remove());
+                ownerGeofenceCircles = [];
+            }
             return;
         }
 
-        list.innerHTML = data.geofences.map(geo => `
-            <div style="background: var(--zinc-50); padding: 16px; border-radius: 12px; margin-bottom: 12px; border-left: 4px solid var(--status-info);">
-                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
-                    <div>
-                        <div style="font-weight: 700; margin-bottom: 4px;">${escapeHtml(geo.deviceName)}</div>
-                        <div style="font-family: var(--mono); font-size: 0.75rem; color: var(--zinc-500);">${geo.deviceId}</div>
-                    </div>
-                    <span class="badge badge-${geo.enabled ? 'safe' : 'warn'}">${geo.enabled ? 'Active' : 'Disabled'}</span>
+        if (!ownerGeofenceMapInitialized) {
+            ownerGeofenceMap = initializeOwnerMap('ownerGeofenceMap', data.geofences[0].lat, data.geofences[0].lon, 10);
+            ownerGeofenceMapInitialized = true;
+            
+            ownerGeofenceMap.on('click', function(e) {
+                document.getElementById('geofenceLat').value = e.latlng.lat.toFixed(6);
+                document.getElementById('geofenceLon').value = e.latlng.lng.toFixed(6);
+                
+                L.circle([e.latlng.lat, e.latlng.lng], {
+                    radius: parseInt(document.getElementById('geofenceRadius').value) || 1000,
+                    color: '#3b82f6',
+                    fillColor: '#60a5fa',
+                    fillOpacity: 0.2,
+                    weight: 2,
+                    dashArray: '5, 5'
+                }).addTo(ownerGeofenceMap).bindPopup('New geofence location (preview)').openPopup();
+            });
+        }
+        
+        ownerGeofenceCircles.forEach(circle => circle.remove());
+        ownerGeofenceCircles = [];
+        
+        const bounds = [];
+
+        list.innerHTML = data.geofences.map(geo => {
+            const circleColor = geo.enabled ? '#10b981' : '#f59e0b';
+            const circle = L.circle([geo.lat, geo.lon], {
+                radius: geo.radius,
+                color: circleColor,
+                fillColor: circleColor,
+                fillOpacity: 0.15,
+                weight: 3
+            }).addTo(ownerGeofenceMap);
+            
+            const marker = L.marker([geo.lat, geo.lon], {
+                icon: L.divIcon({
+                    className: 'geofence-marker',
+                    html: `<div style="background: ${circleColor}; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);"></div>`,
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8]
+                })
+            }).addTo(ownerGeofenceMap);
+            
+            const popupContent = `
+                <div style="min-width: 180px;">
+                    <div style="font-weight: 700; margin-bottom: 4px;">${escapeHtml(geo.deviceName)}</div>
+                    <div style="font-family: monospace; font-size: 0.7rem; color: #71717a; margin-bottom: 6px;">${geo.deviceId}</div>
+                    <div style="font-size: 0.8rem; margin-bottom: 4px;"><strong>Radius:</strong> ${geo.radius}m</div>
+                    <div style="font-size: 0.8rem;"><strong>Status:</strong> ${geo.enabled ? '<span style="color: #10b981;">● Active</span>' : '<span style="color: #f59e0b;">● Disabled</span>'}</div>
                 </div>
-                <div style="background: white; padding: 12px; border-radius: 8px; border: var(--border); margin-bottom: 12px;">
-                    <div class="coordinates-display">
-                        📍 Center: ${geo.lat.toFixed(6)}, ${geo.lon.toFixed(6)}<br>
-                        📏 Radius: ${geo.radius} meters
+            `;
+            
+            marker.bindPopup(popupContent);
+            circle.bindPopup(popupContent);
+            
+            ownerGeofenceCircles.push(circle);
+            ownerGeofenceCircles.push(marker);
+            bounds.push([geo.lat, geo.lon]);
+            
+            return `
+                <div style="background: var(--zinc-50); padding: 16px; border-radius: 12px; margin-bottom: 12px; border-left: 4px solid ${circleColor};">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                        <div>
+                            <div style="font-weight: 700; margin-bottom: 4px;">${escapeHtml(geo.deviceName)}</div>
+                            <div style="font-family: var(--mono); font-size: 0.75rem; color: var(--zinc-500);">${geo.deviceId}</div>
+                        </div>
+                        <span class="badge badge-${geo.enabled ? 'safe' : 'warn'}">${geo.enabled ? 'Active' : 'Disabled'}</span>
                     </div>
+                    <div style="background: white; padding: 12px; border-radius: 8px; border: var(--border); margin-bottom: 12px;">
+                        <div class="coordinates-display">
+                            📍 Center: ${geo.lat.toFixed(6)}, ${geo.lon.toFixed(6)}<br>
+                            📏 Radius: ${geo.radius} meters
+                        </div>
+                    </div>
+                    <button class="btn btn-danger" style="padding: 6px 12px; font-size: 0.75rem; width: 100%;" onclick="removeGeofence('${geo.deviceId}')">
+                        <i data-lucide="trash-2" size="12"></i> Remove Geofence
+                    </button>
                 </div>
-                <button class="btn btn-danger" style="padding: 6px 12px; font-size: 0.75rem; width: 100%;" onclick="removeGeofence('${geo.deviceId}')">
-                    <i data-lucide="trash-2" size="12"></i> Remove Geofence
-                </button>
-            </div>
-        `).join('');
+            `;
+        }).join('');
+        
+        if (bounds.length > 0 && ownerGeofenceMap) {
+            ownerGeofenceMap.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+        }
         
         lucide.createIcons();
     } catch (error) {
@@ -869,6 +947,56 @@ async function removeGeofence(deviceId) {
     }
 }
 
+// ========== MAP FUNCTIONS ==========
+function initializeOwnerMap(containerId, centerLat = 40.7128, centerLon = -74.0060, zoom = 12) {
+    const container = document.getElementById(containerId);
+    if (!container) return null;
+    
+    if (container._leaflet_id) {
+        container._leaflet_id = null;
+        container.innerHTML = '';
+    }
+    
+    const map = L.map(containerId).setView([centerLat, centerLon], zoom);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+    }).addTo(map);
+    
+    setTimeout(() => {
+        map.invalidateSize();
+    }, 100);
+    
+    return map;
+}
+
+function toggleOwnerMapView() {
+    isOwnerMapView = !isOwnerMapView;
+    const mapView = document.getElementById('ownerLocationsMapView');
+    const listView = document.getElementById('ownerLocationsListView');
+    const toggleBtn = document.getElementById('ownerMapViewToggleText');
+    
+    if (isOwnerMapView) {
+        mapView.style.display = 'block';
+        listView.style.display = 'none';
+        toggleBtn.textContent = 'Show List';
+        
+        if (!ownerLocationsMapInitialized) {
+            ownerLocationsMap = initializeOwnerMap('ownerLocationsMap', 40.7128, -74.0060, 4);
+            ownerLocationsMapInitialized = true;
+        }
+        
+        loadLocations();
+    } else {
+        mapView.style.display = 'none';
+        listView.style.display = 'block';
+        toggleBtn.textContent = 'Show Map';
+    }
+    
+    lucide.createIcons();
+}
+
 // ========== LOCATION TRACKING ==========
 async function loadLocations() {
     try {
@@ -877,6 +1005,11 @@ async function loadLocations() {
         
         if (!data.locations || data.locations.length === 0) {
             list.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--zinc-400);">No location data available</div>';
+            
+            if (ownerLocationsMap && ownerLocationMarkers.length > 0) {
+                ownerLocationMarkers.forEach(marker => marker.remove());
+                ownerLocationMarkers = [];
+            }
             return;
         }
 
@@ -905,6 +1038,54 @@ async function loadLocations() {
                 </div>
             `;
         }).join('');
+        
+        if (ownerLocationsMap && isOwnerMapView) {
+            ownerLocationMarkers.forEach(marker => marker.remove());
+            ownerLocationMarkers = [];
+            
+            const bounds = [];
+            data.locations.forEach(loc => {
+                const timeDiff = Date.now() - new Date(loc.timestamp).getTime();
+                const isRecent = timeDiff < 10000;
+                const markerColor = isRecent ? '#10b981' : '#06b6d4';
+                
+                const customIcon = L.divIcon({
+                    className: 'custom-marker',
+                    html: `<div style="background: ${markerColor}; width: 24px; height: 24px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>`,
+                    iconSize: [24, 24],
+                    iconAnchor: [12, 24],
+                    popupAnchor: [0, -24]
+                });
+                
+                const marker = L.marker([loc.location.lat, loc.location.lon], { icon: customIcon }).addTo(ownerLocationsMap);
+                
+                const popupContent = `
+                    <div style="min-width: 200px;">
+                        <div style="font-weight: 700; margin-bottom: 6px; font-size: 0.95rem;">${escapeHtml(loc.deviceName)}</div>
+                        <div style="font-family: monospace; font-size: 0.75rem; color: #71717a; margin-bottom: 8px;">${loc.deviceId}</div>
+                        <div style="background: #f4f4f5; padding: 8px; border-radius: 6px; margin-bottom: 8px; font-size: 0.8rem;">
+                            <strong>📍 Coordinates:</strong><br>
+                            ${loc.location.lat.toFixed(6)}, ${loc.location.lon.toFixed(6)}
+                        </div>
+                        <div style="font-size: 0.75rem; color: #71717a; margin-bottom: 6px;">
+                            <strong>Status:</strong> ${isRecent ? '<span style="color: #10b981;">● LIVE</span>' : '<span style="color: #06b6d4;">● Recent</span>'}
+                        </div>
+                        ${loc.geofenced ? '<div style="font-size: 0.75rem; color: #06b6d4;">🔒 Geofenced</div>' : ''}
+                        <div style="font-size: 0.7rem; color: #a1a1aa; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e4e4e7;">
+                            Last updated: ${formatTime(loc.timestamp)}
+                        </div>
+                    </div>
+                `;
+                
+                marker.bindPopup(popupContent);
+                ownerLocationMarkers.push(marker);
+                bounds.push([loc.location.lat, loc.location.lon]);
+            });
+            
+            if (bounds.length > 0) {
+                ownerLocationsMap.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+            }
+        }
         
         lucide.createIcons();
     } catch (error) {
@@ -1719,8 +1900,22 @@ function switchView(viewId) {
     if (viewId === 'breaches') loadBreaches();
     if (viewId === 'blocked-ips') loadBlockedIPs();
     if (viewId === 'sessions') loadSessions();
-    if (viewId === 'geofencing') loadGeofences();
-    if (viewId === 'locations') loadLocations();
+    if (viewId === 'geofencing') {
+        loadGeofences();
+        setTimeout(() => {
+            if (ownerGeofenceMap) {
+                ownerGeofenceMap.invalidateSize();
+            }
+        }, 100);
+    }
+    if (viewId === 'locations') {
+        loadLocations();
+        setTimeout(() => {
+            if (ownerLocationsMap && isOwnerMapView) {
+                ownerLocationsMap.invalidateSize();
+            }
+        }, 100);
+    }
     if (viewId === 'notifications') loadNotifications();
     if (viewId === 'audit') loadAudit();
     if (viewId === 'settings') loadSettings();
@@ -2422,13 +2617,18 @@ function generateGeofencingHTML() {
                         <i data-lucide="refresh-cw" size="16"></i> Refresh
                     </button>
                 </div>
+                
+                <!-- Geofence Map -->
+                <div id="ownerGeofenceMap" class="map-container" style="margin-bottom: 20px;"></div>
+                
+                <!-- Geofence List -->
                 <div id="geofencesList"></div>
             </div>
 
             <div class="card-main">
                 <h3 class="card-title"><i data-lucide="plus-circle"></i> Create New Geofence</h3>
                 <p style="color: var(--zinc-500); margin-bottom: 20px;">
-                    Set up a geographic perimeter for a device.
+                    Set up a geographic perimeter for a device. Click on the map to set coordinates.
                 </p>
                 <form id="createGeofenceForm" onsubmit="createNewGeofence(event)">
                     <div class="field-group">
@@ -2439,6 +2639,9 @@ function generateGeofencingHTML() {
                     <div class="field-group">
                         <label class="field-label">Latitude</label>
                         <input type="number" id="geofenceLat" class="input-control" step="any" placeholder="e.g., 40.712776" required>
+                        <small style="font-size: 0.75rem; color: var(--zinc-500); margin-top: 4px; display: block;">
+                            Click on the map to set coordinates
+                        </small>
                     </div>
                     
                     <div class="field-group">
@@ -2448,7 +2651,7 @@ function generateGeofencingHTML() {
                     
                     <div class="field-group">
                         <label class="field-label">Radius (meters)</label>
-                        <input type="number" id="geofenceRadius" class="input-control" min="10" max="100000" placeholder="e.g., 1000" required>
+                        <input type="number" id="geofenceRadius" class="input-control" min="10" max="100000" placeholder="e.g., 1000" value="1000" required>
                     </div>
                     
                     <button type="submit" class="btn btn-primary" style="width: 100%;">
@@ -2465,15 +2668,31 @@ function generateLocationsHTML() {
         <div class="card-main">
             <div class="card-header">
                 <h3 class="card-title"><i data-lucide="map"></i> Live Device Locations</h3>
-                <button class="btn btn-ghost" onclick="loadLocations()">
-                    <i data-lucide="refresh-cw" size="16"></i> Refresh
-                </button>
+                <div style="display: flex; gap: 12px;">
+                    <button class="btn btn-ghost" onclick="toggleOwnerMapView()" id="ownerMapViewToggle">
+                        <i data-lucide="layers" size="16"></i>
+                        <span id="ownerMapViewToggleText">Show Map</span>
+                    </button>
+                    <button class="btn btn-ghost" onclick="loadLocations()">
+                        <i data-lucide="refresh-cw" size="16"></i>
+                        Refresh
+                    </button>
+                </div>
             </div>
             <div style="background: var(--zinc-50); padding: 12px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
                 <div style="width: 8px; height: 8px; background: var(--status-safe); border-radius: 50%; animation: pulse 2s infinite;"></div>
                 <span style="font-size: 0.75rem; font-weight: 600; color: var(--zinc-600);">Auto-refreshing every 5 seconds</span>
             </div>
-            <div id="locationsList"></div>
+            
+            <!-- Map View -->
+            <div id="ownerLocationsMapView" style="display: none;">
+                <div id="ownerLocationsMap" class="map-container"></div>
+            </div>
+            
+            <!-- List View -->
+            <div id="ownerLocationsListView">
+                <div id="locationsList"></div>
+            </div>
         </div>
     `;
 }
