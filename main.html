@@ -27,7 +27,6 @@
             --zinc-900: #18181b;
             --zinc-950: #09090b;
             
-            /* User specific colors - green/emerald theme */
             --brand-primary: #10b981;
             --brand-dark: #059669;
             --brand-light: #34d399;
@@ -288,6 +287,7 @@
         .header-actions {
             display: flex;
             gap: 12px;
+            flex-wrap: wrap;
         }
 
         .grid-stats {
@@ -405,12 +405,34 @@
         }
 
         .device-meta {
-            display: flex;
-            gap: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
             margin-bottom: 20px;
+            padding: 16px;
+            background: var(--zinc-50);
+            border-radius: 12px;
             font-size: 0.875rem;
-            color: var(--zinc-500);
+        }
+
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .meta-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--zinc-400);
+        }
+
+        .meta-value {
             font-family: var(--mono);
+            color: var(--zinc-700);
+            font-weight: 600;
         }
 
         .device-tags {
@@ -445,7 +467,6 @@
         }
 
         .empty-icon {
-            font-size: 4rem;
             margin-bottom: 20px;
             opacity: 0.3;
         }
@@ -480,13 +501,15 @@
 
         .modal {
             width: 100%;
-            max-width: 600px;
+            max-width: 700px;
             background: var(--white);
             border: var(--border);
             border-radius: 24px;
             padding: 32px;
             box-shadow: 0 40px 100px rgba(0,0,0,0.3);
             animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .modal-header {
@@ -555,6 +578,73 @@
             box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
         }
 
+        .detail-section {
+            margin-bottom: 24px;
+        }
+
+        .detail-section-title {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: var(--zinc-700);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            padding: 16px;
+            background: var(--zinc-50);
+            border-radius: 12px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .detail-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--zinc-400);
+        }
+
+        .detail-value {
+            font-family: var(--mono);
+            color: var(--zinc-700);
+            font-size: 0.9rem;
+        }
+
+        .history-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            padding: 12px;
+            background: var(--zinc-50);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border-left: 3px solid var(--brand-primary);
+        }
+
+        .history-action {
+            font-weight: 700;
+            color: var(--zinc-900);
+            margin-bottom: 4px;
+        }
+
+        .history-meta {
+            font-size: 0.8rem;
+            color: var(--zinc-500);
+            font-family: var(--mono);
+        }
+
         .toast-container {
             position: fixed;
             bottom: 30px;
@@ -594,16 +684,38 @@
         .toast-success { border-left-color: var(--status-safe); }
         .toast-error { border-left-color: var(--status-danger); }
 
+        .warning-banner {
+            background: rgba(245, 158, 11, 0.1);
+            border: 2px solid rgba(245, 158, 11, 0.3);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .warning-banner strong {
+            color: var(--status-warn);
+            font-size: 0.875rem;
+        }
+
         @media (max-width: 768px) {
             .grid-stats {
                 grid-template-columns: repeat(2, 1fr);
             }
             .header-actions {
                 width: 100%;
-                flex-direction: column;
+            }
+            .header-actions button {
+                flex: 1;
             }
             .device-actions {
                 flex-direction: column;
+            }
+            .device-meta,
+            .detail-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -725,7 +837,7 @@
 
             <!-- Empty State -->
             <div class="empty-state" id="emptyState" style="display: none;">
-                <div class="empty-icon">🔒</div>
+                <div class="empty-icon"><i data-lucide="shield" size="64"></i></div>
                 <h3>No Devices Yet</h3>
                 <p>Register your first device to start remote protection</p>
                 <button class="btn btn-primary" onclick="registerDevice()" style="max-width: 300px; margin: 0 auto;">
@@ -849,6 +961,16 @@
         </div>
     </div>
 
+    <div class="modal-overlay" id="detailsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title" id="detailsDeviceName">Device Details</h2>
+                <button class="modal-close" onclick="closeDetailsModal()">×</button>
+            </div>
+            <div id="detailsContent"></div>
+        </div>
+    </div>
+
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
 
@@ -856,8 +978,8 @@
         const API_URL = 'https://browserbricker.onrender.com';
         let masterApiKey = null;
         let refreshInterval = null;
+        let allDevicesData = [];
 
-        // Initialize Lucide icons
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
         }
@@ -984,109 +1106,124 @@
         }
 
         async function loadDevices() {
-    try {
-        const response = await fetch(`${API_URL}/api/devices`, {
-            headers: { 'Authorization': `Bearer ${masterApiKey}` }
-        });
-        
-        if (!response.ok) throw new Error('Failed to load devices');
-        
-        const data = await response.json();
-        
-        // Server returns: { success: true, devices: [...] }
-        const devices = data.devices || [];
-        
-        // Calculate stats from devices array
-        const settings = { heartbeatTimeout: 60000 }; // Default 60s timeout
-        const now = Date.now();
-        
-        const online = devices.filter(d => 
-            d.lastHeartbeat && (now - d.lastHeartbeat) < settings.heartbeatTimeout
-        ).length;
-        
-        const armed = devices.filter(d => d.armed).length;
-        const quarantined = devices.filter(d => d.quarantined).length;
+            try {
+                const response = await fetch(`${API_URL}/api/devices`, {
+                    headers: { 'Authorization': `Bearer ${masterApiKey}` }
+                });
+                
+                if (!response.ok) throw new Error('Failed to load devices');
+                
+                const data = await response.json();
+                const devices = data.devices || [];
+                allDevicesData = devices;
+                
+                const settings = { heartbeatTimeout: 60000 };
+                const now = Date.now();
+                
+                const online = devices.filter(d => 
+                    d.lastHeartbeat && (now - d.lastHeartbeat) < settings.heartbeatTimeout
+                ).length;
+                
+                const armed = devices.filter(d => d.armed).length;
+                const quarantined = devices.filter(d => d.quarantined).length;
 
-        // Update stats
-        document.getElementById('statTotal').textContent = devices.length;
-        document.getElementById('statOnline').textContent = online;
-        document.getElementById('statArmed').textContent = armed;
-        document.getElementById('statQuarantined').textContent = quarantined;
+                document.getElementById('statTotal').textContent = devices.length;
+                document.getElementById('statOnline').textContent = online;
+                document.getElementById('statArmed').textContent = armed;
+                document.getElementById('statQuarantined').textContent = quarantined;
 
-        if (devices.length === 0) {
-            document.getElementById('deviceGrid').style.display = 'none';
-            document.getElementById('emptyState').style.display = 'block';
-            if (typeof lucide !== 'undefined') lucide.createIcons();
-            return;
-        }
+                if (devices.length === 0) {
+                    document.getElementById('deviceGrid').style.display = 'none';
+                    document.getElementById('emptyState').style.display = 'block';
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                    return;
+                }
 
-        document.getElementById('deviceGrid').style.display = 'grid';
-        document.getElementById('emptyState').style.display = 'none';
+                document.getElementById('deviceGrid').style.display = 'grid';
+                document.getElementById('emptyState').style.display = 'none';
 
-        // Render devices with correct online detection
-        document.getElementById('deviceGrid').innerHTML = devices.map(device => {
-            const isOnline = device.lastHeartbeat && 
-                             (now - device.lastHeartbeat) < settings.heartbeatTimeout;
-            
-            return `
-                <div class="device-card">
-                    <div class="device-header">
-                        <div>
-                            <h3 class="device-name">${escapeHtml(device.deviceName)}</h3>
-                            <div class="device-status">
-                                <span class="status-dot ${isOnline ? 'status-online' : 'status-offline'}"></span>
-                                <span>${isOnline ? 'Online' : 'Offline'}</span>
+                document.getElementById('deviceGrid').innerHTML = devices.map(device => {
+                    const isOnline = device.lastHeartbeat && 
+                                     (now - device.lastHeartbeat) < settings.heartbeatTimeout;
+                    
+                    return `
+                        <div class="device-card">
+                            <div class="device-header">
+                                <div>
+                                    <h3 class="device-name">${escapeHtml(device.deviceName)}</h3>
+                                    <div class="device-status">
+                                        <span class="status-dot ${isOnline ? 'status-online' : 'status-offline'}"></span>
+                                        <span>${isOnline ? 'Online' : 'Offline'}</span>
+                                    </div>
+                                </div>
+                                <span class="badge ${device.armed ? 'badge-armed' : 'badge-disarmed'}">
+                                    ${device.armed ? 'ARMED' : 'DISARMED'}
+                                </span>
+                            </div>
+
+                            <div class="device-meta">
+                                <div class="meta-item">
+                                    <span class="meta-label">Device ID</span>
+                                    <span class="meta-value">${device.deviceId.substring(0, 12)}...</span>
+                                </div>
+                                <div class="meta-item">
+                                    <span class="meta-label">Last Seen</span>
+                                    <span class="meta-value">${formatTime(device.lastHeartbeat)}</span>
+                                </div>
+                                ${device.battery ? `
+                                <div class="meta-item">
+                                    <span class="meta-label">Battery</span>
+                                    <span class="meta-value">${device.battery}%</span>
+                                </div>
+                                ` : ''}
+                                <div class="meta-item">
+                                    <span class="meta-label">Breaches</span>
+                                    <span class="meta-value">${device.breachCount || 0}</span>
+                                </div>
+                            </div>
+
+                            ${device.tags && device.tags.length > 0 ? `
+                                <div class="device-tags">
+                                    ${device.tags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('')}
+                                </div>
+                            ` : ''}
+
+                            ${device.quarantined ? `
+                                <div class="warning-banner">
+                                    <i data-lucide="alert-triangle" size="16" style="color: var(--status-warn);"></i>
+                                    <strong>QUARANTINED</strong>
+                                </div>
+                            ` : ''}
+
+                            <div class="device-actions">
+                                ${device.armed ? 
+                                    `<button class="btn btn-success" onclick="toggleDevice('${device.deviceId}', false)" style="flex: 1;">
+                                        <i data-lucide="unlock" size="18"></i> DISARM
+                                    </button>` :
+                                    `<button class="btn btn-danger" onclick="toggleDevice('${device.deviceId}', true)" style="flex: 1;">
+                                        <i data-lucide="lock" size="18"></i> ARM
+                                    </button>`
+                                }
+                                <button class="btn btn-ghost" onclick="viewDetails('${device.deviceId}')" title="View Details">
+                                    <i data-lucide="info" size="18"></i>
+                                </button>
+                                <button class="btn btn-ghost" onclick="editDevice('${device.deviceId}', '${escapeHtml(device.deviceName)}', '${(device.tags || []).join(',')}')" title="Edit">
+                                    <i data-lucide="edit-2" size="18"></i>
+                                </button>
+                                <button class="btn btn-ghost" onclick="deleteDevice('${device.deviceId}', '${escapeHtml(device.deviceName)}')" style="color: var(--status-danger);" title="Delete">
+                                    <i data-lucide="trash-2" size="18"></i>
+                                </button>
                             </div>
                         </div>
-                        <span class="badge ${device.armed ? 'badge-armed' : 'badge-disarmed'}">
-                            ${device.armed ? '🔒 ARMED' : '🔓 DISARMED'}
-                        </span>
-                    </div>
-
-                    <div class="device-meta">
-                        <span>ID: ${device.deviceId.substring(0, 8)}...</span>
-                        <span>Last: ${formatTime(device.lastHeartbeat)}</span>
-                    </div>
-
-                    ${device.tags && device.tags.length > 0 ? `
-                        <div class="device-tags">
-                            ${device.tags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('')}
-                        </div>
-                    ` : ''}
-
-                    ${device.quarantined ? `
-                        <div style="background: rgba(245, 158, 11, 0.1); border: 2px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 12px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
-                            <i data-lucide="alert-triangle" size="16" style="color: var(--status-warn);"></i>
-                            <strong style="color: var(--status-warn); font-size: 0.875rem;">QUARANTINED</strong>
-                        </div>
-                    ` : ''}
-
-                    <div class="device-actions">
-                        ${device.armed ? 
-                            `<button class="btn btn-success" onclick="toggleDevice('${device.deviceId}', false)" style="flex: 1;">
-                                <i data-lucide="unlock" size="18"></i> DISARM
-                            </button>` :
-                            `<button class="btn btn-danger" onclick="toggleDevice('${device.deviceId}', true)" style="flex: 1;">
-                                <i data-lucide="lock" size="18"></i> ARM
-                            </button>`
-                        }
-                        <button class="btn btn-ghost" onclick="editDevice('${device.deviceId}', '${escapeHtml(device.deviceName)}', '${(device.tags || []).join(',')}')">
-                            <i data-lucide="edit-2" size="18"></i>
-                        </button>
-                        <button class="btn btn-ghost" onclick="deleteDevice('${device.deviceId}', '${escapeHtml(device.deviceName)}')" style="color: var(--status-danger);">
-                            <i data-lucide="trash-2" size="18"></i>
-                        </button>
-                    </div>
-                </div>
-            `;
-        }).join('');
-        
-        if (typeof lucide !== 'undefined') lucide.createIcons();
-    } catch (error) {
-        console.error('Load devices error:', error);
-        showToast('Error', 'Failed to load devices', 'error');
-    }
-}
+                    `;
+                }).join('');
+                
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            } catch (error) {
+                console.error('Load devices error:', error);
+                showToast('Error', 'Failed to load devices', 'error');
+            }
+        }
 
         async function toggleDevice(deviceId, arm) {
             try {
@@ -1105,12 +1242,160 @@
             if (!confirm(`Delete "${deviceName}"?\n\nThis action cannot be undone.`)) return;
 
             try {
-                await apiCall('/api/device/delete', 'DELETE', { deviceId });
+                await apiCall('/api/device/delete', 'POST', { deviceId });
                 showToast('Success', 'Device deleted', 'success');
                 await loadDevices();
             } catch (error) {
                 showToast('Error', error.message, 'error');
             }
+        }
+
+        function viewDetails(deviceId) {
+            const device = allDevicesData.find(d => d.deviceId === deviceId);
+            if (!device) return;
+
+            document.getElementById('detailsDeviceName').textContent = device.deviceName;
+            
+            const settings = { heartbeatTimeout: 60000 };
+            const now = Date.now();
+            const isOnline = device.lastHeartbeat && (now - device.lastHeartbeat) < settings.heartbeatTimeout;
+
+            let content = `
+                <div class="detail-section">
+                    <div class="detail-section-title">Device Information</div>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <span class="detail-label">Device ID</span>
+                            <span class="detail-value">${device.deviceId}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Status</span>
+                            <span class="detail-value">${device.armed ? 'ARMED' : 'DISARMED'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Connection</span>
+                            <span class="detail-value">${isOnline ? 'Online' : 'Offline'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Registered</span>
+                            <span class="detail-value">${new Date(device.registered).toLocaleString()}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Last Heartbeat</span>
+                            <span class="detail-value">${device.lastHeartbeat ? new Date(device.lastHeartbeat).toLocaleString() : 'Never'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Breach Count</span>
+                            <span class="detail-value">${device.breachCount || 0}</span>
+                        </div>
+            `;
+
+            if (device.battery) {
+                content += `
+                        <div class="detail-item">
+                            <span class="detail-label">Battery Level</span>
+                            <span class="detail-value">${device.battery}%</span>
+                        </div>
+                `;
+            }
+
+            if (device.network) {
+                content += `
+                        <div class="detail-item">
+                            <span class="detail-label">Network</span>
+                            <span class="detail-value">${escapeHtml(device.network)}</span>
+                        </div>
+                `;
+            }
+
+            if (device.location) {
+                content += `
+                        <div class="detail-item">
+                            <span class="detail-label">Location</span>
+                            <span class="detail-value">${device.location.lat.toFixed(6)}, ${device.location.lon.toFixed(6)}</span>
+                        </div>
+                `;
+            }
+
+            content += `
+                    </div>
+                </div>
+            `;
+
+            if (device.quarantined) {
+                content += `
+                    <div class="detail-section">
+                        <div class="detail-section-title">Quarantine Information</div>
+                        <div class="warning-banner">
+                            <i data-lucide="alert-triangle" size="16" style="color: var(--status-warn);"></i>
+                            <strong>This device is quarantined</strong>
+                        </div>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <span class="detail-label">Quarantined At</span>
+                                <span class="detail-value">${new Date(device.quarantinedAt).toLocaleString()}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Reason</span>
+                                <span class="detail-value">${escapeHtml(device.quarantineReason || 'N/A')}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Quarantined By</span>
+                                <span class="detail-value">${device.quarantinedBy || 'System'}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (device.lockHistory && device.lockHistory.length > 0) {
+                content += `
+                    <div class="detail-section">
+                        <div class="detail-section-title">Lock History (Last 10)</div>
+                        <div class="history-list">
+                            ${device.lockHistory.slice(-10).reverse().map(entry => `
+                                <div class="history-item">
+                                    <div class="history-action">${entry.action.toUpperCase()}</div>
+                                    <div class="history-meta">
+                                        ${new Date(entry.timestamp).toLocaleString()} • 
+                                        ${entry.byName || 'System'} • 
+                                        ${escapeHtml(entry.reason || 'No reason provided')}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (device.breaches && device.breaches.length > 0) {
+                content += `
+                    <div class="detail-section">
+                        <div class="detail-section-title">Recent Breaches (Last 5)</div>
+                        <div class="history-list">
+                            ${device.breaches.slice(-5).reverse().map(breach => `
+                                <div class="history-item" style="border-left-color: var(--status-danger);">
+                                    <div class="history-action">${breach.type.replace(/_/g, ' ').toUpperCase()}</div>
+                                    <div class="history-meta">
+                                        ${new Date(breach.timestamp).toLocaleString()} • 
+                                        Severity: ${breach.severity} • 
+                                        ${escapeHtml(breach.details)}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('detailsContent').innerHTML = content;
+            document.getElementById('detailsModal').classList.add('active');
+            
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function closeDetailsModal() {
+            document.getElementById('detailsModal').classList.remove('active');
         }
 
         // ========== MODALS ==========
@@ -1221,7 +1506,7 @@
                 .filter(t => t);
 
             try {
-                await apiCall('/api/device/update', 'PATCH', { deviceId, deviceName, tags });
+                await apiCall('/api/device/update', 'POST', { deviceId, deviceName, tags });
                 closeEditModal();
                 showToast('Success', 'Device updated', 'success');
                 await loadDevices();
@@ -1283,7 +1568,6 @@
             return `${Math.floor(seconds / 86400)}d ago`;
         }
 
-        // Check for stored key on load
         window.onload = function() {
             const storedKey = sessionStorage.getItem('masterKey');
             if (storedKey) {
