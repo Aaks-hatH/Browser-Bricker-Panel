@@ -1170,10 +1170,10 @@
                                     <span class="meta-label">Last Seen</span>
                                     <span class="meta-value">${formatTime(device.lastHeartbeat)}</span>
                                 </div>
-                                ${device.battery ? `
+                                ${device.battery && device.battery.level ? `
                                 <div class="meta-item">
                                     <span class="meta-label">Battery</span>
-                                    <span class="meta-value">${device.battery}%</span>
+                                    <span class="meta-value">${device.battery.level}%</span>
                                 </div>
                                 ` : ''}
                                 <div class="meta-item">
@@ -1290,11 +1290,11 @@
                         </div>
             `;
 
-            if (device.battery) {
+            if (device.battery && device.battery.level) {
                 content += `
                         <div class="detail-item">
                             <span class="detail-label">Battery Level</span>
-                            <span class="detail-value">${device.battery}%</span>
+                            <span class="detail-value">${device.battery.level}%</span>
                         </div>
                 `;
             }
