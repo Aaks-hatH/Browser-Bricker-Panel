@@ -184,6 +184,14 @@ async function loadDashboard() {
         document.getElementById('statUsers').textContent = stats.users?.total || 0;
         document.getElementById('statQuarantined').textContent = stats.devices?.quarantined || 0;
         document.getElementById('statGeofenced').textContent = stats.devices?.geofenced || 0;
+
+        // Additional stats from server (update elements if they exist in HTML)
+        const offlineEl = document.getElementById('statOffline');
+        if (offlineEl) offlineEl.textContent = stats.devices?.offline || 0;
+        const disarmedEl = document.getElementById('statDisarmed');
+        if (disarmedEl) disarmedEl.textContent = stats.devices?.disarmed || 0;
+        const revokedEl = document.getElementById('statRevoked');
+        if (revokedEl) revokedEl.textContent = stats.users?.revoked || 0;
         
         // Load data for active view
         const activeView = document.querySelector('.view-container.active');
@@ -396,6 +404,12 @@ function renderDevices(devices) {
         
         const lastSeen = device.lastHeartbeat > 0 ? 
             timeSince(device.lastHeartbeat) : 'Never';
+
+        const tagsBadges = device.tags && device.tags.length > 0
+            ? '<div style="margin-top:4px;display:flex;gap:3px;flex-wrap:wrap;">' +
+              device.tags.map(t => `<span class="badge" style="background:var(--zinc-200);color:var(--zinc-700);font-size:0.65rem;">${escapeHtml(t)}</span>`).join('') +
+              '</div>'
+            : '';
         
         const armBtn = device.armed ? 
             `<button class="btn btn-success" style="padding: 8px 16px; font-size: 0.8rem;" onclick="disarmDevice('${device.deviceId}')"><i data-lucide="unlock" size="14"></i></button>` :
@@ -406,6 +420,7 @@ function renderDevices(devices) {
                 <td>
                     <div style="font-weight: 700; margin-bottom: 4px;">${escapeHtml(device.deviceName)}</div>
                     <div style="font-family: var(--mono); font-size: 0.75rem; color: var(--zinc-400);">${device.deviceId.substring(0, 12)}...</div>
+                    ${tagsBadges}
                 </td>
                 <td>${onlineBadge}</td>
                 <td>${stateBadge}</td>
@@ -464,7 +479,7 @@ function renderUsers(users) {
     
     users.forEach(user => {
         const statusBadge = user.revoked ? 
-            '<span class="badge badge-danger">REVOKED</span>' : 
+            `<span class="badge badge-danger">REVOKED</span>${user.revokedAt ? `<div style="font-size:0.7rem;color:var(--zinc-400);margin-top:2px;">${timeSince(user.revokedAt)}</div>` : ''}` : 
             '<span class="badge badge-safe">ACTIVE</span>';
         
         // ✅ Fix: Use createdAt instead of created
@@ -564,6 +579,7 @@ function renderGeofences(geofences) {
                     📍 Center: ${geo.lat.toFixed(6)}, ${geo.lon.toFixed(6)}<br>
                     📏 Radius: ${geo.radius} meters
                 </div>
+                ${geo.createdBy ? `<div style="font-size:0.75rem;color:var(--zinc-500);margin-top:6px;">Created by: ${escapeHtml(geo.createdBy)}${geo.createdAt ? ' · ' + timeSince(geo.createdAt) : ''}</div>` : ''}
                 <button class="btn btn-danger" style="padding: 6px 12px; font-size: 0.75rem; width: 100%; margin-top: 12px;" onclick="removeGeofence('${geo.deviceId}')">
                     <i data-lucide="trash-2" size="12"></i> Remove Geofence
                 </button>
@@ -637,7 +653,8 @@ function renderLocations(locations) {
     
     let html = '';
     locations.forEach(loc => {
-        const timeDiff = Date.now() - new Date(loc.timestamp).getTime();
+        const locTimestamp = loc.location.timestamp || 0;
+        const timeDiff = Date.now() - new Date(locTimestamp).getTime();
         const isRecent = timeDiff < 30000;
         
         html += `
@@ -647,8 +664,10 @@ function renderLocations(locations) {
                         <div style="font-weight: 700; margin-bottom: 4px;">${escapeHtml(loc.deviceName)}</div>
                         <div style="font-family: var(--mono); font-size: 0.75rem; color: var(--zinc-500);">${loc.deviceId}</div>
                     </div>
-                    <div style="display: flex; gap: 6px;">
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end;">
                         ${isRecent ? '<span class="badge badge-safe"><i data-lucide="radio" size="10"></i> LIVE</span>' : ''}
+                        ${loc.armed ? '<span class="badge badge-armed"><i data-lucide="lock" size="10"></i> Armed</span>' : ''}
+                        ${loc.quarantined ? '<span class="badge badge-danger"><i data-lucide="shield-alert" size="10"></i> Quarantine</span>' : ''}
                         ${loc.geofenced ? '<span class="badge badge-info"><i data-lucide="map-pin" size="10"></i> GEOFENCED</span>' : ''}
                     </div>
                 </div>
@@ -656,7 +675,7 @@ function renderLocations(locations) {
                     📍 ${loc.location.lat.toFixed(6)}, ${loc.location.lon.toFixed(6)}
                 </div>
                 <div style="font-size: 0.75rem; color: var(--zinc-400); margin-top: 8px;">
-                    Last updated: ${timeSince(loc.timestamp)}
+                    Last updated: ${timeSince(locTimestamp)}
                 </div>
             </div>
         `;
@@ -731,26 +750,21 @@ function renderBreaches(breaches) {
     
     let html = '';
     breaches.forEach(breach => {
+        const severityColor = breach.severity === 'high' || breach.severity === 'critical'
+            ? 'var(--status-danger)' : 'var(--status-warn)';
         html += `
-            <div style="background: var(--zinc-50); padding: 16px; border-radius: 12px; margin-bottom: 12px; border-left: 4px solid var(--status-danger);">
-                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+            <div style="background: var(--zinc-50); padding: 16px; border-radius: 12px; margin-bottom: 12px; border-left: 4px solid ${severityColor};">
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
                     <div>
                         <div style="font-weight: 700; margin-bottom: 4px;">${escapeHtml(breach.deviceName)}</div>
                         <div style="font-family: var(--mono); font-size: 0.75rem; color: var(--zinc-500);">${breach.deviceId}</div>
                     </div>
-                    <span class="badge badge-danger">${breach.count} Breach${breach.count !== 1 ? 'es' : ''}</span>
+                    <span class="badge badge-${breach.severity === 'high' || breach.severity === 'critical' ? 'danger' : 'warn'}">${(breach.severity || 'unknown').toUpperCase()}</span>
                 </div>
-                <div style="background: white; padding: 12px; border-radius: 8px; border: var(--border);">
-                    ${breach.breaches.map(b => `
-                        <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--zinc-100);">
-                            <div style="font-weight: 600; font-size: 0.85rem; margin-bottom: 4px;">
-                                ${b.type ? b.type.replace(/_/g, ' ').toUpperCase() : 'SECURITY EVENT'}
-                            </div>
-                            <div style="font-size: 0.75rem; color: var(--zinc-400);">
-                                ${new Date(b.timestamp).toLocaleString()}
-                            </div>
-                        </div>
-                    `).join('')}
+                <div style="background: white; padding: 10px; border-radius: 8px; border: var(--border); font-size: 0.85rem;">
+                    <div style="font-weight: 600; margin-bottom: 4px;">${breach.type ? breach.type.replace(/_/g, ' ').toUpperCase() : 'SECURITY EVENT'}</div>
+                    ${breach.details ? `<div style="color: var(--zinc-600); margin-bottom: 4px;">${escapeHtml(breach.details)}</div>` : ''}
+                    <div style="font-size: 0.75rem; color: var(--zinc-400);">${new Date(breach.timestamp).toLocaleString()}</div>
                 </div>
             </div>
         `;
@@ -927,7 +941,7 @@ async function saveDeviceEdit(event) {
     
     try {
         const response = await fetch(`${API_URL}/api/system/device/update`, {
-            method: 'PUT',
+            method: 'POST',
             headers: {
                 'Authorization': `Bearer ${systemAdminKey}`,
                 'Content-Type': 'application/json'
@@ -955,7 +969,7 @@ async function deleteDevice(deviceId, deviceName) {
     
     try {
         const response = await fetch(`${API_URL}/api/system/device/delete`, {
-            method: 'DELETE',
+            method: 'POST',
             headers: {
                 'Authorization': `Bearer ${systemAdminKey}`,
                 'Content-Type': 'application/json'
@@ -997,7 +1011,7 @@ async function armAll() {
         const data = await response.json();
         
         if (response.ok) {
-            showToast('Success', `${data.armedCount} devices armed successfully`, 'success');
+            showToast('Success', `${data.armed} devices armed successfully`, 'success');
             loadDashboard();
         } else {
             showToast('Error', data.error || 'Failed to arm devices', 'error');
@@ -1026,7 +1040,7 @@ async function disarmAll() {
         const data = await response.json();
         
         if (response.ok) {
-            showToast('Success', `${data.disarmedCount} devices disarmed successfully`, 'success');
+            showToast('Success', `${data.disarmed} devices disarmed successfully`, 'success');
             loadDashboard();
         } else {
             showToast('Error', data.error || 'Failed to disarm devices', 'error');
