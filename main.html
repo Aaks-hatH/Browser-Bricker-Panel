@@ -797,6 +797,10 @@
                     <p>Manage your protected devices</p>
                 </div>
                 <div class="header-actions">
+                    <button class="btn btn-ghost" style="width: auto; padding: 12px 24px;" onclick="showGroupsModal()">
+                        <i data-lucide="users" size="18"></i>
+                        My Groups
+                    </button>
                     <button class="btn btn-primary" style="width: auto; padding: 12px 24px;" onclick="registerDevice()">
                         <i data-lucide="plus" size="18"></i>
                         Register Device
@@ -896,6 +900,13 @@
                     >
                 </div>
                 <div class="field-group">
+                    <label class="field-label">Group (Optional)</label>
+                    <select id="deviceGroupInput" class="input-control">
+                        <option value="">No Group</option>
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+                <div class="field-group">
                     <label class="field-label">Location (Optional)</label>
                     <input 
                         type="text" 
@@ -968,6 +979,50 @@
                 <button class="modal-close" onclick="closeDetailsModal()">×</button>
             </div>
             <div id="detailsContent"></div>
+        </div>
+    </div>
+
+    <!-- Groups Modal -->
+    <div class="modal-overlay" id="groupsModal">
+        <div class="modal" style="max-width: 900px;">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <i data-lucide="users" size="20"></i>
+                    My Groups
+                </h2>
+                <button class="modal-close" onclick="closeGroupsModal()">×</button>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <p style="color: var(--zinc-500); margin-bottom: 15px;">
+                    Groups help you organize and manage your devices efficiently.
+                </p>
+                
+                <!-- Groups Stats -->
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px;">
+                    <div style="padding: 15px; background: var(--zinc-50); border-radius: 12px; text-align: center;">
+                        <div style="font-size: 24px; font-weight: 700; color: var(--brand-primary);" id="modalTotalGroups">0</div>
+                        <div style="font-size: 12px; color: var(--zinc-500); margin-top: 4px;">Total Groups</div>
+                    </div>
+                    <div style="padding: 15px; background: var(--zinc-50); border-radius: 12px; text-align: center;">
+                        <div style="font-size: 24px; font-weight: 700; color: var(--status-safe);" id="modalGroupDevices">0</div>
+                        <div style="font-size: 12px; color: var(--zinc-500); margin-top: 4px;">Total Devices</div>
+                    </div>
+                    <div style="padding: 15px; background: var(--zinc-50); border-radius: 12px; text-align: center;">
+                        <div style="font-size: 24px; font-weight: 700; color: var(--status-info);" id="modalActiveGroups">0</div>
+                        <div style="font-size: 12px; color: var(--zinc-500); margin-top: 4px;">Active Groups</div>
+                    </div>
+                </div>
+                
+                <!-- Groups List -->
+                <div id="groupsListContent" style="max-height: 400px; overflow-y: auto;">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+            
+            <button class="btn btn-ghost" onclick="closeGroupsModal()" style="width: 100%;">
+                Close
+            </button>
         </div>
     </div>
 
@@ -1076,6 +1131,7 @@
             document.getElementById('authScreen').style.display = 'none';
             document.getElementById('dashboard').classList.add('active');
             loadDevices();
+            loadGroupsForDropdown();
             startAutoRefresh();
         }
 
@@ -1423,10 +1479,12 @@
         }
 
         function registerDevice() {
+            loadGroupsForDropdown();
             document.getElementById('registerModal').classList.add('active');
             document.getElementById('deviceNameInput').value = '';
             document.getElementById('deviceTagsInput').value = '';
             document.getElementById('deviceLocationInput').value = '';
+            document.getElementById('deviceGroupInput').value = '';
             if (typeof lucide !== 'undefined') {
                 lucide.createIcons();
             }
@@ -1445,13 +1503,20 @@
                 .map(t => t.trim())
                 .filter(t => t);
             const location = document.getElementById('deviceLocationInput').value.trim();
+            const groupId = document.getElementById('deviceGroupInput').value;
 
             try {
-                const data = await apiCall('/api/device/register', 'POST', {
+                const payload = {
                     deviceName,
                     tags,
                     location
-                });
+                };
+                
+                if (groupId) {
+                    payload.groupId = groupId;
+                }
+
+                const data = await apiCall('/api/device/register', 'POST', payload);
 
                 closeRegisterModal();
                 showDeviceKeyModal(data.deviceApiKey);
@@ -1566,6 +1631,138 @@
             if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
             if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
             return `${Math.floor(seconds / 86400)}d ago`;
+        }
+
+        // ========== GROUPS FUNCTIONALITY ==========
+        let currentGroups = [];
+
+        async function loadGroupsForDropdown() {
+            try {
+                const response = await fetch(`${API_URL}/api/groups`, {
+                    headers: { 'Authorization': `Bearer ${masterApiKey}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    currentGroups = data.groups || [];
+                    
+                    // Populate group dropdown in register modal
+                    const groupSelect = document.getElementById('deviceGroupInput');
+                    if (groupSelect) {
+                        groupSelect.innerHTML = '<option value="">No Group</option>' + 
+                            currentGroups.map(g => 
+                                `<option value="${g.groupId}">${escapeHtml(g.groupName)}</option>`
+                            ).join('');
+                    }
+                }
+            } catch (error) {
+                console.error('Load groups error:', error);
+            }
+        }
+
+        function showGroupsModal() {
+            loadGroupsData();
+            document.getElementById('groupsModal').classList.add('active');
+        }
+
+        function closeGroupsModal() {
+            document.getElementById('groupsModal').classList.remove('active');
+        }
+
+        async function loadGroupsData() {
+            try {
+                const response = await fetch(`${API_URL}/api/groups`, {
+                    headers: { 'Authorization': `Bearer ${masterApiKey}` }
+                });
+                
+                if (!response.ok) throw new Error('Failed to fetch groups');
+                
+                const data = await response.json();
+                currentGroups = data.groups || [];
+                
+                displayGroupsInModal(currentGroups);
+                updateGroupsStats(currentGroups);
+            } catch (error) {
+                console.error('Load groups error:', error);
+                showToast('Error', 'Failed to load groups', 'error');
+            }
+        }
+
+        function displayGroupsInModal(groups) {
+            const container = document.getElementById('groupsListContent');
+            
+            if (!groups || groups.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: var(--zinc-400);">
+                        <i data-lucide="users" size="48" style="opacity: 0.3;"></i>
+                        <p style="margin-top: 15px;">No groups available yet.</p>
+                        <p style="font-size: 14px; margin-top: 5px;">Contact your administrator to create groups.</p>
+                    </div>
+                `;
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+                return;
+            }
+            
+            container.innerHTML = groups.map(group => {
+                const stats = group.stats || {};
+                return `
+                    <div style="padding: 15px; background: var(--white); border: 1px solid var(--zinc-200); border-radius: 12px; margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+                            <div>
+                                <h3 style="font-size: 16px; font-weight: 700; color: var(--zinc-900); margin-bottom: 4px;">
+                                    ${escapeHtml(group.groupName)}
+                                </h3>
+                                <p style="font-size: 13px; color: var(--zinc-500);">
+                                    ${escapeHtml(group.description || 'No description')}
+                                </p>
+                            </div>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                ${group.active ? 
+                                    '<span style="padding: 4px 12px; background: var(--status-safe); color: white; border-radius: 12px; font-size: 11px; font-weight: 600;">Active</span>' : 
+                                    '<span style="padding: 4px 12px; background: var(--zinc-300); color: white; border-radius: 12px; font-size: 11px; font-weight: 600;">Inactive</span>'
+                                }
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--zinc-100);">
+                            <div style="text-align: center;">
+                                <div style="font-size: 18px; font-weight: 700; color: var(--brand-primary);">${stats.totalDevices || 0}</div>
+                                <div style="font-size: 11px; color: var(--zinc-500);">Devices</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 18px; font-weight: 700; color: var(--status-safe);">${stats.activeDevices || 0}</div>
+                                <div style="font-size: 11px; color: var(--zinc-500);">Active</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 18px; font-weight: 700; color: ${stats.totalBreaches > 0 ? 'var(--status-danger)' : 'var(--zinc-400)'};">${stats.totalBreaches || 0}</div>
+                                <div style="font-size: 11px; color: var(--zinc-500);">Breaches</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function updateGroupsStats(groups) {
+            const totalGroups = groups.length;
+            const activeGroups = groups.filter(g => g.active).length;
+            const totalDevices = groups.reduce((sum, g) => sum + (g.stats?.totalDevices || 0), 0);
+            
+            const modalTotal = document.getElementById('modalTotalGroups');
+            const modalDevices = document.getElementById('modalGroupDevices');
+            const modalActive = document.getElementById('modalActiveGroups');
+            
+            if (modalTotal) modalTotal.textContent = totalGroups;
+            if (modalDevices) modalDevices.textContent = totalDevices;
+            if (modalActive) modalActive.textContent = activeGroups;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
         window.onload = function() {
