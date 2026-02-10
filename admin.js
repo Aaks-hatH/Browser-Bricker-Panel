@@ -115,7 +115,7 @@ async function handleRegister(event) {
         const response = await fetch(`${API_URL}/api/system/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code: code, name, email, password })
+            body: JSON.stringify({ registrationCode: code, name, email, password })
         });
         
         const data = await response.json();
@@ -1243,4 +1243,933 @@ function showToast(title, message, type = 'success') {
         toast.style.animation = 'toastIn 0.4s reverse';
         setTimeout(() => toast.remove(), 400);
     }, 4000);
+}// ============================
+// GROUPS MANAGEMENT JAVASCRIPT
+// Add these functions to owner-script.js and admin.js
+// ============================
+
+let currentGroups = [];
+
+// ========== LOAD GROUPS ==========
+async function loadGroups() {
+    try {
+        const response = await fetch(`${API_URL}/api/groups`, {
+            headers: { 'Authorization': `Bearer ${getApiKey()}` }
+        });
+        
+        if (!response.ok) throw new Error('Failed to fetch groups');
+        
+        const data = await response.json();
+        currentGroups = data.groups || [];
+        
+        displayGroups(currentGroups);
+        updateGroupStats(currentGroups);
+    } catch (error) {
+        console.error('Load groups error:', error);
+        showToast('Error', 'Failed to load groups', 'error');
+    }
+}
+
+// ========== DISPLAY GROUPS ==========
+function displayGroups(groups) {
+    const tbody = document.getElementById('groupsTableBody');
+    
+    if (!groups || groups.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" style="text-align: center; padding: 40px; color: #666;">
+                    <i class="fas fa-users" style="font-size: 48px; opacity: 0.3; margin-bottom: 10px;"></i>
+                    <p>No groups found. Create your first group to get started.</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = groups.map(group => `
+        <tr>
+            <td>
+                <strong>${escapeHtml(group.groupName)}</strong>
+                ${!group.active ? '<span class="badge badge-danger">Inactive</span>' : ''}
+            </td>
+            <td>${escapeHtml(group.description || 'No description')}</td>
+            <td>${group.stats?.totalDevices || 0}</td>
+            <td>${group.stats?.activeDevices || 0}</td>
+            <td>
+                <span class="badge ${group.stats?.totalBreaches > 0 ? 'badge-danger' : 'badge-success'}">
+                    ${group.stats?.totalBreaches || 0}
+                </span>
+            </td>
+            <td>${new Date(group.createdAt).toLocaleDateString()}</td>
+            <td>
+                <button class="btn-icon" onclick="viewGroupDetails('${group.groupId}')" title="View Details">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button class="btn-icon" onclick="editGroup('${group.groupId}')" title="Edit">
+                    <i class="fas fa-edit"></i>
+                </button>
+                ${isOwner() ? `
+                <button class="btn-icon btn-danger" onclick="confirmDeleteGroup('${group.groupId}')" title="Delete">
+                    <i class="fas fa-trash"></i>
+                </button>
+                ` : ''}
+            </td>
+        </tr>
+    `).join('');
+}
+
+// ========== UPDATE GROUP STATS ==========
+function updateGroupStats(groups) {
+    const totalGroups = groups.length;
+    const activeGroups = groups.filter(g => g.active).length;
+    const totalDevices = groups.reduce((sum, g) => sum + (g.stats?.totalDevices || 0), 0);
+    const totalBreaches = groups.reduce((sum, g) => sum + (g.stats?.totalBreaches || 0), 0);
+    
+    document.getElementById('totalGroupsCount').textContent = totalGroups;
+    document.getElementById('activeGroupsCount').textContent = activeGroups;
+    document.getElementById('groupTotalDevices').textContent = totalDevices;
+    document.getElementById('groupTotalBreaches').textContent = totalBreaches;
+}
+
+// ========== CREATE GROUP ==========
+function showCreateGroupModal() {
+    document.getElementById('createGroupModal').style.display = 'flex';
+    document.getElementById('createGroupForm').reset();
+}
+
+function closeCreateGroupModal() {
+    document.getElementById('createGroupModal').style.display = 'none';
+}
+
+async function handleCreateGroup(event) {
+    event.preventDefault();
+    
+    const groupData = {
+        groupName: document.getElementById('groupName').value,
+        description: document.getElementById('groupDescription').value,
+        settings: {
+            maxDevices: parseInt(document.getElementById('maxDevices').value),
+            allowGeofencing: document.getElementById('allowGeofencing').checked,
+            allowQuarantine: document.getElementById('allowQuarantine').checked,
+            defaultArmState: document.getElementById('defaultArmState').checked
+        }
+    };
+    
+    try {
+        const response = await fetch(`${API_URL}/api/groups`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getApiKey()}`
+            },
+            body: JSON.stringify(groupData)
+        });
+        
+        if (!response.ok) throw new Error('Failed to create group');
+        
+        const result = await response.json();
+        showToast('Success', 'Group created successfully', 'success');
+        closeCreateGroupModal();
+        loadGroups();
+    } catch (error) {
+        console.error('Create group error:', error);
+        showToast('Error', 'Failed to create group', 'error');
+    }
+}
+
+// ========== EDIT GROUP ==========
+function editGroup(groupId) {
+    const group = currentGroups.find(g => g.groupId === groupId);
+    if (!group) return;
+    
+    document.getElementById('editGroupId').value = groupId;
+    document.getElementById('editGroupName').value = group.groupName;
+    document.getElementById('editGroupDescription').value = group.description || '';
+    document.getElementById('editMaxDevices').value = group.settings?.maxDevices || 100;
+    document.getElementById('editAllowGeofencing').checked = group.settings?.allowGeofencing !== false;
+    document.getElementById('editAllowQuarantine').checked = group.settings?.allowQuarantine !== false;
+    document.getElementById('editDefaultArmState').checked = group.settings?.defaultArmState || false;
+    
+    document.getElementById('editGroupModal').style.display = 'flex';
+}
+
+function closeEditGroupModal() {
+    document.getElementById('editGroupModal').style.display = 'none';
+}
+
+async function handleEditGroup(event) {
+    event.preventDefault();
+    
+    const groupId = document.getElementById('editGroupId').value;
+    const updates = {
+        groupName: document.getElementById('editGroupName').value,
+        description: document.getElementById('editGroupDescription').value,
+        settings: {
+            maxDevices: parseInt(document.getElementById('editMaxDevices').value),
+            allowGeofencing: document.getElementById('editAllowGeofencing').checked,
+            allowQuarantine: document.getElementById('editAllowQuarantine').checked,
+            defaultArmState: document.getElementById('editDefaultArmState').checked
+        }
+    };
+    
+    try {
+        const response = await fetch(`${API_URL}/api/groups/${groupId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getApiKey()}`
+            },
+            body: JSON.stringify(updates)
+        });
+        
+        if (!response.ok) throw new Error('Failed to update group');
+        
+        showToast('Success', 'Group updated successfully', 'success');
+        closeEditGroupModal();
+        loadGroups();
+    } catch (error) {
+        console.error('Update group error:', error);
+        showToast('Error', 'Failed to update group', 'error');
+    }
+}
+
+// ========== DELETE GROUP ==========
+function confirmDeleteGroup(groupId) {
+    const group = currentGroups.find(g => g.groupId === groupId);
+    if (!group) return;
+    
+    if (confirm(`Are you sure you want to delete the group "${group.groupName}"?\n\nThis action cannot be undone.`)) {
+        deleteGroup(groupId);
+    }
+}
+
+async function deleteGroup(groupId) {
+    try {
+        const response = await fetch(`${API_URL}/api/groups/${groupId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${getApiKey()}` }
+        });
+        
+        if (!response.ok) throw new Error('Failed to delete group');
+        
+        showToast('Success', 'Group deleted successfully', 'success');
+        loadGroups();
+    } catch (error) {
+        console.error('Delete group error:', error);
+        showToast('Error', 'Failed to delete group', 'error');
+    }
+}
+
+// ========== VIEW GROUP DETAILS ==========
+async function viewGroupDetails(groupId) {
+    const group = currentGroups.find(g => g.groupId === groupId);
+    if (!group) return;
+    
+    try {
+        const response = await fetch(`${API_URL}/api/groups/${groupId}/stats`, {
+            headers: { 'Authorization': `Bearer ${getApiKey()}` }
+        });
+        
+        const data = await response.json();
+        const stats = data.stats || {};
+        
+        const content = `
+            <div class="group-details">
+                <div class="detail-section">
+                    <h4>Basic Information</h4>
+                    <table class="details-table">
+                        <tr>
+                            <td><strong>Group ID:</strong></td>
+                            <td>${escapeHtml(group.groupId)}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Name:</strong></td>
+                            <td>${escapeHtml(group.groupName)}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Description:</strong></td>
+                            <td>${escapeHtml(group.description || 'No description')}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Created:</strong></td>
+                            <td>${new Date(group.createdAt).toLocaleString()}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Status:</strong></td>
+                            <td><span class="badge ${group.active ? 'badge-success' : 'badge-danger'}">
+                                ${group.active ? 'Active' : 'Inactive'}
+                            </span></td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="detail-section">
+                    <h4>Statistics</h4>
+                    <div class="group-stats">
+                        <div class="group-stat">
+                            <div class="group-stat-value">${stats.totalDevices || 0}</div>
+                            <div class="group-stat-label">Total Devices</div>
+                        </div>
+                        <div class="group-stat">
+                            <div class="group-stat-value">${stats.activeDevices || 0}</div>
+                            <div class="group-stat-label">Active Devices</div>
+                        </div>
+                        <div class="group-stat">
+                            <div class="group-stat-value">${stats.totalBreaches || 0}</div>
+                            <div class="group-stat-label">Total Breaches</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="detail-section">
+                    <h4>Settings</h4>
+                    <table class="details-table">
+                        <tr>
+                            <td><strong>Max Devices:</strong></td>
+                            <td>${group.settings?.maxDevices || 100}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Geofencing:</strong></td>
+                            <td>${group.settings?.allowGeofencing !== false ? '✓ Enabled' : '✗ Disabled'}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Quarantine:</strong></td>
+                            <td>${group.settings?.allowQuarantine !== false ? '✓ Enabled' : '✗ Disabled'}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Default Arm State:</strong></td>
+                            <td>${group.settings?.defaultArmState ? '✓ Armed' : '✗ Disarmed'}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        `;
+        
+        document.getElementById('groupDetailsContent').innerHTML = content;
+        document.getElementById('groupDetailsModal').style.display = 'flex';
+    } catch (error) {
+        console.error('Load group details error:', error);
+        showToast('Error', 'Failed to load group details', 'error');
+    }
+}
+
+function closeGroupDetailsModal() {
+    document.getElementById('groupDetailsModal').style.display = 'none';
+}
+
+// ========== HELPER FUNCTIONS ==========
+function getApiKey() {
+    // For owner panel
+    if (typeof ownerKey !== 'undefined') return ownerKey;
+    // For admin panel
+    if (typeof systemAdminKey !== 'undefined') return systemAdminKey;
+    return localStorage.getItem('systemAdminKey') || localStorage.getItem('ownerKey');
+}
+
+function isOwner() {
+    // Check if user is owner (has owner key)
+    return typeof ownerKey !== 'undefined' || localStorage.getItem('ownerKey');
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// ========== INITIALIZE ON TAB SWITCH ==========
+// Modify existing switchTab function to load groups when tab is activated
+const originalSwitchTab = window.switchTab;
+window.switchTab = function(tabName) {
+    if (originalSwitchTab) originalSwitchTab(tabName);
+    
+    if (tabName === 'groups') {
+        loadGroups();
+    }
+};
+
+</ style>
+.details-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.details-table tr {
+    border-bottom: 1px solid #eee;
+}
+
+.details-table td {
+    padding: 10px;
+}
+
+.details-table td:first-child {
+    width: 40%;
+    color: #666;
+}
+
+.detail-section {
+    margin-bottom: 30px;
+}
+
+.detail-section h4 {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.badge-success {
+    background: #d4edda;
+    color: #155724;
+}
+
+.badge-danger {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    padding: 5px 8px;
+    font-size: 14px;
+}
+
+.btn-icon:hover {
+    color: #007bff;
+}
+
+.btn-icon.btn-danger:hover {
+    color: #dc3545;
+}
+</style>
+// ============================
+// POLICIES MANAGEMENT JAVASCRIPT
+// Add these functions to owner-script.js and admin.js
+// ============================
+
+let currentPolicies = [];
+let currentViolations = [];
+
+// ========== LOAD POLICIES ==========
+async function loadPolicies() {
+    try {
+        const response = await fetch(`${API_URL}/api/policies`, {
+            headers: { 'Authorization': `Bearer ${getApiKey()}` }
+        });
+        
+        if (!response.ok) throw new Error('Failed to fetch policies');
+        
+        const data = await response.json();
+        currentPolicies = data.policies || [];
+        
+        displayPolicies(currentPolicies);
+        updatePolicyStats(currentPolicies);
+    } catch (error) {
+        console.error('Load policies error:', error);
+        showToast('Error', 'Failed to load policies', 'error');
+    }
+}
+
+// ========== DISPLAY POLICIES ==========
+function displayPolicies(policies) {
+    const tbody = document.getElementById('policiesTableBody');
+    
+    if (!policies || policies.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" style="text-align: center; padding: 40px; color: #666;">
+                    <i class="fas fa-shield-alt" style="font-size: 48px; opacity: 0.3; margin-bottom: 10px;"></i>
+                    <p>No policies found. Create your first policy to get started.</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = policies.map(policy => {
+        const features = [];
+        if (policy.rules.timeLimits?.enabled) features.push('Time Limits');
+        if (policy.rules.allowedHours?.enabled) features.push('Allowed Hours');
+        if (policy.rules.autoArm) features.push('Auto-Arm');
+        if (policy.rules.enforceGeofence) features.push('Geofence');
+        if (policy.rules.inactivityTimeout?.enabled) features.push('Inactivity');
+        
+        return `
+            <tr>
+                <td>
+                    <strong>${escapeHtml(policy.policyName)}</strong>
+                    ${!policy.active ? '<span class="badge badge-danger">Inactive</span>' : ''}
+                </td>
+                <td>
+                    <span class="badge badge-info">
+                        ${policy.scope.type}
+                        ${policy.scope.targetIds?.length > 0 ? ` (${policy.scope.targetIds.length})` : ''}
+                    </span>
+                </td>
+                <td>
+                    <span class="priority-badge priority-${getPriorityClass(policy.priority)}">
+                        ${policy.priority}
+                    </span>
+                </td>
+                <td>
+                    ${features.length > 0 
+                        ? features.map(f => `<span class="feature-tag">${f}</span>`).join(' ')
+                        : '<span style="color: #999;">None</span>'
+                    }
+                </td>
+                <td>
+                    <span class="badge ${policy.active ? 'badge-success' : 'badge-danger'}">
+                        ${policy.active ? 'Active' : 'Inactive'}
+                    </span>
+                </td>
+                <td>${new Date(policy.createdAt).toLocaleDateString()}</td>
+                <td>
+                    <button class="btn-icon" onclick="viewPolicyDetails('${policy.policyId}')" title="View Details">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn-icon" onclick="editPolicy('${policy.policyId}')" title="Edit">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn-icon" onclick="togglePolicyStatus('${policy.policyId}')" title="${policy.active ? 'Deactivate' : 'Activate'}">
+                        <i class="fas fa-${policy.active ? 'pause' : 'play'}-circle"></i>
+                    </button>
+                    <button class="btn-icon btn-danger" onclick="confirmDeletePolicy('${policy.policyId}')" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+// ========== UPDATE POLICY STATS ==========
+function updatePolicyStats(policies) {
+    const totalPolicies = policies.length;
+    const activePolicies = policies.filter(p => p.active).length;
+    const timeLimitPolicies = policies.filter(p => p.rules.timeLimits?.enabled).length;
+    
+    document.getElementById('totalPoliciesCount').textContent = totalPolicies;
+    document.getElementById('activePoliciesCount').textContent = activePolicies;
+    document.getElementById('timeLimitPoliciesCount').textContent = timeLimitPolicies;
+}
+
+function getPriorityClass(priority) {
+    if (priority >= 50) return 'high';
+    if (priority >= 20) return 'medium';
+    return 'low';
+}
+
+// ========== CREATE POLICY ==========
+function showCreatePolicyModal() {
+    document.getElementById('createPolicyModal').style.display = 'flex';
+    document.getElementById('createPolicyForm').reset();
+    
+    // Load groups and devices for scope selection
+    loadScopeTargets();
+}
+
+function closeCreatePolicyModal() {
+    document.getElementById('createPolicyModal').style.display = 'none';
+}
+
+async function loadScopeTargets() {
+    try {
+        // Load groups
+        const groupsResponse = await fetch(`${API_URL}/api/groups`, {
+            headers: { 'Authorization': `Bearer ${getApiKey()}` }
+        });
+        const groupsData = await groupsResponse.json();
+        
+        // Load devices
+        const devicesResponse = await fetch(`${API_URL}/api/devices`, {
+            headers: { 'Authorization': `Bearer ${getApiKey()}` }
+        });
+        const devicesData = await devicesResponse.json();
+        
+        // Store for later use
+        window.availableGroups = groupsData.groups || [];
+        window.availableDevices = devicesData.devices || [];
+    } catch (error) {
+        console.error('Load scope targets error:', error);
+    }
+}
+
+function handleScopeChange() {
+    const scope = document.getElementById('policyScope').value;
+    const targetsDiv = document.getElementById('scopeTargetsDiv');
+    const targetsSelect = document.getElementById('scopeTargets');
+    const targetsLabel = document.getElementById('scopeTargetsLabel');
+    
+    if (scope === 'global') {
+        targetsDiv.style.display = 'none';
+        return;
+    }
+    
+    targetsDiv.style.display = 'block';
+    targetsSelect.innerHTML = '';
+    
+    if (scope === 'group') {
+        targetsLabel.textContent = 'Select Groups';
+        (window.availableGroups || []).forEach(group => {
+            const option = document.createElement('option');
+            option.value = group.groupId;
+            option.textContent = group.groupName;
+            targetsSelect.appendChild(option);
+        });
+    } else if (scope === 'device') {
+        targetsLabel.textContent = 'Select Devices';
+        (window.availableDevices || []).forEach(device => {
+            const option = document.createElement('option');
+            option.value = device.deviceId;
+            option.textContent = device.deviceName;
+            targetsSelect.appendChild(option);
+        });
+    }
+}
+
+function toggleSection(sectionName) {
+    const checkbox = document.getElementById(`${sectionName}Enabled`);
+    const section = document.getElementById(`${sectionName}Section`);
+    
+    if (section) {
+        section.style.display = checkbox.checked ? 'block' : 'none';
+    }
+}
+
+async function handleCreatePolicy(event) {
+    event.preventDefault();
+    
+    // Collect form data
+    const scope = document.getElementById('policyScope').value;
+    const scopeTargets = Array.from(document.getElementById('scopeTargets').selectedOptions)
+        .map(opt => opt.value);
+    
+    const policyData = {
+        policyName: document.getElementById('policyName').value,
+        description: document.getElementById('policyDescription').value,
+        priority: parseInt(document.getElementById('policyPriority').value),
+        scope: {
+            type: scope,
+            targetIds: scope === 'global' ? [] : scopeTargets
+        },
+        rules: {
+            // Time Limits
+            timeLimits: {
+                enabled: document.getElementById('timeLimitsEnabled').checked,
+                dailyMinutes: parseInt(document.getElementById('dailyMinutes').value) || 480,
+                resetTime: document.getElementById('resetTime').value || '00:00',
+                action: document.getElementById('timeLimitAction').value
+            },
+            
+            // Allowed Hours
+            allowedHours: {
+                enabled: document.getElementById('allowedHoursEnabled').checked,
+                schedule: getAllowedHoursSchedule()
+            },
+            
+            // Auto-Arm
+            autoArm: document.getElementById('autoArmEnabled').checked,
+            autoArmSchedule: {
+                enabled: document.getElementById('autoArmScheduleEnabled')?.checked || false,
+                startTime: document.getElementById('autoArmStartTime')?.value || '22:00',
+                endTime: document.getElementById('autoArmEndTime')?.value || '06:00',
+                days: getAutoArmDays()
+            },
+            
+            // Geofence
+            enforceGeofence: document.getElementById('enforceGeofence').checked,
+            geofenceAction: document.getElementById('geofenceAction').value,
+            
+            // Breach Response
+            breachThreshold: parseInt(document.getElementById('breachThreshold').value) || 3,
+            breachAction: document.getElementById('breachAction').value,
+            
+            // Inactivity
+            inactivityTimeout: {
+                enabled: document.getElementById('inactivityEnabled').checked,
+                minutes: parseInt(document.getElementById('inactivityMinutes').value) || 30
+            }
+        },
+        notifications: {
+            onBreach: document.getElementById('notifyBreach').checked,
+            onGeofenceExit: document.getElementById('notifyGeofence').checked,
+            onTimeLimitReached: document.getElementById('notifyTimeLimit').checked,
+            recipients: document.getElementById('notificationEmails').value
+                .split(',')
+                .map(e => e.trim())
+                .filter(e => e)
+        }
+    };
+    
+    try {
+        const response = await fetch(`${API_URL}/api/policies`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getApiKey()}`
+            },
+            body: JSON.stringify(policyData)
+        });
+        
+        if (!response.ok) throw new Error('Failed to create policy');
+        
+        const result = await response.json();
+        showToast('Success', 'Policy created successfully', 'success');
+        closeCreatePolicyModal();
+        loadPolicies();
+    } catch (error) {
+        console.error('Create policy error:', error);
+        showToast('Error', 'Failed to create policy', 'error');
+    }
+}
+
+function getAllowedHoursSchedule() {
+    const schedule = [];
+    
+    for (let day = 0; day <= 6; day++) {
+        const checkbox = document.getElementById(`day${day}`);
+        if (checkbox && checkbox.checked) {
+            schedule.push({
+                day: day,
+                startTime: document.getElementById(`day${day}Start`).value,
+                endTime: document.getElementById(`day${day}End`).value
+            });
+        }
+    }
+    
+    return schedule;
+}
+
+function getAutoArmDays() {
+    const days = [];
+    const checkboxes = document.querySelectorAll('.days-selector input[type="checkbox"]');
+    
+    checkboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+            days.push(parseInt(checkbox.value));
+        }
+    });
+    
+    return days;
+}
+
+// ========== TOGGLE POLICY STATUS ==========
+async function togglePolicyStatus(policyId) {
+    const policy = currentPolicies.find(p => p.policyId === policyId);
+    if (!policy) return;
+    
+    try {
+        const response = await fetch(`${API_URL}/api/policies/${policyId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getApiKey()}`
+            },
+            body: JSON.stringify({ active: !policy.active })
+        });
+        
+        if (!response.ok) throw new Error('Failed to update policy');
+        
+        showToast('Success', `Policy ${policy.active ? 'deactivated' : 'activated'}`, 'success');
+        loadPolicies();
+    } catch (error) {
+        console.error('Toggle policy error:', error);
+        showToast('Error', 'Failed to update policy', 'error');
+    }
+}
+
+// ========== DELETE POLICY ==========
+function confirmDeletePolicy(policyId) {
+    const policy = currentPolicies.find(p => p.policyId === policyId);
+    if (!policy) return;
+    
+    if (confirm(`Are you sure you want to delete the policy "${policy.policyName}"?\n\nThis action cannot be undone.`)) {
+        deletePolicy(policyId);
+    }
+}
+
+async function deletePolicy(policyId) {
+    try {
+        const response = await fetch(`${API_URL}/api/policies/${policyId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${getApiKey()}` }
+        });
+        
+        if (!response.ok) throw new Error('Failed to delete policy');
+        
+        showToast('Success', 'Policy deleted successfully', 'success');
+        loadPolicies();
+    } catch (error) {
+        console.error('Delete policy error:', error);
+        showToast('Error', 'Failed to delete policy', 'error');
+    }
+}
+
+// ========== VIEW POLICY DETAILS ==========
+function viewPolicyDetails(policyId) {
+    const policy = currentPolicies.find(p => p.policyId === policyId);
+    if (!policy) return;
+    
+    // Build detailed view HTML
+    const content = `
+        <div class="policy-details">
+            <div class="detail-section">
+                <h4>Basic Information</h4>
+                <table class="details-table">
+                    <tr>
+                        <td><strong>Policy ID:</strong></td>
+                        <td>${escapeHtml(policy.policyId)}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Name:</strong></td>
+                        <td>${escapeHtml(policy.policyName)}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Description:</strong></td>
+                        <td>${escapeHtml(policy.description || 'No description')}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Scope:</strong></td>
+                        <td>${policy.scope.type} ${policy.scope.targetIds.length > 0 ? `(${policy.scope.targetIds.length} targets)` : ''}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Priority:</strong></td>
+                        <td><span class="priority-badge priority-${getPriorityClass(policy.priority)}">${policy.priority}</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Status:</strong></td>
+                        <td><span class="badge ${policy.active ? 'badge-success' : 'badge-danger'}">
+                            ${policy.active ? 'Active' : 'Inactive'}
+                        </span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Created:</strong></td>
+                        <td>${new Date(policy.createdAt).toLocaleString()}</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div class="detail-section">
+                <h4>Rules</h4>
+                ${getPolicyRulesHTML(policy.rules)}
+            </div>
+            
+            <div class="detail-section">
+                <h4>Notifications</h4>
+                <ul>
+                    <li>Breach Notifications: ${policy.notifications.onBreach ? '✓' : '✗'}</li>
+                    <li>Geofence Exit: ${policy.notifications.onGeofenceExit ? '✓' : '✗'}</li>
+                    <li>Time Limit: ${policy.notifications.onTimeLimitReached ? '✓' : '✗'}</li>
+                    ${policy.notifications.recipients.length > 0 ? 
+                        `<li>Recipients: ${policy.notifications.recipients.join(', ')}</li>` : ''}
+                </ul>
+            </div>
+        </div>
+    `;
+    
+    // Show in a modal (you'll need to create this modal in HTML)
+    const modal = document.getElementById('policyDetailsModal') || createPolicyDetailsModal();
+    modal.querySelector('.modal-body').innerHTML = content;
+    modal.style.display = 'flex';
+}
+
+function getPolicyRulesHTML(rules) {
+    let html = '<ul>';
+    
+    if (rules.timeLimits?.enabled) {
+        html += `<li><strong>Time Limits:</strong> ${rules.timeLimits.dailyMinutes} minutes/day, `;
+        html += `Action: ${rules.timeLimits.action}</li>`;
+    }
+    
+    if (rules.allowedHours?.enabled) {
+        html += `<li><strong>Allowed Hours:</strong> ${rules.allowedHours.schedule.length} schedules configured</li>`;
+    }
+    
+    if (rules.autoArm) {
+        html += `<li><strong>Auto-Arm:</strong> Enabled`;
+        if (rules.autoArmSchedule?.enabled) {
+            html += ` (${rules.autoArmSchedule.startTime} - ${rules.autoArmSchedule.endTime})`;
+        }
+        html += `</li>`;
+    }
+    
+    if (rules.enforceGeofence) {
+        html += `<li><strong>Geofence:</strong> ${rules.geofenceAction}</li>`;
+    }
+    
+    if (rules.inactivityTimeout?.enabled) {
+        html += `<li><strong>Inactivity Timeout:</strong> ${rules.inactivityTimeout.minutes} minutes</li>`;
+    }
+    
+    html += '</ul>';
+    return html;
+}
+
+// ========== VIOLATIONS ==========
+async function loadViolations() {
+    try {
+        const response = await fetch(`${API_URL}/api/violations?limit=50`, {
+            headers: { 'Authorization': `Bearer ${getApiKey()}` }
+        });
+        
+        if (!response.ok) throw new Error('Failed to fetch violations');
+        
+        const data = await response.json();
+        currentViolations = data.violations || [];
+        
+        // Update stats
+        const recent = currentViolations.filter(v => 
+            v.timestamp > Date.now() - 86400000 // Last 24 hours
+        );
+        document.getElementById('recentViolationsCount').textContent = recent.length;
+    } catch (error) {
+        console.error('Load violations error:', error);
+    }
+}
+
+function showViolations() {
+    // Display violations in modal
+    const content = currentViolations.map(v => `
+        <div class="violation-item">
+            <div class="violation-header">
+                <strong>${v.violationType.replace(/_/g, ' ')}</strong>
+                <span class="badge badge-${v.severity}">${v.severity}</span>
+            </div>
+            <div class="violation-details">
+                <p>Device: ${v.deviceId}</p>
+                <p>Action: ${v.actionTaken}</p>
+                <p>Time: ${new Date(v.timestamp).toLocaleString()}</p>
+            </div>
+        </div>
+    `).join('');
+    
+    document.getElementById('violationsContent').innerHTML = content;
+    document.getElementById('violationsModal').style.display = 'flex';
+}
+
+function closeViolationsModal() {
+    document.getElementById('violationsModal').style.display = 'none';
+}
+
+// ========== INITIALIZE ==========
+// Update switchTab to load policies
+if (window.switchTab) {
+    const originalSwitchTab = window.switchTab;
+    window.switchTab = function(tabName) {
+        originalSwitchTab(tabName);
+        
+        if (tabName === 'policies') {
+            loadPolicies();
+            loadViolations();
+        }
+    };
 }
