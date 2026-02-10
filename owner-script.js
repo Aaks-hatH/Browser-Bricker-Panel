@@ -1931,6 +1931,8 @@ function switchView(viewId) {
     if (viewId === 'breaches') loadBreaches();
     if (viewId === 'blocked-ips') loadBlockedIPs();
     if (viewId === 'sessions') loadSessions();
+    if (viewId === 'groups') loadGroups();
+    if (viewId === 'policies') loadPolicies();
     if (viewId === 'geofencing') {
         loadGeofences();
         setTimeout(() => {
@@ -3155,15 +3157,15 @@ function closeGroupDetailsModal() {
 // ========== HELPER FUNCTIONS ==========
 function getApiKey() {
     // For owner panel
-    if (typeof ownerKey !== 'undefined') return ownerKey;
+    if (typeof ownerApiKey !== 'undefined' && ownerApiKey !== null) return ownerApiKey;
     // For admin panel
     if (typeof systemAdminKey !== 'undefined') return systemAdminKey;
-    return localStorage.getItem('systemAdminKey') || localStorage.getItem('ownerKey');
+    return sessionStorage.getItem('ownerKey') || localStorage.getItem('systemAdminKey') || localStorage.getItem('ownerKey');
 }
 
 function isOwner() {
     // Check if user is owner (has owner key)
-    return typeof ownerKey !== 'undefined' || localStorage.getItem('ownerKey');
+    return (typeof ownerApiKey !== 'undefined' && ownerApiKey !== null) || sessionStorage.getItem('ownerKey') || localStorage.getItem('ownerKey');
 }
 
 function escapeHtml(text) {
@@ -3183,69 +3185,7 @@ window.switchTab = function(tabName) {
     }
 };
 
-</ style>
-.details-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.details-table tr {
-    border-bottom: 1px solid #eee;
-}
-
-.details-table td {
-    padding: 10px;
-}
-
-.details-table td:first-child {
-    width: 40%;
-    color: #666;
-}
-
-.detail-section {
-    margin-bottom: 30px;
-}
-
-.detail-section h4 {
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid #e0e0e0;
-}
-
-.badge {
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 600;
-}
-
-.badge-success {
-    background: #d4edda;
-    color: #155724;
-}
-
-.badge-danger {
-    background: #f8d7da;
-    color: #721c24;
-}
-
-.btn-icon {
-    background: none;
-    border: none;
-    color: #666;
-    cursor: pointer;
-    padding: 5px 8px;
-    font-size: 14px;
-}
-
-.btn-icon:hover {
-    color: #007bff;
-}
-
-.btn-icon.btn-danger:hover {
-    color: #dc3545;
-}
-</style>
+// ========== POLICIES MANAGEMENT ==========
 // ============================
 // POLICIES MANAGEMENT JAVASCRIPT
 // Add these functions to owner-script.js and admin.js
