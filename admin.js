@@ -826,7 +826,9 @@ function switchView(viewName) {
         'locations': 'locationsView',
         'breaches': 'breachesView',
         'bulk-ops': 'bulkOpsView',
-        'activity': 'activityView'
+        'activity': 'activityView',
+        'groups': 'groupsView',
+        'policies': 'policiesView'
     };
     
     const targetView = document.getElementById(viewMap[viewName]);
@@ -842,13 +844,17 @@ function switchView(viewName) {
             'locations': 'Live Locations',
             'breaches': 'Security Breaches',
             'bulk-ops': 'Bulk Operations',
-            'activity': 'Activity Log'
+            'activity': 'Activity Log',
+            'groups': 'Groups',
+            'policies': 'Policies'
         };
         document.getElementById('pageTitle').textContent = titles[viewName];
         
         // Load data for specific views
         if (viewName === 'devices') loadDevices();
         else if (viewName === 'users') loadUsers();
+        else if (viewName === 'groups') loadGroups();
+        else if (viewName === 'policies') loadPolicies();
         else if (viewName === 'geofencing') {
             loadGeofences();
             setTimeout(() => {
@@ -1559,16 +1565,15 @@ function closeGroupDetailsModal() {
 
 // ========== HELPER FUNCTIONS ==========
 function getApiKey() {
-    // For owner panel
-    if (typeof ownerKey !== 'undefined') return ownerKey;
-    // For admin panel
-    if (typeof systemAdminKey !== 'undefined') return systemAdminKey;
-    return localStorage.getItem('systemAdminKey') || localStorage.getItem('ownerKey');
+    // For admin panel (this is the primary use case)
+    if (typeof systemAdminKey !== 'undefined' && systemAdminKey !== null) return systemAdminKey;
+    // Fallback to localStorage
+    return localStorage.getItem('systemAdminKey');
 }
 
 function isOwner() {
-    // Check if user is owner (has owner key)
-    return typeof ownerKey !== 'undefined' || localStorage.getItem('ownerKey');
+    // Admin panel users are never owners
+    return false;
 }
 
 function escapeHtml(text) {
@@ -1588,72 +1593,8 @@ window.switchTab = function(tabName) {
     }
 };
 
-</ style>
-.details-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.details-table tr {
-    border-bottom: 1px solid #eee;
-}
-
-.details-table td {
-    padding: 10px;
-}
-
-.details-table td:first-child {
-    width: 40%;
-    color: #666;
-}
-
-.detail-section {
-    margin-bottom: 30px;
-}
-
-.detail-section h4 {
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid #e0e0e0;
-}
-
-.badge {
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 600;
-}
-
-.badge-success {
-    background: #d4edda;
-    color: #155724;
-}
-
-.badge-danger {
-    background: #f8d7da;
-    color: #721c24;
-}
-
-.btn-icon {
-    background: none;
-    border: none;
-    color: #666;
-    cursor: pointer;
-    padding: 5px 8px;
-    font-size: 14px;
-}
-
-.btn-icon:hover {
-    color: #007bff;
-}
-
-.btn-icon.btn-danger:hover {
-    color: #dc3545;
-}
-</style>
 // ============================
 // POLICIES MANAGEMENT JAVASCRIPT
-// Add these functions to owner-script.js and admin.js
 // ============================
 
 let currentPolicies = [];
