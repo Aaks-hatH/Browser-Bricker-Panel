@@ -115,7 +115,7 @@ async function handleRegister(event) {
         const response = await fetch(`${API_URL}/api/system/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ registrationCode: code, name, email, password })
+            body: JSON.stringify({ code: code, name, email, password })
         });
         
         const data = await response.json();
