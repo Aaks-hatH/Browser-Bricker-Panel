@@ -820,6 +820,12 @@
 
                 <div class="nav-group">
                     <div class="nav-label">Advanced Features</div>
+                    <div class="nav-item" onclick="switchView('groups')">
+                        <i data-lucide="users" size="18"></i> Groups
+                    </div>
+                    <div class="nav-item" onclick="switchView('policies')">
+                        <i data-lucide="shield-alt" size="18"></i> Policies
+                    </div>
                     <div class="nav-item" onclick="switchView('geofencing')">
                         <i data-lucide="map-pin" size="18"></i> Geofencing
                     </div>
@@ -913,6 +919,247 @@
             <h2>System Admin Details</h2>
             <div id="adminDetailsContent"></div>
             <button type="button" class="btn btn-ghost" onclick="closeAdminDetails()" style="width: 100%; margin-top: 20px;">Close</button>
+        </div>
+    </div>
+
+    <!-- CREATE GROUP MODAL -->
+    <div class="modal-overlay" id="createGroupModal">
+        <div class="modal">
+            <h2><i data-lucide="users" size="20"></i> Create New Group</h2>
+            <form id="createGroupForm" onsubmit="handleCreateGroup(event)">
+                <div class="field-group">
+                    <label class="field-label">Group Name *</label>
+                    <input type="text" id="groupName" class="input-control" required placeholder="e.g., Engineering Team">
+                </div>
+                
+                <div class="field-group">
+                    <label class="field-label">Description</label>
+                    <textarea id="groupDescription" class="input-control" rows="3" placeholder="Brief description of this group"></textarea>
+                </div>
+                
+                <div class="field-group">
+                    <label class="field-label">Max Devices</label>
+                    <input type="number" id="maxDevices" class="input-control" value="100" min="1">
+                </div>
+                
+                <div class="field-group">
+                    <label><input type="checkbox" id="allowGeofencing" checked> Allow Geofencing</label>
+                </div>
+                <div class="field-group">
+                    <label><input type="checkbox" id="allowQuarantine" checked> Allow Quarantine</label>
+                </div>
+                <div class="field-group">
+                    <label><input type="checkbox" id="defaultArmState"> Default Armed State</label>
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;"><i data-lucide="plus" size="14"></i> Create Group</button>
+                    <button type="button" class="btn btn-ghost" onclick="closeCreateGroupModal()" style="flex: 1;">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- EDIT GROUP MODAL -->
+    <div class="modal-overlay" id="editGroupModal">
+        <div class="modal">
+            <h2><i data-lucide="edit" size="20"></i> Edit Group</h2>
+            <form id="editGroupForm" onsubmit="handleEditGroup(event)">
+                <input type="hidden" id="editGroupId">
+                
+                <div class="field-group">
+                    <label class="field-label">Group Name *</label>
+                    <input type="text" id="editGroupName" class="input-control" required>
+                </div>
+                
+                <div class="field-group">
+                    <label class="field-label">Description</label>
+                    <textarea id="editGroupDescription" class="input-control" rows="3"></textarea>
+                </div>
+                
+                <div class="field-group">
+                    <label class="field-label">Max Devices</label>
+                    <input type="number" id="editMaxDevices" class="input-control" min="1">
+                </div>
+                
+                <div class="field-group">
+                    <label><input type="checkbox" id="editAllowGeofencing"> Allow Geofencing</label>
+                </div>
+                <div class="field-group">
+                    <label><input type="checkbox" id="editAllowQuarantine"> Allow Quarantine</label>
+                </div>
+                <div class="field-group">
+                    <label><input type="checkbox" id="editDefaultArmState"> Default Armed State</label>
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;"><i data-lucide="save" size="14"></i> Save Changes</button>
+                    <button type="button" class="btn btn-ghost" onclick="closeEditGroupModal()" style="flex: 1;">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- GROUP DETAILS MODAL -->
+    <div class="modal-overlay" id="groupDetailsModal">
+        <div class="modal" style="max-width: 800px;">
+            <h2><i data-lucide="info" size="20"></i> Group Details</h2>
+            <div id="groupDetailsContent"></div>
+            <button type="button" class="btn btn-ghost" onclick="closeGroupDetailsModal()" style="width: 100%; margin-top: 20px;">Close</button>
+        </div>
+    </div>
+
+    <!-- CREATE POLICY MODAL -->
+    <div class="modal-overlay" id="createPolicyModal">
+        <div class="modal" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
+            <h2><i data-lucide="shield" size="20"></i> Create New Policy</h2>
+            <form id="createPolicyForm" onsubmit="handleCreatePolicy(event)">
+                <!-- Basic Info -->
+                <div class="field-group">
+                    <label class="field-label">Policy Name *</label>
+                    <input type="text" id="policyName" class="input-control" required placeholder="e.g., Weekday Time Limits">
+                </div>
+                
+                <div class="field-group">
+                    <label class="field-label">Priority (0-100)</label>
+                    <input type="number" id="policyPriority" class="input-control" value="0" min="0" max="100">
+                    <small style="color: var(--zinc-500);">Higher number = higher priority</small>
+                </div>
+                
+                <div class="field-group">
+                    <label class="field-label">Description</label>
+                    <textarea id="policyDescription" class="input-control" rows="2" placeholder="Brief description"></textarea>
+                </div>
+
+                <!-- Scope -->
+                <div class="field-group">
+                    <label class="field-label">Apply To *</label>
+                    <select id="policyScope" class="input-control" required onchange="handleScopeChange()">
+                        <option value="global">All Devices (Global)</option>
+                        <option value="group">Specific Groups</option>
+                        <option value="device">Specific Devices</option>
+                    </select>
+                </div>
+                
+                <div class="field-group" id="scopeTargetsDiv" style="display: none;">
+                    <label class="field-label" id="scopeTargetsLabel">Select Targets</label>
+                    <select id="scopeTargets" class="input-control" multiple size="5"></select>
+                    <small style="color: var(--zinc-500);">Hold Ctrl/Cmd to select multiple</small>
+                </div>
+
+                <!-- Time Limits -->
+                <div class="field-group">
+                    <label><input type="checkbox" id="timeLimitsEnabled" onchange="toggleSection('timeLimits')"> Enable Daily Time Limits</label>
+                </div>
+                
+                <div id="timeLimitsSection" style="display: none; padding: 15px; background: var(--zinc-100); border-radius: 8px; margin-top: 10px;">
+                    <div class="field-group">
+                        <label class="field-label">Daily Usage Limit (minutes)</label>
+                        <input type="number" id="dailyMinutes" class="input-control" value="480" min="1">
+                        <small style="color: var(--zinc-500);">Default: 480 (8 hours)</small>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Reset Time</label>
+                        <input type="time" id="resetTime" class="input-control" value="00:00">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Action When Limit Reached</label>
+                        <select id="timeLimitAction" class="input-control">
+                            <option value="warn">Warn Only</option>
+                            <option value="arm">Arm Device</option>
+                            <option value="block">Block Device</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Auto-Arm -->
+                <div class="field-group">
+                    <label><input type="checkbox" id="autoArmEnabled" onchange="toggleSection('autoArm')"> Enable Automatic Arming</label>
+                </div>
+                
+                <div id="autoArmSection" style="display: none; padding: 15px; background: var(--zinc-100); border-radius: 8px; margin-top: 10px;">
+                    <div class="field-group">
+                        <label><input type="checkbox" id="autoArmScheduleEnabled"> Use Schedule</label>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Start Time</label>
+                        <input type="time" id="autoArmStartTime" class="input-control" value="22:00">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">End Time</label>
+                        <input type="time" id="autoArmEndTime" class="input-control" value="06:00">
+                    </div>
+                </div>
+
+                <!-- Geofencing -->
+                <div class="field-group">
+                    <label><input type="checkbox" id="enforceGeofence"> Enforce Geofence Compliance</label>
+                </div>
+                
+                <div class="field-group">
+                    <label class="field-label">Action on Geofence Exit</label>
+                    <select id="geofenceAction" class="input-control">
+                        <option value="alert">Alert Only</option>
+                        <option value="arm">Arm Device</option>
+                        <option value="quarantine">Quarantine Device</option>
+                    </select>
+                </div>
+
+                <!-- Breach Response -->
+                <div class="field-group">
+                    <label class="field-label">Breach Threshold</label>
+                    <input type="number" id="breachThreshold" class="input-control" value="3" min="1">
+                    <small style="color: var(--zinc-500);">Number of breaches before action</small>
+                </div>
+                
+                <div class="field-group">
+                    <label class="field-label">Action on Threshold</label>
+                    <select id="breachAction" class="input-control">
+                        <option value="none">None</option>
+                        <option value="notify">Notify Only</option>
+                        <option value="quarantine">Quarantine Device</option>
+                    </select>
+                </div>
+
+                <!-- Inactivity -->
+                <div class="field-group">
+                    <label><input type="checkbox" id="inactivityEnabled" onchange="toggleSection('inactivity')"> Enable Inactivity Auto-Arm</label>
+                </div>
+                
+                <div id="inactivitySection" style="display: none; padding: 15px; background: var(--zinc-100); border-radius: 8px; margin-top: 10px;">
+                    <div class="field-group">
+                        <label class="field-label">Inactivity Timeout (minutes)</label>
+                        <input type="number" id="inactivityMinutes" class="input-control" value="30" min="1">
+                        <small style="color: var(--zinc-500);">Arm device after this many minutes of inactivity</small>
+                    </div>
+                </div>
+
+                <!-- Notifications -->
+                <div class="field-group">
+                    <label><input type="checkbox" id="notifyBreach" checked> Breach Notifications</label>
+                    <label><input type="checkbox" id="notifyGeofence" checked> Geofence Exit Notifications</label>
+                    <label><input type="checkbox" id="notifyTimeLimit" checked> Time Limit Notifications</label>
+                </div>
+                
+                <div class="field-group">
+                    <label class="field-label">Notification Emails (comma-separated)</label>
+                    <input type="text" id="notificationEmails" class="input-control" placeholder="admin@example.com, user@example.com">
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;"><i data-lucide="plus" size="14"></i> Create Policy</button>
+                    <button type="button" class="btn btn-ghost" onclick="closeCreatePolicyModal()" style="flex: 1;">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- VIOLATIONS MODAL -->
+    <div class="modal-overlay" id="violationsModal">
+        <div class="modal" style="max-width: 900px;">
+            <h2><i data-lucide="alert-triangle" size="20"></i> Policy Violations</h2>
+            <div id="violationsContent"></div>
+            <button type="button" class="btn btn-ghost" onclick="closeViolationsModal()" style="width: 100%; margin-top: 20px;">Close</button>
         </div>
     </div>
 
