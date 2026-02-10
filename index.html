@@ -2839,7 +2839,7 @@ function refreshExtensionDetection() {
         }, window.location.origin);
         
         if (pingCount >= maxPings) {
-            console.log('[DIAGNOSTIC] ❌ Max pings reached, extension not detected');
+            console.log('[DIAGNOSTIC]  Max pings reached, extension not detected');
             clearInterval(pingInterval);
             
             // Update UI to show not detected
@@ -2856,7 +2856,7 @@ function refreshExtensionDetection() {
                 }
                 const p = statusBox.querySelector('.extension-status-info p');
                 if (p) {
-                    p.textContent = 'No response from extension. Check console for details.';
+                    p.textContent = 'No response from extension. Refresh the page if you just installed it.';
                 }
                 
                 if (typeof lucide !== 'undefined' && lucide.createIcons) {
