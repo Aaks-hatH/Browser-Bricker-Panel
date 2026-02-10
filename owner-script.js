@@ -2161,6 +2161,16 @@ function generateAllViewsHTML() {
             ${generateLocationsHTML()}
         </div>
 
+        <!-- VIEW: GROUPS -->
+        <div id="view-groups" class="view-container">
+            ${generateGroupsHTML()}
+        </div>
+
+        <!-- VIEW: POLICIES -->
+        <div id="view-policies" class="view-container">
+            ${generatePoliciesHTML()}
+        </div>
+
         <!-- VIEW: NOTIFICATIONS -->
         <div id="view-notifications" class="view-container">
             ${generateNotificationsHTML()}
@@ -2836,6 +2846,114 @@ function generateLogsHTML() {
     `;
 }
 
+function generateGroupsHTML() {
+    return `
+        <div class="card-main">
+            <div class="card-header">
+                <h3 class="card-title"><i data-lucide="users"></i> Groups Management</h3>
+                <button class="btn btn-primary" onclick="showCreateGroupModal()">
+                    <i data-lucide="plus"></i> Create Group
+                </button>
+            </div>
+            
+            <div class="grid-stats" style="margin: 20px 0;">
+                <div class="stat-card">
+                    <h4>Total Groups</h4>
+                    <div class="stat-value" id="totalGroupsCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <h4>Active Groups</h4>
+                    <div class="stat-value" style="color: var(--status-safe);" id="activeGroupsCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <h4>Total Devices</h4>
+                    <div class="stat-value" id="groupTotalDevices">0</div>
+                </div>
+                <div class="stat-card">
+                    <h4>Total Breaches</h4>
+                    <div class="stat-value" style="color: var(--status-danger);" id="groupTotalBreaches">0</div>
+                </div>
+            </div>
+            
+            <div class="table-wrapper">
+                <table id="groupsTable">
+                    <thead>
+                        <tr>
+                            <th>Group Name</th>
+                            <th>Description</th>
+                            <th>Devices</th>
+                            <th>Active</th>
+                            <th>Breaches</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="groupsTableBody">
+                        <tr><td colspan="7" style="text-align: center; padding: 40px;">
+                            <i data-lucide="users" size="48" style="opacity: 0.3;"></i>
+                            <p style="margin-top: 10px; color: var(--zinc-500);">Loading groups...</p>
+                        </td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+}
+
+function generatePoliciesHTML() {
+    return `
+        <div class="card-main">
+            <div class="card-header">
+                <h3 class="card-title"><i data-lucide="shield"></i> Policies Management</h3>
+                <button class="btn btn-primary" onclick="showCreatePolicyModal()">
+                    <i data-lucide="plus"></i> Create Policy
+                </button>
+            </div>
+            
+            <div class="grid-stats" style="margin: 20px 0;">
+                <div class="stat-card">
+                    <h4>Total Policies</h4>
+                    <div class="stat-value" id="totalPoliciesCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <h4>Active Policies</h4>
+                    <div class="stat-value" style="color: var(--status-safe);" id="activePoliciesCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <h4>Violations (24h)</h4>
+                    <div class="stat-value" style="color: var(--status-warn);" id="recentViolationsCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <h4>With Time Limits</h4>
+                    <div class="stat-value" id="timeLimitPoliciesCount">0</div>
+                </div>
+            </div>
+            
+            <div class="table-wrapper">
+                <table id="policiesTable">
+                    <thead>
+                        <tr>
+                            <th>Policy Name</th>
+                            <th>Scope</th>
+                            <th>Priority</th>
+                            <th>Features</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="policiesTableBody">
+                        <tr><td colspan="7" style="text-align: center; padding: 40px;">
+                            <i data-lucide="shield" size="48" style="opacity: 0.3;"></i>
+                            <p style="margin-top: 10px; color: var(--zinc-500);">Loading policies...</p>
+                        </td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+}
+
 // ========== INITIALIZATION COMPLETE ==========
 console.log('BrowserBricker Owner Panel v4.2.0 - Loaded Successfully');
 console.log('Total Functions:', Object.keys(window).filter(k => typeof window[k] === 'function').length);
@@ -3214,6 +3332,21 @@ async function loadPolicies() {
     }
 }
 
+// ========== UPDATE POLICIES STATS ==========
+function updatePoliciesStats(policies) {
+    const totalPolicies = policies.length;
+    const activePolicies = policies.filter(p => p.active).length;
+    const timeLimitPolicies = policies.filter(p => p.rules.timeLimits?.enabled).length;
+    
+    const totalEl = document.getElementById('totalPoliciesCount');
+    const activeEl = document.getElementById('activePoliciesCount');
+    const timeLimitEl = document.getElementById('timeLimitPoliciesCount');
+    
+    if (totalEl) totalEl.textContent = totalPolicies;
+    if (activeEl) activeEl.textContent = activePolicies;
+    if (timeLimitEl) timeLimitEl.textContent = timeLimitPolicies;
+}
+
 // ========== DISPLAY POLICIES ==========
 function displayPolicies(policies) {
     const tbody = document.getElementById('policiesTableBody');
@@ -3221,14 +3354,17 @@ function displayPolicies(policies) {
     if (!policies || policies.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="7" style="text-align: center; padding: 40px; color: #666;">
-                    <i class="fas fa-shield-alt" style="font-size: 48px; opacity: 0.3; margin-bottom: 10px;"></i>
-                    <p>No policies found. Create your first policy to get started.</p>
+                <td colspan="7" style="text-align: center; padding: 40px; color: var(--zinc-500);">
+                    No policies found. Create your first policy to get started.
                 </td>
             </tr>
         `;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
         return;
     }
+    
+    // Update stats
+    updatePoliciesStats(policies);
     
     tbody.innerHTML = policies.map(policy => {
         const features = [];
@@ -3242,43 +3378,43 @@ function displayPolicies(policies) {
             <tr>
                 <td>
                     <strong>${escapeHtml(policy.policyName)}</strong>
-                    ${!policy.active ? '<span class="badge badge-danger">Inactive</span>' : ''}
+                    ${!policy.active ? '<span style="padding: 4px 8px; background: var(--status-danger); color: white; border-radius: 6px; font-size: 11px; font-weight: 600; margin-left: 8px;">Inactive</span>' : ''}
                 </td>
                 <td>
-                    <span class="badge badge-info">
+                    <span style="padding: 4px 8px; background: var(--status-info); color: white; border-radius: 6px; font-size: 11px; font-weight: 600;">
                         ${policy.scope.type}
                         ${policy.scope.targetIds?.length > 0 ? ` (${policy.scope.targetIds.length})` : ''}
                     </span>
                 </td>
                 <td>
-                    <span class="priority-badge priority-${getPriorityClass(policy.priority)}">
+                    <span style="padding: 4px 8px; background: var(--zinc-200); color: var(--zinc-900); border-radius: 6px; font-size: 11px; font-weight: 600;">
                         ${policy.priority}
                     </span>
                 </td>
                 <td>
                     ${features.length > 0 
-                        ? features.map(f => `<span class="feature-tag">${f}</span>`).join(' ')
-                        : '<span style="color: #999;">None</span>'
+                        ? features.map(f => `<span style="padding: 4px 8px; background: var(--zinc-100); color: var(--zinc-700); border-radius: 6px; font-size: 10px; margin-right: 4px; display: inline-block; margin-bottom: 4px;">${f}</span>`).join('')
+                        : '<span style="color: var(--zinc-400);">None</span>'
                     }
                 </td>
                 <td>
-                    <span class="badge ${policy.active ? 'badge-success' : 'badge-danger'}">
+                    <span style="padding: 4px 8px; background: ${policy.active ? 'var(--status-safe)' : 'var(--zinc-300)'}; color: white; border-radius: 6px; font-size: 11px; font-weight: 600;">
                         ${policy.active ? 'Active' : 'Inactive'}
                     </span>
                 </td>
                 <td>${new Date(policy.createdAt).toLocaleDateString()}</td>
                 <td>
-                    <button class="btn-icon" onclick="viewPolicyDetails('${policy.policyId}')" title="View Details">
-                        <i class="fas fa-eye"></i>
+                    <button class="btn btn-ghost" onclick="viewPolicyDetails('${policy.policyId}')" style="padding: 6px 10px; font-size: 0.75rem;" title="View Details">
+                        <i data-lucide="eye" size="14"></i>
                     </button>
-                    <button class="btn-icon" onclick="editPolicy('${policy.policyId}')" title="Edit">
-                        <i class="fas fa-edit"></i>
+                    <button class="btn btn-ghost" onclick="editPolicy('${policy.policyId}')" style="padding: 6px 10px; font-size: 0.75rem;" title="Edit">
+                        <i data-lucide="edit" size="14"></i>
                     </button>
-                    <button class="btn-icon" onclick="togglePolicyStatus('${policy.policyId}')" title="${policy.active ? 'Deactivate' : 'Activate'}">
-                        <i class="fas fa-${policy.active ? 'pause' : 'play'}-circle"></i>
+                    <button class="btn btn-ghost" onclick="togglePolicyStatus('${policy.policyId}')" style="padding: 6px 10px; font-size: 0.75rem;" title="${policy.active ? 'Deactivate' : 'Activate'}">
+                        <i data-lucide="${policy.active ? 'pause' : 'play'}" size="14"></i>
                     </button>
-                    <button class="btn-icon btn-danger" onclick="confirmDeletePolicy('${policy.policyId}')" title="Delete">
-                        <i class="fas fa-trash"></i>
+                    <button class="btn btn-danger" onclick="confirmDeletePolicy('${policy.policyId}')" style="padding: 6px 10px; font-size: 0.75rem;" title="Delete">
+                        <i data-lucide="trash-2" size="14"></i>
                     </button>
                 </td>
             </tr>
