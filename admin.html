@@ -6,7 +6,7 @@
     <title>System Administrator | BrowserBricker</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><defs><linearGradient id='g' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' style='stop-color:%23667eea' /><stop offset='100%' style='stop-color:%23764ba2' /></linearGradient></defs><circle cx='50' cy='50' r='45' fill='url(%23g)' /><path d='M50 20 L35 35 V50 C35 60 50 75 50 75 C50 75 65 60 65 50 V35 L50 20Z' fill='white' opacity='0.9' /></svg>">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -14,259 +14,383 @@
 
     <style>
         :root {
-            --font-main: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            --font-mono: 'JetBrains Mono', monospace;
+            --pjs: 'Plus Jakarta Sans', sans-serif;
+            --mono: 'JetBrains Mono', monospace;
+            --white: #ffffff;
+            --zinc-50: #fafafa;
+            --zinc-100: #f4f4f5;
+            --zinc-200: #e4e4e7;
+            --zinc-300: #d4d4d8;
+            --zinc-400: #a1a1aa;
+            --zinc-500: #71717a;
+            --zinc-600: #52525b;
+            --zinc-700: #3f3f46;
+            --zinc-800: #27272a;
+            --zinc-900: #18181b;
+            --zinc-950: #09090b;
             
-            --bg-primary: #0f0f10;
-            --bg-secondary: #1a1a1c;
-            --bg-tertiary: #232326;
-            --bg-elevated: #2a2a2e;
+            --brand-primary: #8b5cf6;
+            --brand-dark: #7c3aed;
+            --brand-light: #a78bfa;
             
-            --text-primary: #ffffff;
-            --text-secondary: #a1a1aa;
-            --text-tertiary: #71717a;
+            --status-safe: #10b981;
+            --status-warn: #f59e0b;
+            --status-danger: #ef4444;
+            --status-info: #06b6d4;
             
-            --border-subtle: rgba(255, 255, 255, 0.06);
-            --border-medium: rgba(255, 255, 255, 0.1);
-            
-            --accent-primary: #8b5cf6;
-            --accent-secondary: #a78bfa;
-            --accent-hover: #7c3aed;
-            
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --info: #06b6d4;
-            
-            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-            --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.5);
-            --shadow-glow: 0 0 20px rgba(139, 92, 246, 0.3);
-            
-            --radius-sm: 8px;
+            --sidebar-width: 280px;
+            --header-height: 80px;
+            --radius-lg: 24px;
             --radius-md: 12px;
-            --radius-lg: 16px;
-            --radius-xl: 20px;
-            
-            --sidebar-width: 260px;
-            --header-height: 72px;
-            
-            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --border: 1px solid rgba(0, 0, 0, 0.08);
+            --shadow-subtle: 0 1px 3px rgba(0,0,0,0.02), 0 10px 20px -5px rgba(0,0,0,0.04);
+            --shadow-float: 0 20px 40px -10px rgba(0,0,0,0.08);
+            --transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
 
         body {
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            font-family: var(--font-main);
-            line-height: 1.6;
+            background: var(--zinc-50);
+            color: var(--zinc-900);
+            font-family: var(--pjs);
+            line-height: 1.5;
             overflow: hidden;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
         }
 
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--bg-secondary);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--bg-elevated);
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #3a3a3e;
-        }
-
-        /* Auth Overlay */
-        .auth-overlay {
+        body::before {
+            content: "";
             position: fixed;
-            inset: 0;
-            background: linear-gradient(135deg, #0f0f10 0%, #1a1a1c 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.02;
+            pointer-events: none;
             z-index: 10000;
         }
 
-        .auth-card {
-            width: min(480px, 90vw);
-            padding: 48px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-medium);
-            border-radius: var(--radius-xl);
-            box-shadow: var(--shadow-lg);
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--zinc-50); }
+        ::-webkit-scrollbar-thumb { background: var(--zinc-200); border-radius: 10px; }
+
+        .admin-wrapper {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
         }
 
-        .auth-icon {
-            width: 72px;
-            height: 72px;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-hover));
-            border-radius: var(--radius-lg);
+        aside.sidebar {
+            width: var(--sidebar-width);
+            background: var(--white);
+            border-right: var(--border);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            height: var(--header-height);
+            padding: 0 30px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            margin: 0 auto 32px;
-            box-shadow: var(--shadow-glow);
+            gap: 12px;
+            border-bottom: var(--border);
         }
 
-        .auth-title {
-            font-size: 28px;
+        .brand-diamond {
+            width: 34px; height: 34px;
+            background: linear-gradient(135deg, var(--brand-primary), var(--brand-dark));
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            color: white;
+            box-shadow: 0 4px 10px rgba(139, 92, 246, 0.3);
+        }
+
+        .brand-text { font-weight: 800; font-size: 1rem; letter-spacing: -0.5px; }
+
+        .sidebar-nav { flex: 1; padding: 20px; overflow-y: auto; }
+        .nav-group { margin-bottom: 30px; }
+        .nav-label { 
+            font-size: 0.65rem; 
+            font-weight: 800; 
+            color: var(--zinc-400); 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            margin: 0 15px 12px; 
+        }
+
+        .nav-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 15px; border-radius: 10px;
+            color: var(--zinc-600); font-size: 0.9rem; font-weight: 600;
+            cursor: pointer; transition: 0.2s; margin-bottom: 2px;
+        }
+        .nav-item:hover { background: var(--zinc-50); color: var(--zinc-950); }
+        .nav-item.active { 
+            background: linear-gradient(135deg, var(--brand-primary), var(--brand-dark));
+            color: var(--white); 
+            box-shadow: 0 10px 15px -5px rgba(139, 92, 246, 0.3);
+        }
+
+        .sidebar-footer { padding: 20px; border-top: var(--border); }
+
+        main.content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--zinc-50);
+            position: relative;
+        }
+
+        header.top-bar {
+            height: var(--header-height);
+            background: var(--white);
+            border-bottom: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            z-index: 90;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
             font-weight: 800;
-            text-align: center;
-            margin-bottom: 12px;
             letter-spacing: -0.5px;
         }
 
-        .auth-subtitle {
-            text-align: center;
-            color: var(--text-secondary);
-            margin-bottom: 32px;
-            font-size: 15px;
+        .view-container { 
+            flex: 1; 
+            padding: 40px; 
+            overflow-y: auto; 
+            display: none;
+            height: calc(100vh - var(--header-height));
+        }
+        .view-container.active { 
+            display: block; 
+            opacity: 1; 
+            animation: viewFade 0.4s ease-out; 
+        }
+        @keyframes viewFade { 
+            from { opacity: 0; transform: translateY(10px); } 
+            to { opacity: 1; transform: translateY(0); } 
         }
 
-        .auth-badge {
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-subtle);
-            padding: 12px 20px;
-            border-radius: var(--radius-md);
-            display: flex;
-            align-items: center;
+        .auth-overlay {
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); 
+            z-index: 10000;
+            display: flex; 
+            align-items: center; 
             justify-content: center;
-            gap: 8px;
-            margin-bottom: 32px;
         }
 
-        .auth-badge-text {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+        .auth-card {
+            width: 480px; 
+            padding: 60px; 
+            text-align: center;
+            background: white; 
+            border-radius: 30px;
+            box-shadow: 0 40px 100px -20px rgba(0,0,0,0.15);
+            border: var(--border);
+        }
+
+        .auth-icon-container {
+            width: 80px; 
+            height: 80px;
+            background: linear-gradient(135deg, var(--brand-primary), var(--brand-dark));
+            border-radius: 20px;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            margin: 0 auto 30px;
+            box-shadow: 0 15px 35px rgba(139, 92, 246, 0.4);
         }
 
         .auth-tabs {
             display: flex;
             gap: 8px;
-            margin-bottom: 32px;
-            background: var(--bg-tertiary);
-            padding: 4px;
-            border-radius: var(--radius-md);
+            margin-bottom: 24px;
+            border-bottom: 2px solid var(--zinc-100);
         }
 
         .auth-tab {
             flex: 1;
-            padding: 10px;
+            padding: 12px;
             background: transparent;
             border: none;
-            color: var(--text-secondary);
-            font-weight: 600;
-            font-size: 14px;
-            border-radius: var(--radius-sm);
+            border-bottom: 3px solid transparent;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: var(--zinc-400);
             cursor: pointer;
-            transition: var(--transition);
-            font-family: var(--font-main);
+            margin-bottom: -2px;
+            transition: 0.2s;
+            font-family: var(--pjs);
         }
 
         .auth-tab.active {
-            background: var(--accent-primary);
-            color: white;
+            color: var(--brand-primary);
+            border-bottom-color: var(--brand-primary);
         }
 
-        .field-group {
-            margin-bottom: 20px;
+        .grid-stats { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 24px; 
+            margin-bottom: 40px; 
+        }
+        
+        .stat-card {
+            background: white; 
+            padding: 24px; 
+            border-radius: 20px;
+            border: var(--border); 
+            position: relative; 
+            overflow: hidden;
+            box-shadow: var(--shadow-subtle);
+            transition: 0.3s;
+        }
+        .stat-card:hover { 
+            transform: translateY(-2px); 
+            box-shadow: var(--shadow-float); 
+        }
+        .stat-card h4 { 
+            font-size: 0.7rem; 
+            font-weight: 800; 
+            color: var(--zinc-400); 
+            text-transform: uppercase; 
+            margin-bottom: 12px; 
+        }
+        .stat-value { 
+            font-size: 2.2rem; 
+            font-weight: 800; 
+            letter-spacing: -1px; 
+            margin-bottom: 8px; 
         }
 
-        .field-label {
-            display: block;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin-bottom: 8px;
-            text-align: left;
+        .card-main {
+            background: white; 
+            border: var(--border); 
+            border-radius: 24px;
+            padding: 32px; 
+            box-shadow: var(--shadow-subtle); 
+            margin-bottom: 24px;
         }
 
+        .card-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 24px; 
+        }
+        .card-title { 
+            font-size: 1.1rem; 
+            font-weight: 800; 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+        }
+
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th { 
+            text-align: left; 
+            padding: 16px; 
+            font-size: 0.65rem; 
+            font-weight: 800; 
+            color: var(--zinc-400); 
+            text-transform: uppercase; 
+            border-bottom: 1px solid var(--zinc-100); 
+        }
+        td { 
+            padding: 16px; 
+            border-bottom: 1px solid var(--zinc-50); 
+            font-size: 0.9rem; 
+            color: var(--zinc-700); 
+        }
+        tr:hover td { background: var(--zinc-50); }
+
+        .badge { 
+            padding: 4px 10px; 
+            border-radius: 6px; 
+            font-size: 0.7rem; 
+            font-weight: 800; 
+            text-transform: uppercase; 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 4px; 
+        }
+        .badge-safe { background: #dcfce7; color: #166534; }
+        .badge-warn { background: #fef3c7; color: #92400e; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+        .badge-info { background: #e0f2fe; color: #075985; }
+        .badge-armed { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .badge-disarmed { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+
+        .field-group { margin-bottom: 20px; }
+        .field-label { 
+            font-size: 0.75rem; 
+            font-weight: 700; 
+            color: var(--zinc-500); 
+            margin-bottom: 8px; 
+            display: block; 
+        }
         .input-control {
-            width: 100%;
-            padding: 12px 16px;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-subtle);
-            border-radius: var(--radius-md);
-            color: var(--text-primary);
-            font-family: var(--font-main);
-            font-size: 15px;
-            transition: var(--transition);
+            width: 100%; 
+            padding: 14px 18px; 
+            border-radius: 12px;
+            border: 1px solid var(--zinc-200); 
+            background: var(--zinc-50);
+            font-family: inherit; 
+            font-size: 0.95rem; 
+            transition: 0.2s; 
             outline: none;
         }
-
-        .input-control:focus {
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        .input-control:focus { 
+            background: white; 
+            border-color: var(--brand-primary); 
+            box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1); 
         }
 
         .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 12px 24px;
-            border-radius: var(--radius-md);
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            transition: var(--transition);
-            border: none;
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 10px;
+            padding: 12px 24px; 
+            border-radius: 10px; 
+            font-weight: 700; 
+            font-size: 0.9rem;
+            cursor: pointer; 
+            transition: 0.2s; 
+            border: none; 
             outline: none;
-            font-family: var(--font-main);
-            white-space: nowrap;
+            font-family: var(--pjs);
         }
-
-        .btn-primary {
-            background: var(--accent-primary);
-            color: white;
+        .btn-primary { 
+            background: linear-gradient(135deg, var(--brand-primary), var(--brand-dark)); 
+            color: white; 
         }
-
-        .btn-primary:hover:not(:disabled) {
-            background: var(--accent-hover);
-            transform: translateY(-1px);
-            box-shadow: var(--shadow-glow);
+        .btn-primary:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3); 
         }
-
-        .btn-secondary {
-            background: var(--bg-elevated);
-            color: var(--text-primary);
-            border: 1px solid var(--border-medium);
+        .btn-ghost { 
+            background: transparent; 
+            color: var(--zinc-600); 
+            border: 1px solid var(--zinc-200); 
         }
-
-        .btn-secondary:hover:not(:disabled) {
-            background: #3a3a3e;
+        .btn-ghost:hover { 
+            background: var(--zinc-100); 
+            color: var(--zinc-950); 
         }
-
-        .btn-success {
-            background: var(--success);
-            color: white;
-        }
-
-        .btn-danger {
-            background: var(--danger);
-            color: white;
-        }
-
-        .btn-warning {
-            background: var(--warning);
-            color: white;
-        }
+        .btn-danger { background: var(--status-danger); color: white; }
+        .btn-success { background: var(--status-safe); color: white; }
+        .btn-warn { background: var(--status-warn); color: white; }
 
         .btn:disabled {
             opacity: 0.5;
@@ -274,10 +398,10 @@
         }
 
         .spinner {
-            width: 18px;
-            height: 18px;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-top-color: white;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--zinc-200);
+            border-top-color: var(--brand-primary);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
@@ -286,388 +410,48 @@
             to { transform: rotate(360deg); }
         }
 
-        .code-display {
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-medium);
-            padding: 20px;
-            border-radius: var(--radius-md);
-            font-family: var(--font-mono);
-            font-size: 14px;
-            text-align: center;
-            color: var(--accent-secondary);
-            font-weight: 600;
-            word-break: break-all;
-            margin: 20px 0;
-        }
-
-        /* Main Layout */
-        .admin-wrapper {
-            display: flex;
-            height: 100vh;
-            width: 100vw;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            width: var(--sidebar-width);
-            background: var(--bg-secondary);
-            border-right: 1px solid var(--border-subtle);
-            display: flex;
-            flex-direction: column;
-            z-index: 100;
-        }
-
-        .sidebar-header {
-            height: var(--header-height);
-            padding: 0 24px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            border-bottom: 1px solid var(--border-subtle);
-        }
-
-        .brand-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-hover));
-            border-radius: var(--radius-md);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: var(--shadow-glow);
-        }
-
-        .brand-text {
-            font-weight: 800;
-            font-size: 15px;
-            letter-spacing: -0.3px;
-        }
-
-        .brand-text span {
-            font-weight: 400;
-            opacity: 0.4;
-        }
-
-        .sidebar-nav {
-            flex: 1;
-            padding: 16px;
-            overflow-y: auto;
-        }
-
-        .nav-group {
-            margin-bottom: 24px;
-        }
-
-        .nav-label {
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--text-tertiary);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin: 0 12px 12px;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 12px;
-            border-radius: var(--radius-sm);
-            color: var(--text-secondary);
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: var(--transition);
-            margin-bottom: 2px;
-        }
-
-        .nav-item:hover {
-            background: var(--bg-tertiary);
-            color: var(--text-primary);
-        }
-
-        .nav-item.active {
-            background: var(--accent-primary);
-            color: white;
-            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
-        }
-
-        .sidebar-footer {
-            padding: 16px;
-            border-top: 1px solid var(--border-subtle);
-        }
-
-        .status-card {
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-subtle);
-            border-radius: var(--radius-md);
-            padding: 12px;
-        }
-
-        .status-indicator {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            background: var(--success);
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        .status-text {
-            font-size: 13px;
-            font-weight: 600;
-        }
-
-        .status-detail {
-            font-size: 12px;
-            color: var(--text-tertiary);
-            font-family: var(--font-mono);
-        }
-
-        /* Main Content */
-        .content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: var(--bg-primary);
-        }
-
-        .top-bar {
-            height: var(--header-height);
-            background: var(--bg-secondary);
-            border-bottom: 1px solid var(--border-subtle);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 32px;
-            z-index: 90;
-        }
-
-        .page-title {
-            font-size: 24px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
-
-        .top-actions {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .view-container {
-            flex: 1;
-            padding: 32px;
-            overflow-y: auto;
-            display: none;
-        }
-
-        .view-container.active {
-            display: block;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 20px;
-            margin-bottom: 32px;
-        }
-
-        .stat-card {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-subtle);
-            border-radius: var(--radius-lg);
-            padding: 24px;
-            transition: var(--transition);
-        }
-
-        .stat-card:hover {
-            border-color: var(--border-medium);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-        }
-
-        .stat-label {
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--text-tertiary);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 12px;
-        }
-
-        .stat-value {
-            font-size: 32px;
-            font-weight: 800;
-            letter-spacing: -1px;
-            margin-bottom: 8px;
-        }
-
-        .stat-trend {
-            font-size: 13px;
-            color: var(--text-secondary);
-        }
-
-        /* Card */
-        .card {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-subtle);
-            border-radius: var(--radius-lg);
-            padding: 28px;
-            margin-bottom: 24px;
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-        }
-
-        .card-title {
-            font-size: 18px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        /* Quick Actions */
         .quick-actions {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 16px;
-            margin-bottom: 32px;
+            margin-bottom: 30px;
         }
 
-        .quick-action {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-subtle);
-            border-radius: var(--radius-lg);
+        .quick-action-btn {
+            background: white;
+            border: var(--border);
             padding: 20px;
+            border-radius: 16px;
             cursor: pointer;
-            transition: var(--transition);
+            transition: 0.3s;
             text-align: center;
         }
 
-        .quick-action:hover {
-            border-color: var(--accent-primary);
+        .quick-action-btn:hover {
             transform: translateY(-4px);
-            box-shadow: var(--shadow-md);
+            box-shadow: var(--shadow-float);
+            border-color: var(--zinc-300);
         }
 
         .quick-action-icon {
             width: 48px;
             height: 48px;
-            background: var(--bg-tertiary);
-            border-radius: var(--radius-md);
+            background: var(--zinc-50);
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 12px;
         }
 
-        .quick-action-title {
-            font-weight: 600;
-            font-size: 14px;
-            margin-bottom: 4px;
-        }
-
-        .quick-action-desc {
-            font-size: 12px;
-            color: var(--text-tertiary);
-        }
-
-        /* Table */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th {
-            text-align: left;
-            padding: 12px 16px;
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--text-tertiary);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-bottom: 1px solid var(--border-subtle);
-        }
-
-        td {
-            padding: 16px;
-            border-bottom: 1px solid var(--border-subtle);
-            font-size: 14px;
-        }
-
-        tr:hover td {
-            background: var(--bg-tertiary);
-        }
-
-        /* Badge */
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-
-        .badge-success {
-            background: rgba(16, 185, 129, 0.15);
-            color: var(--success);
-        }
-
-        .badge-warning {
-            background: rgba(245, 158, 11, 0.15);
-            color: var(--warning);
-        }
-
-        .badge-danger {
-            background: rgba(239, 68, 68, 0.15);
-            color: var(--danger);
-        }
-
-        .badge-info {
-            background: rgba(6, 182, 212, 0.15);
-            color: var(--info);
-        }
-
-        .badge-neutral {
-            background: var(--bg-tertiary);
-            color: var(--text-secondary);
-        }
-
-        /* Modal */
         .modal-overlay {
             display: none;
             position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(4px);
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
             z-index: 1000;
             align-items: center;
             justify-content: center;
@@ -679,15 +463,15 @@
         }
 
         .modal {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-medium);
-            border-radius: var(--radius-xl);
+            background: var(--white);
+            border: var(--border);
+            border-radius: 24px;
             padding: 32px;
             max-width: 600px;
             width: 100%;
             max-height: 80vh;
             overflow-y: auto;
-            box-shadow: var(--shadow-lg);
+            box-shadow: 0 40px 100px rgba(0,0,0,0.2);
         }
 
         .modal h2 {
@@ -696,106 +480,116 @@
             margin-bottom: 8px;
         }
 
-        .modal p {
-            color: var(--text-secondary);
-            margin-bottom: 24px;
+        .code-display {
+            background: var(--zinc-50);
+            padding: 20px;
+            border-radius: 12px;
+            font-family: var(--mono);
+            font-size: 0.9rem;
+            text-align: center;
+            letter-spacing: 1px;
+            margin: 20px 0;
+            color: var(--brand-primary);
+            font-weight: 700;
+            word-break: break-all;
         }
 
-        /* Toast */
         #toastContainer {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            z-index: 20000;
+            position: fixed; 
+            bottom: 30px; 
+            right: 30px; 
+            z-index: 20000; 
             pointer-events: none;
         }
 
         .toast {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-medium);
-            border-left: 4px solid var(--accent-primary);
-            border-radius: var(--radius-md);
+            background: white;
+            border: var(--border);
+            border-left: 4px solid var(--brand-primary);
+            border-radius: 12px;
             padding: 16px 20px;
             margin-top: 12px;
             min-width: 320px;
-            box-shadow: var(--shadow-lg);
+            box-shadow: var(--shadow-float);
             pointer-events: auto;
-            animation: slideIn 0.3s ease;
+            animation: toastIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        @keyframes slideIn {
-            from { transform: translateX(400px); opacity: 0; }
+        @keyframes toastIn {
+            from { transform: translateX(100px); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
 
         .toast-title {
-            font-weight: 600;
+            font-weight: 700;
             margin-bottom: 4px;
-            font-size: 14px;
+            font-size: 0.9rem;
         }
 
         .toast-message {
-            font-size: 13px;
-            color: var(--text-secondary);
+            font-size: 0.85rem;
+            color: var(--zinc-600);
         }
 
-        .toast-success { border-left-color: var(--success); }
-        .toast-error { border-left-color: var(--danger); }
-        .toast-warning { border-left-color: var(--warning); }
+        .toast-success { border-left-color: var(--status-safe); }
+        .toast-error { border-left-color: var(--status-danger); }
+        .toast-warn { border-left-color: var(--status-warn); }
 
-        /* Map */
+        .location-item {
+            background: var(--zinc-50);
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border-left: 4px solid var(--status-info);
+        }
+
+        .coordinates-display {
+            font-family: var(--mono);
+            font-size: 0.85rem;
+            color: var(--zinc-600);
+            background: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-top: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .grid-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .hidden { display: none !important; }
+
+        /* Map Styles */
         .map-container {
             width: 100%;
             height: 500px;
-            border-radius: var(--radius-lg);
+            border-radius: 12px;
             overflow: hidden;
             margin-bottom: 20px;
-            border: 1px solid var(--border-subtle);
+            border: var(--border);
+            box-shadow: var(--shadow-subtle);
         }
 
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
+        .leaflet-popup-content-wrapper {
+            border-radius: 8px;
+            font-family: var(--pjs);
         }
 
-        .empty-icon {
-            font-size: 48px;
-            margin-bottom: 16px;
-            opacity: 0.3;
+        .leaflet-popup-content {
+            margin: 12px;
+            font-size: 0.85rem;
         }
 
-        .empty-title {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .empty-desc {
-            color: var(--text-secondary);
-            font-size: 14px;
-            margin-bottom: 20px;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .sidebar {
-                position: fixed;
-                left: -100%;
-                transition: left 0.3s;
-            }
-            
-            .sidebar.open {
-                left: 0;
-            }
+        .custom-marker {
+            background: none;
+            border: none;
         }
     </style>
 </head>
@@ -804,32 +598,38 @@
     <!-- AUTH OVERLAY -->
     <div class="auth-overlay" id="authOverlay">
         <div class="auth-card">
-            <div class="auth-icon">
+            <div class="auth-icon-container">
                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                     <circle cx="12" cy="12" r="3"/>
                 </svg>
             </div>
-            <h1 class="auth-title">System Administrator</h1>
-            <p class="auth-subtitle">Manage your group's devices and master keys</p>
+            <h2 style="font-weight: 800; margin-bottom: 12px; font-size: 1.8rem;">System Administrator</h2>
+            <p style="color: var(--zinc-500); font-size: 0.95rem; margin-bottom: 35px; line-height: 1.6;">
+                Manage your group's devices and user master keys
+            </p>
             
-            <div class="auth-badge">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <div style="background: var(--zinc-50); padding: 12px; border-radius: 10px; margin-bottom: 25px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--zinc-500)" stroke-width="2">
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                     <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                 </svg>
-                <span class="auth-badge-text">Secure Session</span>
+                <span style="font-size: 0.8rem; font-weight: 700; color: var(--zinc-600);">SECURE SESSION</span>
             </div>
             
             <div class="auth-tabs">
-                <button class="auth-tab active" onclick="switchAuthTab('login')" id="loginTab">Login</button>
-                <button class="auth-tab" onclick="switchAuthTab('register')" id="registerTab">Register</button>
+                <button class="auth-tab active" onclick="switchAuthTab('login')" id="loginTab">
+                    Login
+                </button>
+                <button class="auth-tab" onclick="switchAuthTab('register')" id="registerTab">
+                    Register
+                </button>
             </div>
             
-            <div id="loginForm">
+            <div id="loginForm" class="auth-form-container">
                 <form onsubmit="handleLogin(event)">
                     <div class="field-group">
-                        <label class="field-label">System Administrator API Key</label>
+                        <label class="field-label" style="text-align: left;">System Administrator API Key</label>
                         <input 
                             type="password" 
                             id="loginKeyInput" 
@@ -840,15 +640,15 @@
                     </div>
                     <button type="submit" class="btn btn-primary" style="width: 100%;" id="loginBtn">
                         <span id="loginBtnText">Access Dashboard</span>
-                        <div class="spinner hidden" id="loginSpinner"></div>
+                        <div class="spinner" id="loginSpinner" style="display: none;"></div>
                     </button>
                 </form>
             </div>
             
-            <div id="registerForm" class="hidden">
+            <div id="registerForm" class="auth-form-container" style="display: none;">
                 <form onsubmit="handleRegister(event)">
                     <div class="field-group">
-                        <label class="field-label">Registration Code</label>
+                        <label class="field-label" style="text-align: left;">Registration Code</label>
                         <input 
                             type="text" 
                             id="regCode" 
@@ -858,7 +658,27 @@
                             required>
                     </div>
                     <div class="field-group">
-                        <label class="field-label">Password</label>
+                        <label class="field-label" style="text-align: left;">Name</label>
+                        <input 
+                            type="text" 
+                            id="regName" 
+                            class="input-control" 
+                            placeholder="Your name"
+                            autocomplete="off"
+                            required>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label" style="text-align: left;">Email</label>
+                        <input 
+                            type="email" 
+                            id="regEmail" 
+                            class="input-control" 
+                            placeholder="your@email.com"
+                            autocomplete="off"
+                            required>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label" style="text-align: left;">Password</label>
                         <input 
                             type="password" 
                             id="regPassword" 
@@ -869,34 +689,41 @@
                     </div>
                     <button type="submit" class="btn btn-primary" style="width: 100%;" id="registerBtn">
                         <span id="registerBtnText">Register</span>
-                        <div class="spinner hidden" id="registerSpinner"></div>
+                        <div class="spinner" id="registerSpinner" style="display: none;"></div>
                     </button>
                 </form>
                 
-                <div id="regSuccess" class="hidden" style="margin-top: 20px;">
-                    <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-md); padding: 20px;">
-                        <h3 style="color: var(--success); margin-bottom: 16px; font-size: 16px;">Registration Successful!</h3>
-                        <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 13px;">Your System Administrator API Key:</p>
-                        <div class="code-display" id="newApiKey"></div>
-                        <p style="color: var(--danger); font-weight: 600; margin-bottom: 16px; font-size: 13px;">⚠️ SAVE THIS KEY - IT WON'T BE SHOWN AGAIN!</p>
+                <div id="regSuccess" style="display: none; margin-top: 20px;">
+                    <div style="background: #dcfce7; border: 1px solid #10b981; border-radius: 12px; padding: 20px;">
+                        <h3 style="color: #166534; margin-bottom: 15px; font-size: 1rem;">Registration Successful!</h3>
+                        <p style="color: #166534; margin-bottom: 15px; font-size: 0.85rem;">Your System Administrator API Key:</p>
+                        <div class="code-display" id="newApiKey" style="background: white;"></div>
+                        <p style="color: #991b1b; font-weight: 600; margin-bottom: 15px; font-size: 0.85rem;">⚠️ SAVE THIS KEY - IT WON'T BE SHOWN AGAIN!</p>
                         <button class="btn btn-primary" onclick="copyApiKey()" style="width: 100%;">Copy API Key</button>
                     </div>
                 </div>
             </div>
+            
+            <div style="margin-top: 30px; padding-top: 25px; border-top: 1px solid var(--zinc-100); font-size: 0.75rem; color: var(--zinc-400); display: flex; align-items: center; justify-content: center; gap: 6px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                System Administrator Level Access
+            </div>
         </div>
     </div>
 
-    <div class="admin-wrapper hidden" id="adminMain">
+    <div class="admin-wrapper" id="adminMain" style="display: none;">
         <!-- SIDEBAR -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <div class="brand-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+                <div class="brand-diamond">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
                         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                         <circle cx="12" cy="12" r="3"/>
                     </svg>
                 </div>
-                <div class="brand-text">BROWSERBRICKER <span>ADMIN</span></div>
+                <div class="brand-text">BROWSERBRICKER <span style="font-weight: 300; opacity: 0.5;">ADMIN</span></div>
             </div>
             
             <div class="sidebar-nav">
@@ -938,12 +765,12 @@
             </div>
 
             <div class="sidebar-footer">
-                <div class="status-card">
-                    <div class="status-indicator">
-                        <div class="status-dot"></div>
-                        <div class="status-text">System Online</div>
+                <div style="background: var(--zinc-50); padding: 12px; border-radius: 12px; border: var(--border); margin-bottom: 12px;">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                        <div style="width: 8px; height: 8px; background: var(--status-safe); border-radius: 50%; animation: pulse 2s infinite;"></div>
+                        <div style="font-size: 0.75rem; font-weight: 700;">System: Online</div>
                     </div>
-                    <div class="status-detail" id="groupNameDisplay">Loading...</div>
+                    <div style="font-size: 0.7rem; color: var(--zinc-500); font-family: var(--mono);" id="groupNameDisplay">Group: Loading...</div>
                 </div>
             </div>
         </aside>
@@ -953,158 +780,162 @@
             <header class="top-bar">
                 <div class="page-title" id="pageTitle">Overview</div>
                 
-                <div class="top-actions">
-                    <button class="btn btn-secondary" onclick="refreshData()">
-                        <i data-lucide="refresh-cw" size="16"></i>
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <button class="btn btn-ghost" style="padding: 8px 16px; font-size: 0.8rem;" onclick="refreshData()">
+                        <i data-lucide="refresh-cw" size="14"></i> Refresh
                     </button>
-                    <button class="btn btn-secondary" onclick="logout()">
-                        <i data-lucide="log-out" size="16"></i>
+                    <button class="btn btn-ghost" style="padding: 8px 16px; font-size: 0.8rem;" onclick="logout()">
+                        <i data-lucide="log-out" size="14"></i> Sign Out
                     </button>
                 </div>
             </header>
 
             <!-- OVERVIEW VIEW -->
             <div class="view-container active" id="overviewView">
-                <div class="stats-grid">
+                <div class="grid-stats">
                     <div class="stat-card">
-                        <div class="stat-label">Total Devices</div>
-                        <div class="stat-value" style="color: var(--accent-primary);" id="statTotal">0</div>
+                        <h4>Total Devices</h4>
+                        <div class="stat-value" style="color: var(--brand-primary);" id="statTotal">0</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">Online</div>
-                        <div class="stat-value" style="color: var(--success);" id="statOnline">0</div>
+                        <h4>Online</h4>
+                        <div class="stat-value" style="color: var(--status-safe);" id="statOnline">0</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">Armed</div>
-                        <div class="stat-value" style="color: var(--danger);" id="statArmed">0</div>
+                        <h4>Armed</h4>
+                        <div class="stat-value" style="color: var(--status-danger);" id="statArmed">0</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">Master Keys</div>
-                        <div class="stat-value" style="color: var(--warning);" id="statUsers">0</div>
+                        <h4>Master Keys</h4>
+                        <div class="stat-value" style="color: var(--status-warn);" id="statUsers">0</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">Quarantined</div>
-                        <div class="stat-value" style="color: var(--danger);" id="statQuarantined">0</div>
+                        <h4>Quarantined</h4>
+                        <div class="stat-value" style="color: var(--status-danger);" id="statQuarantined">0</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">Geofenced</div>
-                        <div class="stat-value" style="color: var(--info);" id="statGeofenced">0</div>
+                        <h4>Geofenced</h4>
+                        <div class="stat-value" style="color: var(--status-info);" id="statGeofenced">0</div>
                     </div>
                 </div>
 
                 <div class="quick-actions">
-                    <div class="quick-action" onclick="switchView('devices')">
+                    <div class="quick-action-btn" onclick="switchView('devices')">
                         <div class="quick-action-icon">
-                            <i data-lucide="monitor" size="24" style="color: var(--accent-primary);"></i>
+                            <i data-lucide="monitor" size="24" style="color: var(--brand-primary);"></i>
                         </div>
-                        <div class="quick-action-title">View Devices</div>
-                        <div class="quick-action-desc">Manage all devices</div>
+                        <div style="font-weight: 700; font-size: 0.9rem;">View Devices</div>
+                        <div style="font-size: 0.75rem; color: var(--zinc-500);">Manage all devices</div>
                     </div>
-                    <div class="quick-action" onclick="createUser()">
+                    <div class="quick-action-btn" onclick="createUser()">
                         <div class="quick-action-icon">
-                            <i data-lucide="user-plus" size="24" style="color: var(--success);"></i>
+                            <i data-lucide="user-plus" size="24" style="color: var(--status-safe);"></i>
                         </div>
-                        <div class="quick-action-title">Create Master Key</div>
-                        <div class="quick-action-desc">Add new user</div>
+                        <div style="font-weight: 700; font-size: 0.9rem;">Create Master Key</div>
+                        <div style="font-size: 0.75rem; color: var(--zinc-500);">Add new user</div>
                     </div>
-                    <div class="quick-action" onclick="armAll()">
+                    <div class="quick-action-btn" onclick="armAll()">
                         <div class="quick-action-icon">
-                            <i data-lucide="lock" size="24" style="color: var(--danger);"></i>
+                            <i data-lucide="lock" size="24" style="color: var(--status-danger);"></i>
                         </div>
-                        <div class="quick-action-title">Arm All</div>
-                        <div class="quick-action-subtitle">Lock all devices</div>
+                        <div style="font-weight: 700; font-size: 0.9rem;">Arm All</div>
+                        <div style="font-size: 0.75rem; color: var(--zinc-500);">Lock all devices</div>
                     </div>
-                    <div class="quick-action" onclick="disarmAll()">
+                    <div class="quick-action-btn" onclick="disarmAll()">
                         <div class="quick-action-icon">
-                            <i data-lucide="unlock" size="24" style="color: var(--success);"></i>
+                            <i data-lucide="unlock" size="24" style="color: var(--status-safe);"></i>
                         </div>
-                        <div class="quick-action-title">Disarm All</div>
-                        <div class="quick-action-subtitle">Unlock all devices</div>
+                        <div style="font-weight: 700; font-size: 0.9rem;">Disarm All</div>
+                        <div style="font-size: 0.75rem; color: var(--zinc-500);">Unlock all devices</div>
                     </div>
-                    <div class="quick-action" onclick="switchView('geofencing')">
+                    <div class="quick-action-btn" onclick="switchView('geofencing')">
                         <div class="quick-action-icon">
-                            <i data-lucide="map-pin" size="24" style="color: var(--info);"></i>
+                            <i data-lucide="map-pin" size="24" style="color: var(--status-info);"></i>
                         </div>
-                        <div class="quick-action-title">Geofencing</div>
-                        <div class="quick-action-subtitle">Location limits</div>
+                        <div style="font-weight: 700; font-size: 0.9rem;">Geofencing</div>
+                        <div style="font-size: 0.75rem; color: var(--zinc-500);">Location limits</div>
                     </div>
-                    <div class="quick-action" onclick="switchView('locations')">
+                    <div class="quick-action-btn" onclick="switchView('locations')">
                         <div class="quick-action-icon">
-                            <i data-lucide="map" size="24" style="color: var(--info);"></i>
+                            <i data-lucide="map" size="24" style="color: var(--status-info);"></i>
                         </div>
-                        <div class="quick-action-title">Live Tracking</div>
-                        <div class="quick-action-subtitle">Device locations</div>
+                        <div style="font-weight: 700; font-size: 0.9rem;">Live Tracking</div>
+                        <div style="font-size: 0.75rem; color: var(--zinc-500);">Device locations</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Devices View -->
+            <!-- DEVICES VIEW -->
             <div class="view-container" id="devicesView">
-                <div class="card">
+                <div class="card-main">
                     <div class="card-header">
                         <h2 class="card-title">
-                            <i data-lucide="monitor" size="18"></i>
+                            <i data-lucide="monitor" size="20"></i>
                             All Devices
                         </h2>
                     </div>
-                    <div id="devicesTable">
-                        <div class="empty-state">
+                    <div class="table-wrapper" id="devicesTable">
+                        <div style="text-align: center; padding: 40px; color: var(--zinc-400);">
                             <div class="spinner" style="margin: 0 auto 16px;"></div>
-                            <div class="empty-subtitle">Loading devices...</div>
+                            Loading devices...
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Users View -->
+            <!-- USERS VIEW -->
             <div class="view-container" id="usersView">
-                <div class="card">
+                <div class="card-main">
                     <div class="card-header">
                         <h2 class="card-title">
-                            <i data-lucide="users" size="18"></i>
-                            Master Keys
+                            <i data-lucide="users" size="20"></i>
+                            Master Keys (Users)
                         </h2>
                         <button class="btn btn-primary" onclick="createUser()">
                             <i data-lucide="plus" size="16"></i>
                             Create Master Key
                         </button>
                     </div>
-                    <div id="usersTable">
-                        <div class="empty-state">
+                    <div class="table-wrapper" id="usersTable">
+                        <div style="text-align: center; padding: 40px; color: var(--zinc-400);">
                             <div class="spinner" style="margin: 0 auto 16px;"></div>
-                            <div class="empty-subtitle">Loading users...</div>
+                            Loading users...
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Geofencing View -->
+            <!-- GEOFENCING VIEW -->
             <div class="view-container" id="geofencingView">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
-                    <div class="card">
+                    <div class="card-main">
                         <div class="card-header">
                             <h2 class="card-title">
-                                <i data-lucide="map-pin" size="18"></i>
+                                <i data-lucide="map-pin" size="20"></i>
                                 Active Geofences
                             </h2>
-                            <button class="btn btn-secondary" onclick="loadGeofences()">
+                            <button class="btn btn-ghost" onclick="loadGeofences()">
                                 <i data-lucide="refresh-cw" size="16"></i>
                             </button>
                         </div>
-                        <div id="geofenceMap" class="map-container"></div>
+                        
+                        <!-- Geofence Map -->
+                        <div id="geofenceMap" class="map-container" style="margin-bottom: 20px;"></div>
+                        
+                        <!-- Geofence List -->
                         <div id="geofencesList">
-                            <div class="empty-state">
-                                <div class="empty-subtitle">Loading geofences...</div>
+                            <div style="text-align: center; padding: 40px; color: var(--zinc-400);">
+                                Loading geofences...
                             </div>
                         </div>
                     </div>
 
-                    <div class="card">
-                        <h2 class="card-title" style="margin-bottom: 20px;">
-                            <i data-lucide="plus-circle" size="18"></i>
+                    <div class="card-main">
+                        <h2 class="card-title" style="margin-bottom: 24px;">
+                            <i data-lucide="plus-circle" size="20"></i>
                             Create Geofence
                         </h2>
-                        <form onsubmit="createGeofence(event)">
+                        <form id="createGeofenceForm" onsubmit="createGeofence(event)">
                             <div class="field-group">
                                 <label class="field-label">Device ID</label>
                                 <input type="text" id="geofenceDeviceId" class="input-control" placeholder="dev_..." required>
@@ -1112,7 +943,9 @@
                             <div class="field-group">
                                 <label class="field-label">Latitude</label>
                                 <input type="number" id="geofenceLat" class="input-control" step="any" placeholder="40.712776" required>
-                                <small style="font-size: 11px; color: var(--text-muted); margin-top: 4px; display: block;">Click on the map to set coordinates</small>
+                                <small style="font-size: 0.75rem; color: var(--zinc-500); margin-top: 4px; display: block;">
+                                    Click on the map to set coordinates
+                                </small>
                             </div>
                             <div class="field-group">
                                 <label class="field-label">Longitude</label>
@@ -1120,7 +953,7 @@
                             </div>
                             <div class="field-group">
                                 <label class="field-label">Radius (meters)</label>
-                                <input type="number" id="geofenceRadius" class="input-control" min="10" max="100000" value="1000" required>
+                                <input type="number" id="geofenceRadius" class="input-control" min="10" max="100000" placeholder="1000" value="1000" required>
                             </div>
                             <button type="submit" class="btn btn-primary" style="width: 100%;">
                                 <i data-lucide="map-pin" size="16"></i>
@@ -1131,82 +964,88 @@
                 </div>
             </div>
 
-            <!-- Locations View -->
+            <!-- LOCATIONS VIEW -->
             <div class="view-container" id="locationsView">
-                <div class="card">
+                <div class="card-main">
                     <div class="card-header">
                         <h2 class="card-title">
-                            <i data-lucide="map" size="18"></i>
+                            <i data-lucide="map" size="20"></i>
                             Live Device Locations
                         </h2>
                         <div style="display: flex; gap: 12px;">
-                            <button class="btn btn-secondary" onclick="toggleMapView()" id="mapViewToggle">
+                            <button class="btn btn-ghost" onclick="toggleMapView()" id="mapViewToggle">
                                 <i data-lucide="layers" size="16"></i>
                                 <span id="mapViewToggleText">Show Map</span>
                             </button>
-                            <button class="btn btn-secondary" onclick="loadLocations()">
+                            <button class="btn btn-ghost" onclick="loadLocations()">
                                 <i data-lucide="refresh-cw" size="16"></i>
                                 Refresh
                             </button>
                         </div>
                     </div>
+                    <div style="background: var(--zinc-50); padding: 12px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 8px; height: 8px; background: var(--status-safe); border-radius: 50%; animation: pulse 2s infinite;"></div>
+                        <span style="font-size: 0.75rem; font-weight: 600; color: var(--zinc-600);">Auto-refreshing every 5 seconds</span>
+                    </div>
                     
-                    <div id="locationsMapView" class="hidden">
+                    <!-- Map View -->
+                    <div id="locationsMapView" style="display: none;">
                         <div id="locationsMap" class="map-container"></div>
                     </div>
                     
+                    <!-- List View -->
                     <div id="locationsListView">
                         <div id="locationsList">
-                            <div class="empty-state">
-                                <div class="empty-subtitle">Loading locations...</div>
+                            <div style="text-align: center; padding: 40px; color: var(--zinc-400);">
+                                Loading locations...
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Breaches View -->
+            <!-- BREACHES VIEW -->
             <div class="view-container" id="breachesView">
-                <div class="card">
+                <div class="card-main">
                     <div class="card-header">
                         <h2 class="card-title">
-                            <i data-lucide="shield-alert" size="18"></i>
+                            <i data-lucide="shield-alert" size="20"></i>
                             Security Breaches
                         </h2>
                     </div>
                     <div id="breachesList">
-                        <div class="empty-state">
-                            <div class="empty-subtitle">Loading breaches...</div>
+                        <div style="text-align: center; padding: 40px; color: var(--zinc-400);">
+                            Loading breaches...
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Bulk Operations View -->
-            <div class="view-container" id="bulkView">
-                <div class="card">
+            <!-- BULK OPS VIEW -->
+            <div class="view-container" id="bulkOpsView">
+                <div class="card-main">
                     <h2 class="card-title" style="margin-bottom: 24px;">
-                        <i data-lucide="zap" size="18"></i>
+                        <i data-lucide="zap" size="20"></i>
                         Bulk Operations
                     </h2>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
-                        <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); padding: 24px; border-radius: 12px;">
-                            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                                <i data-lucide="lock" size="18" style="color: var(--danger);"></i>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                        <div style="background: var(--zinc-50); padding: 24px; border-radius: 16px; border: var(--border);">
+                            <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                                <i data-lucide="lock" size="18" style="color: var(--status-danger);"></i>
                                 Arm All Devices
                             </h3>
-                            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">Lock all devices in your group instantly</p>
+                            <p style="font-size: 0.85rem; color: var(--zinc-600); margin-bottom: 16px;">Lock all devices in your group instantly</p>
                             <button class="btn btn-danger" onclick="armAll()" style="width: 100%;">
                                 <i data-lucide="lock" size="16"></i>
                                 ARM ALL
                             </button>
                         </div>
-                        <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); padding: 24px; border-radius: 12px;">
-                            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                                <i data-lucide="unlock" size="18" style="color: var(--success);"></i>
+                        <div style="background: var(--zinc-50); padding: 24px; border-radius: 16px; border: var(--border);">
+                            <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                                <i data-lucide="unlock" size="18" style="color: var(--status-safe);"></i>
                                 Disarm All Devices
                             </h3>
-                            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">Unlock all devices in your group instantly</p>
+                            <p style="font-size: 0.85rem; color: var(--zinc-600); margin-bottom: 16px;">Unlock all devices in your group instantly</p>
                             <button class="btn btn-success" onclick="disarmAll()" style="width: 100%;">
                                 <i data-lucide="unlock" size="16"></i>
                                 DISARM ALL
@@ -1216,18 +1055,18 @@
                 </div>
             </div>
 
-            <!-- Activity View -->
+            <!-- ACTIVITY VIEW -->
             <div class="view-container" id="activityView">
-                <div class="card">
+                <div class="card-main">
                     <div class="card-header">
                         <h2 class="card-title">
-                            <i data-lucide="activity" size="18"></i>
+                            <i data-lucide="activity" size="20"></i>
                             Activity Log
                         </h2>
                     </div>
                     <div id="activityList">
-                        <div class="empty-state">
-                            <div class="empty-subtitle">Loading activity...</div>
+                        <div style="text-align: center; padding: 40px; color: var(--zinc-400);">
+                            Loading activity...
                         </div>
                     </div>
                 </div>
@@ -1235,19 +1074,21 @@
         </main>
     </div>
 
-    <!-- Modals -->
+    <!-- MODALS -->
     <div class="modal-overlay" id="userKeyModal">
         <div class="modal">
             <h2>New Master Key Created</h2>
-            <p>Provide this master key to the user. They can use it to register and manage devices.</p>
+            <p style="color: var(--zinc-500); margin-bottom: 20px; font-size: 0.9rem;">
+                Provide this master key to the user. They can use it to register and manage devices.
+            </p>
             <div class="code-display" id="newUserKey"></div>
-            <p class="warning-text">This key will not be shown again!</p>
-            <div style="display: flex; gap: 12px; margin-top: 20px;">
+            <p style="color: #991b1b; font-weight: 600; margin: 15px 0; font-size: 0.85rem;">⚠️ This key will not be shown again!</p>
+            <div style="display: flex; gap: 12px;">
                 <button class="btn btn-primary" onclick="copyUserKey()" style="flex: 1;">
                     <i data-lucide="copy" size="16"></i>
                     Copy Key
                 </button>
-                <button class="btn btn-secondary" onclick="closeModal('userKeyModal')" style="flex: 1;">Close</button>
+                <button class="btn btn-ghost" onclick="closeModal('userKeyModal')" style="flex: 1;">Close</button>
             </div>
         </div>
     </div>
@@ -1255,7 +1096,7 @@
     <div class="modal-overlay" id="editDeviceModal">
         <div class="modal">
             <h2>Edit Device</h2>
-            <form onsubmit="saveDeviceEdit(event)">
+            <form id="editDeviceForm" onsubmit="saveDeviceEdit(event)">
                 <div class="field-group">
                     <label class="field-label">Device Name</label>
                     <input type="text" id="editDeviceName" class="input-control" required>
@@ -1263,7 +1104,7 @@
                 <input type="hidden" id="editDeviceId">
                 <div style="display: flex; gap: 12px; margin-top: 20px;">
                     <button type="submit" class="btn btn-primary" style="flex: 1;">Save</button>
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('editDeviceModal')" style="flex: 1;">Cancel</button>
+                    <button type="button" class="btn btn-ghost" onclick="closeModal('editDeviceModal')" style="flex: 1;">Cancel</button>
                 </div>
             </form>
         </div>
@@ -1271,1093 +1112,9 @@
 
     <div id="toastContainer"></div>
 
+    <script src="admin.js"></script>
     <script>
-        // ========== CONFIGURATION ==========
-        const API_URL = 'https://browserbricker.onrender.com';
-        let systemAdminKey = null;
-        let refreshInterval = null;
-        let locationsMap = null;
-        let geofenceMap = null;
-        let locationMarkers = [];
-        let geofenceCircles = [];
-        let isMapView = false;
-
-        // ========== INITIALIZATION ==========
-        document.addEventListener('DOMContentLoaded', () => {
-            checkAuth();
-            lucide.createIcons();
-        });
-
-        function checkAuth() {
-            systemAdminKey = localStorage.getItem('systemAdminKey');
-            if (systemAdminKey) {
-                document.getElementById('authOverlay').style.display = 'none';
-                document.getElementById('adminMain').classList.remove('hidden');
-                loadDashboard();
-                
-                refreshInterval = setInterval(() => {
-                    loadDashboard();
-                    const activeView = document.querySelector('.view-container.active');
-                    if (activeView && activeView.id === 'locationsView') {
-                        loadLocations();
-                    }
-                }, 5000);
-            }
-        }
-
-        // ========== AUTH FUNCTIONS ==========
-        function switchAuthTab(tab) {
-            const loginTab = document.getElementById('loginTab');
-            const registerTab = document.getElementById('registerTab');
-            const loginForm = document.getElementById('loginForm');
-            const registerForm = document.getElementById('registerForm');
-            
-            if (tab === 'login') {
-                loginTab.classList.add('active');
-                registerTab.classList.remove('active');
-                loginForm.classList.remove('hidden');
-                registerForm.classList.add('hidden');
-            } else {
-                loginTab.classList.remove('active');
-                registerTab.classList.add('active');
-                loginForm.classList.add('hidden');
-                registerForm.classList.remove('hidden');
-            }
-        }
-
-        async function handleLogin(event) {
-            event.preventDefault();
-            const key = document.getElementById('loginKeyInput').value.trim();
-            const btn = document.getElementById('loginBtn');
-            const btnText = document.getElementById('loginBtnText');
-            const spinner = document.getElementById('loginSpinner');
-            
-            btn.disabled = true;
-            btnText.classList.add('hidden');
-            spinner.classList.remove('hidden');
-            
-            try {
-                const response = await fetch(`${API_URL}/api/system/stats`, {
-                    headers: { 'Authorization': `Bearer ${key}` }
-                });
-                
-                if (response.ok) {
-                    systemAdminKey = key;
-                    localStorage.setItem('systemAdminKey', key);
-                    checkAuth();
-                    showToast('Success', 'Logged in successfully', 'success');
-                } else {
-                    showToast('Error', 'Invalid API key', 'error');
-                }
-            } catch (error) {
-                console.error('Login error:', error);
-                showToast('Error', 'Login failed', 'error');
-            } finally {
-                btn.disabled = false;
-                btnText.classList.remove('hidden');
-                spinner.classList.add('hidden');
-            }
-        }
-
-        async function handleRegister(event) {
-            event.preventDefault();
-            
-            const code = document.getElementById('regCode').value.trim();
-            const name = document.getElementById('regName').value.trim();
-            const email = document.getElementById('regEmail').value.trim();
-            const password = document.getElementById('regPassword').value;
-            
-            const btn = document.getElementById('registerBtn');
-            const btnText = document.getElementById('registerBtnText');
-            const spinner = document.getElementById('registerSpinner');
-            
-            btn.disabled = true;
-            btnText.classList.add('hidden');
-            spinner.classList.remove('hidden');
-            
-            try {
-                const response = await fetch(`${API_URL}/api/system/register`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ registrationCode: code, name, email, password })
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok) {
-                    document.getElementById('newApiKey').textContent = data.apiKey;
-                    document.querySelector('#registerForm form').classList.add('hidden');
-                    document.getElementById('regSuccess').classList.remove('hidden');
-                    showToast('Success', 'Registration successful!', 'success');
-                } else {
-                    showToast('Error', data.error || 'Registration failed', 'error');
-                }
-            } catch (error) {
-                console.error('Register error:', error);
-                showToast('Error', 'Registration failed', 'error');
-            } finally {
-                btn.disabled = false;
-                btnText.classList.remove('hidden');
-                spinner.classList.add('hidden');
-            }
-        }
-
-        function copyApiKey() {
-            const key = document.getElementById('newApiKey').textContent;
-            navigator.clipboard.writeText(key);
-            showToast('Copied', 'API Key copied to clipboard', 'success');
-        }
-
-        function logout() {
-            if (refreshInterval) clearInterval(refreshInterval);
-            localStorage.removeItem('systemAdminKey');
-            location.reload();
-        }
-
-        // ========== DASHBOARD LOADING ==========
-        async function loadDashboard() {
-            try {
-                const statsRes = await fetch(`${API_URL}/api/system/stats`, {
-                    headers: { 'Authorization': `Bearer ${systemAdminKey}` }
-                });
-                
-                if (!statsRes.ok) {
-                    if (statsRes.status === 403 || statsRes.status === 401) {
-                        logout();
-                        return;
-                    }
-                    throw new Error('Failed to load stats');
-                }
-                
-                const stats = await statsRes.json();
-                
-                if (stats.systemAdmin) {
-                    document.getElementById('groupNameDisplay').textContent = 
-                        `${stats.systemAdmin.groupName} | ${stats.systemAdmin.name}`;
-                }
-                
-                document.getElementById('statTotal').textContent = stats.devices?.total || 0;
-                document.getElementById('statOnline').textContent = stats.devices?.online || 0;
-                document.getElementById('statArmed').textContent = stats.devices?.armed || 0;
-                document.getElementById('statUsers').textContent = stats.users?.total || 0;
-                document.getElementById('statQuarantined').textContent = stats.devices?.quarantined || 0;
-                document.getElementById('statGeofenced').textContent = stats.devices?.geofenced || 0;
-                
-                const activeView = document.querySelector('.view-container.active');
-                if (activeView) {
-                    const viewId = activeView.id.replace('View', '');
-                    if (viewId === 'devices') await loadDevices();
-                    if (viewId === 'users') await loadUsers();
-                }
-                
-            } catch (error) {
-                console.error('Dashboard load error:', error);
-                showToast('Error', 'Failed to load dashboard stats', 'error');
-            }
-        }
-
-        // ========== DATA LOADING ==========
-        async function loadDevices() {
-            try {
-                const response = await fetch(`${API_URL}/api/system/devices`, {
-                    headers: { 'Authorization': `Bearer ${systemAdminKey}` }
-                });
-                const data = await response.json();
-                
-                if (data.success) {
-                    renderDevices(data.devices);
-                }
-            } catch (error) {
-                console.error('Load devices error:', error);
-            }
-        }
-
-        async function loadUsers() {
-            try {
-                const response = await fetch(`${API_URL}/api/system/users`, {
-                    headers: { 'Authorization': `Bearer ${systemAdminKey}` }
-                });
-                const data = await response.json();
-                
-                if (data.success) {
-                    renderUsers(data.users);
-                }
-            } catch (error) {
-                console.error('Load users error:', error);
-            }
-        }
-
-        async function loadGeofences() {
-            try {
-                const response = await fetch(`${API_URL}/api/system/geofences`, {
-                    headers: { 'Authorization': `Bearer ${systemAdminKey}` }
-                });
-                const data = await response.json();
-                
-                if (data.success) {
-                    renderGeofences(data.geofences);
-                }
-            } catch (error) {
-                console.error('Load geofences error:', error);
-            }
-        }
-
-        async function loadLocations() {
-            try {
-                const response = await fetch(`${API_URL}/api/system/locations`, {
-                    headers: { 'Authorization': `Bearer ${systemAdminKey}` }
-                });
-                const data = await response.json();
-                
-                if (data.success) {
-                    renderLocations(data.locations);
-                }
-            } catch (error) {
-                console.error('Load locations error:', error);
-            }
-        }
-
-        async function loadBreaches() {
-            try {
-                const response = await fetch(`${API_URL}/api/system/breaches`, {
-                    headers: { 'Authorization': `Bearer ${systemAdminKey}` }
-                });
-                const data = await response.json();
-                
-                if (data.success) {
-                    renderBreaches(data.breaches);
-                }
-            } catch (error) {
-                console.error('Load breaches error:', error);
-            }
-        }
-
-        async function loadActivity() {
-            try {
-                const response = await fetch(`${API_URL}/api/system/activity?limit=50`, {
-                    headers: { 'Authorization': `Bearer ${systemAdminKey}` }
-                });
-                const data = await response.json();
-                
-                if (data.success) {
-                    renderActivity(data.logs);
-                }
-            } catch (error) {
-                console.error('Load activity error:', error);
-            }
-        }
-
-        // ========== RENDERING ==========
-        function renderDevices(devices) {
-            const container = document.getElementById('devicesTable');
-            
-            if (devices.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">📱</div>
-                        <div class="empty-title">No devices yet</div>
-                        <div class="empty-subtitle">Devices will appear here once users register them</div>
-                    </div>
-                `;
-                return;
-            }
-            
-            let html = `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Device</th>
-                            <th>Status</th>
-                            <th>State</th>
-                            <th>Security</th>
-                            <th>Last Seen</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-            
-            devices.forEach(device => {
-                const onlineBadge = device.online ? 
-                    '<span class="badge badge-success">ONLINE</span>' : 
-                    '<span class="badge badge-neutral">OFFLINE</span>';
-                const stateBadge = device.armed ? 
-                    '<span class="badge badge-danger">ARMED</span>' : 
-                    '<span class="badge badge-success">DISARMED</span>';
-                
-                let securityBadges = '';
-                if (device.quarantined) securityBadges += '<span class="badge badge-danger">QUARANTINED</span> ';
-                if (device.geofenced) securityBadges += '<span class="badge badge-info">GEOFENCED</span> ';
-                if (device.breachCount > 0) securityBadges += `<span class="badge badge-warning">${device.breachCount} BREACH${device.breachCount !== 1 ? 'ES' : ''}</span>`;
-                if (!securityBadges) securityBadges = '<span class="badge badge-success">SECURE</span>';
-                
-                const lastSeen = device.lastHeartbeat > 0 ? timeSince(device.lastHeartbeat) : 'Never';
-                
-                const armBtn = device.armed ? 
-                    `<button class="btn btn-success" style="padding: 8px 14px; font-size: 12px;" onclick="disarmDevice('${device.deviceId}')"><i data-lucide="unlock" size="14"></i></button>` :
-                    `<button class="btn btn-danger" style="padding: 8px 14px; font-size: 12px;" onclick="armDevice('${device.deviceId}')"><i data-lucide="lock" size="14"></i></button>`;
-                
-                html += `
-                    <tr>
-                        <td>
-                            <div style="font-weight: 600; margin-bottom: 4px;">${escapeHtml(device.deviceName)}</div>
-                            <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted);">${device.deviceId.substring(0, 12)}...</div>
-                        </td>
-                        <td>${onlineBadge}</td>
-                        <td>${stateBadge}</td>
-                        <td>${securityBadges}</td>
-                        <td style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">${lastSeen}</td>
-                        <td>
-                            <div style="display: flex; gap: 8px;">
-                                ${armBtn}
-                                <button class="btn btn-secondary" style="padding: 8px 14px; font-size: 12px;" onclick="editDevice('${device.deviceId}', '${escapeHtml(device.deviceName)}')"><i data-lucide="edit-2" size="14"></i></button>
-                                <button class="btn btn-secondary" style="padding: 8px 14px; font-size: 12px; color: var(--danger);" onclick="deleteDevice('${device.deviceId}', '${escapeHtml(device.deviceName)}')"><i data-lucide="trash-2" size="14"></i></button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            });
-            
-            html += '</tbody></table>';
-            container.innerHTML = html;
-            lucide.createIcons();
-        }
-
-        function renderUsers(users) {
-            const container = document.getElementById('usersTable');
-            
-            if (users.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">👥</div>
-                        <div class="empty-title">No master keys yet</div>
-                        <div class="empty-subtitle">Create master keys for users to register devices</div>
-                        <button class="btn btn-primary" onclick="createUser()">
-                            <i data-lucide="plus" size="16"></i>
-                            Create Master Key
-                        </button>
-                    </div>
-                `;
-                lucide.createIcons();
-                return;
-            }
-            
-            let html = `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Key Hash</th>
-                            <th>Devices</th>
-                            <th>Uses</th>
-                            <th>Status</th>
-                            <th>Created</th>
-                            <th>Last Used</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-            
-            users.forEach(user => {
-                const statusBadge = user.revoked ? 
-                    '<span class="badge badge-danger">REVOKED</span>' : 
-                    '<span class="badge badge-success">ACTIVE</span>';
-                
-                const created = new Date(user.createdAt).toLocaleDateString();
-                const lastUsed = user.lastUsed ? timeSince(user.lastUsed) : 'Never';
-                const displayHash = user.keyHash.substring(0, 16) + '...';
-                
-                html += `
-                    <tr>
-                        <td><code style="font-family: 'JetBrains Mono', monospace; font-size: 11px; background: var(--bg-tertiary); padding: 4px 8px; border-radius: 4px;">${displayHash}</code></td>
-                        <td><div style="font-weight: 600;">${user.deviceCount} devices</div></td>
-                        <td><div style="font-weight: 600;">${user.uses || 0} times</div></td>
-                        <td>${statusBadge}</td>
-                        <td style="font-size: 13px;">${created}</td>
-                        <td style="font-size: 13px; font-family: 'JetBrains Mono', monospace;">${lastUsed}</td>
-                        <td>
-                            ${user.revoked ? '<span style="color: var(--text-muted); font-size: 12px;">—</span>' : `
-                                <button class="btn btn-danger" style="padding: 8px 14px; font-size: 12px;" onclick="revokeUser('${user.keyHash}', '${displayHash}')">
-                                    <i data-lucide="x-circle" size="14"></i> Revoke
-                                </button>
-                            `}
-                        </td>
-                    </tr>
-                `;
-            });
-            
-            html += '</tbody></table>';
-            container.innerHTML = html;
-            lucide.createIcons();
-        }
-
-        function renderGeofences(geofences) {
-            const container = document.getElementById('geofencesList');
-            
-            if (geofences.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">📍</div>
-                        <div class="empty-title">No geofences configured</div>
-                        <div class="empty-subtitle">Create geofences to restrict device locations</div>
-                    </div>
-                `;
-                return;
-            }
-            
-            if (!geofenceMap) {
-                geofenceMap = L.map('geofenceMap').setView([geofences[0].lat, geofences[0].lon], 10);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '© OpenStreetMap contributors'
-                }).addTo(geofenceMap);
-                
-                geofenceMap.on('click', function(e) {
-                    document.getElementById('geofenceLat').value = e.latlng.lat.toFixed(6);
-                    document.getElementById('geofenceLon').value = e.latlng.lng.toFixed(6);
-                });
-            }
-            
-            geofenceCircles.forEach(c => c.remove());
-            geofenceCircles = [];
-            
-            let html = '';
-            const bounds = [];
-            
-            geofences.forEach(geo => {
-                const statusBadge = geo.enabled ? 
-                    '<span class="badge badge-success">ACTIVE</span>' : 
-                    '<span class="badge badge-warning">DISABLED</span>';
-                
-                html += `
-                    <div class="location-item">
-                        <div class="location-header">
-                            <div>
-                                <div class="location-name">${escapeHtml(geo.deviceName)}</div>
-                                <div class="location-id">${geo.deviceId}</div>
-                            </div>
-                            ${statusBadge}
-                        </div>
-                        <div class="coordinates">
-                            Center: ${geo.lat.toFixed(6)}, ${geo.lon.toFixed(6)}<br>
-                            Radius: ${geo.radius}m
-                        </div>
-                        <button class="btn btn-danger" style="padding: 6px 12px; font-size: 12px; width: 100%; margin-top: 12px;" onclick="removeGeofence('${geo.deviceId}')">
-                            <i data-lucide="trash-2" size="12"></i> Remove Geofence
-                        </button>
-                    </div>
-                `;
-                
-                const color = geo.enabled ? '#10b981' : '#f59e0b';
-                const circle = L.circle([geo.lat, geo.lon], {
-                    radius: geo.radius,
-                    color: color,
-                    fillColor: color,
-                    fillOpacity: 0.15,
-                    weight: 2
-                }).addTo(geofenceMap);
-                
-                geofenceCircles.push(circle);
-                bounds.push([geo.lat, geo.lon]);
-            });
-            
-            container.innerHTML = html;
-            
-            if (bounds.length > 0) {
-                geofenceMap.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
-            }
-            
-            lucide.createIcons();
-        }
-
-        function renderLocations(locations) {
-            const container = document.getElementById('locationsList');
-            
-            if (locations.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">🗺️</div>
-                        <div class="empty-title">No location data available</div>
-                        <div class="empty-subtitle">Location data will appear when devices report their positions</div>
-                    </div>
-                `;
-                return;
-            }
-            
-            let html = '';
-            locations.forEach(loc => {
-                const timeDiff = Date.now() - new Date(loc.timestamp).getTime();
-                const isRecent = timeDiff < 30000;
-                
-                html += `
-                    <div class="location-item">
-                        <div class="location-header">
-                            <div>
-                                <div class="location-name">${escapeHtml(loc.deviceName)}</div>
-                                <div class="location-id">${loc.deviceId}</div>
-                            </div>
-                            <div style="display: flex; gap: 6px;">
-                                ${isRecent ? '<span class="badge badge-success">LIVE</span>' : ''}
-                                ${loc.geofenced ? '<span class="badge badge-info">GEOFENCED</span>' : ''}
-                            </div>
-                        </div>
-                        <div class="coordinates">
-                            ${loc.location.lat.toFixed(6)}, ${loc.location.lon.toFixed(6)}
-                        </div>
-                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px;">
-                            Last updated: ${timeSince(loc.timestamp)}
-                        </div>
-                    </div>
-                `;
-            });
-            
-            container.innerHTML = html;
-            
-            if (locationsMap && isMapView) {
-                locationMarkers.forEach(m => m.remove());
-                locationMarkers = [];
-                
-                const bounds = [];
-                locations.forEach(loc => {
-                    const timeDiff = Date.now() - new Date(loc.timestamp).getTime();
-                    const isRecent = timeDiff < 30000;
-                    const color = isRecent ? '#10b981' : '#06b6d4';
-                    
-                    const marker = L.marker([loc.location.lat, loc.location.lon], {
-                        icon: L.divIcon({
-                            className: 'custom-marker',
-                            html: `<div style="background: ${color}; width: 24px; height: 24px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>`,
-                            iconSize: [24, 24],
-                            iconAnchor: [12, 24]
-                        })
-                    }).addTo(locationsMap);
-                    
-                    marker.bindPopup(`
-                        <div style="min-width: 200px;">
-                            <div style="font-weight: 700; margin-bottom: 6px;">${escapeHtml(loc.deviceName)}</div>
-                            <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #71717a; margin-bottom: 8px;">${loc.deviceId}</div>
-                            <div style="background: #f4f4f5; padding: 8px; border-radius: 6px; margin-bottom: 8px; font-size: 12px;">
-                                <strong>Coordinates:</strong><br>
-                                ${loc.location.lat.toFixed(6)}, ${loc.location.lon.toFixed(6)}
-                            </div>
-                            <div style="font-size: 11px; color: #71717a;">
-                                Last updated: ${timeSince(loc.timestamp)}
-                            </div>
-                        </div>
-                    `);
-                    
-                    locationMarkers.push(marker);
-                    bounds.push([loc.location.lat, loc.location.lon]);
-                });
-                
-                if (bounds.length > 0) {
-                    locationsMap.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
-                }
-            }
-        }
-
-        function renderBreaches(breaches) {
-            const container = document.getElementById('breachesList');
-            
-            if (breaches.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">🛡️</div>
-                        <div class="empty-title">No security breaches detected</div>
-                        <div class="empty-subtitle">All devices are secure</div>
-                    </div>
-                `;
-                return;
-            }
-            
-            const grouped = {};
-            breaches.forEach(b => {
-                if (!grouped[b.deviceId]) {
-                    grouped[b.deviceId] = {
-                        deviceId: b.deviceId,
-                        deviceName: b.deviceName,
-                        breaches: []
-                    };
-                }
-                grouped[b.deviceId].breaches.push(b);
-            });
-            
-            let html = '';
-            Object.values(grouped).forEach(group => {
-                html += `
-                    <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-left: 3px solid var(--danger); border-radius: 8px; padding: 16px; margin-bottom: 12px;">
-                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
-                            <div>
-                                <div style="font-weight: 600; margin-bottom: 4px;">${escapeHtml(group.deviceName)}</div>
-                                <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted);">${group.deviceId}</div>
-                            </div>
-                            <span class="badge badge-danger">${group.breaches.length} Breach${group.breaches.length !== 1 ? 'es' : ''}</span>
-                        </div>
-                        <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px;">
-                            ${group.breaches.map(b => `
-                                <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color);">
-                                    <div style="font-weight: 600; font-size: 13px; margin-bottom: 4px;">
-                                        ${b.type ? b.type.replace(/_/g, ' ').toUpperCase() : 'SECURITY EVENT'}
-                                    </div>
-                                    <div style="font-size: 11px; color: var(--text-muted);">
-                                        ${new Date(b.timestamp).toLocaleString()}
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-            });
-            
-            container.innerHTML = html;
-        }
-
-        function renderActivity(logs) {
-            const container = document.getElementById('activityList');
-            
-            if (logs.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">📋</div>
-                        <div class="empty-title">No activity logged</div>
-                        <div class="empty-subtitle">Activity will appear here as actions are performed</div>
-                    </div>
-                `;
-                return;
-            }
-            
-            let html = '<div style="position: relative; padding-left: 24px;">';
-            
-            logs.forEach((log, index) => {
-                const isLast = index === logs.length - 1;
-                html += `
-                    <div style="position: relative; padding-bottom: 24px;">
-                        <div style="position: absolute; left: -20px; top: 8px; width: 8px; height: 8px; background: var(--border-color); border-radius: 50%;"></div>
-                        ${!isLast ? '<div style="position: absolute; left: -16.5px; top: 16px; width: 1px; height: calc(100% - 8px); background: var(--border-color);"></div>' : ''}
-                        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">${new Date(log.timestamp).toLocaleString()}</div>
-                        <div style="font-weight: 600; margin-bottom: 4px;">${escapeHtml(log.description)}</div>
-                        <div style="font-size: 13px; color: var(--text-secondary);">
-                            Type: <span class="badge badge-info">${log.type}</span>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            html += '</div>';
-            container.innerHTML = html;
-        }
-
-        // ========== VIEW SWITCHING ==========
-        function switchView(viewName) {
-            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-            
-            document.querySelectorAll('.view-container').forEach(view => view.classList.remove('active'));
-            
-            const viewMap = {
-                'overview': 'overviewView',
-                'devices': 'devicesView',
-                'users': 'usersView',
-                'geofencing': 'geofencingView',
-                'locations': 'locationsView',
-                'breaches': 'breachesView',
-                'bulk': 'bulkView',
-                'activity': 'activityView'
-            };
-            
-            const targetView = document.getElementById(viewMap[viewName]);
-            if (targetView) {
-                targetView.classList.add('active');
-                
-                const titles = {
-                    'overview': 'Overview',
-                    'devices': 'Devices',
-                    'users': 'Master Keys',
-                    'geofencing': 'Geofencing',
-                    'locations': 'Live Locations',
-                    'breaches': 'Security Breaches',
-                    'bulk': 'Bulk Operations',
-                    'activity': 'Activity Log'
-                };
-                document.getElementById('pageTitle').textContent = titles[viewName];
-                
-                if (viewName === 'devices') loadDevices();
-                else if (viewName === 'users') loadUsers();
-                else if (viewName === 'geofencing') loadGeofences();
-                else if (viewName === 'locations') loadLocations();
-                else if (viewName === 'breaches') loadBreaches();
-                else if (viewName === 'activity') loadActivity();
-            }
-            
-            lucide.createIcons();
-        }
-
-        // ========== DEVICE OPERATIONS ==========
-        async function armDevice(deviceId) {
-            try {
-                const response = await fetch(`${API_URL}/api/system/device/arm`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${systemAdminKey}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ deviceId, reason: 'Admin action' })
-                });
-                
-                if (response.ok) {
-                    showToast('Success', 'Device armed successfully', 'success');
-                    loadDevices();
-                    loadDashboard();
-                } else {
-                    const data = await response.json();
-                    showToast('Error', data.error || 'Failed to arm device', 'error');
-                }
-            } catch (error) {
-                console.error('Arm device error:', error);
-                showToast('Error', 'Failed to arm device', 'error');
-            }
-        }
-
-        async function disarmDevice(deviceId) {
-            try {
-                const response = await fetch(`${API_URL}/api/system/device/disarm`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${systemAdminKey}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ deviceId, reason: 'Admin release' })
-                });
-                
-                if (response.ok) {
-                    showToast('Success', 'Device disarmed successfully', 'success');
-                    loadDevices();
-                    loadDashboard();
-                } else {
-                    const data = await response.json();
-                    showToast('Error', data.error || 'Failed to disarm device', 'error');
-                }
-            } catch (error) {
-                console.error('Disarm device error:', error);
-                showToast('Error', 'Failed to disarm device', 'error');
-            }
-        }
-
-        function editDevice(deviceId, currentName) {
-            document.getElementById('editDeviceId').value = deviceId;
-            document.getElementById('editDeviceName').value = currentName;
-            document.getElementById('editDeviceModal').classList.add('active');
-        }
-
-        async function saveDeviceEdit(event) {
-            event.preventDefault();
-            
-            const deviceId = document.getElementById('editDeviceId').value;
-            const deviceName = document.getElementById('editDeviceName').value.trim();
-            
-            try {
-                const response = await fetch(`${API_URL}/api/system/device/update`, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `Bearer ${systemAdminKey}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ deviceId, deviceName })
-                });
-                
-                if (response.ok) {
-                    closeModal('editDeviceModal');
-                    showToast('Success', 'Device updated successfully', 'success');
-                    loadDevices();
-                } else {
-                    const data = await response.json();
-                    showToast('Error', data.error || 'Failed to update device', 'error');
-                }
-            } catch (error) {
-                console.error('Update device error:', error);
-                showToast('Error', 'Failed to update device', 'error');
-            }
-        }
-
-        async function deleteDevice(deviceId, deviceName) {
-            try {
-                const response = await fetch(`${API_URL}/api/system/device/delete`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${systemAdminKey}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ deviceId })
-                });
-                
-                if (response.ok) {
-                    showToast('Success', 'Device deleted successfully', 'success');
-                    loadDevices();
-                    loadDashboard();
-                } else {
-                    const data = await response.json();
-                    showToast('Error', data.error || 'Failed to delete device', 'error');
-                }
-            } catch (error) {
-                console.error('Delete device error:', error);
-                showToast('Error', 'Failed to delete device', 'error');
-            }
-        }
-
-        // ========== BULK OPERATIONS ==========
-        async function armAll() {
-            try {
-                const response = await fetch(`${API_URL}/api/system/devices/arm-all`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${systemAdminKey}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ reason: 'Group lockdown' })
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok) {
-                    showToast('Success', `${data.armed} devices armed successfully`, 'success');
-                    loadDashboard();
-                } else {
-                    showToast('Error', data.error || 'Failed to arm devices', 'error');
-                }
-            } catch (error) {
-                console.error('Arm all error:', error);
-                showToast('Error', 'Failed to arm devices', 'error');
-            }
-        }
-
-        async function disarmAll() {
-            try {
-                const response = await fetch(`${API_URL}/api/system/devices/disarm-all`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${systemAdminKey}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ reason: 'Group release' })
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok) {
-                    showToast('Success', `${data.disarmed} devices disarmed successfully`, 'success');
-                    loadDashboard();
-                } else {
-                    showToast('Error', data.error || 'Failed to disarm devices', 'error');
-                }
-            } catch (error) {
-                console.error('Disarm all error:', error);
-                showToast('Error', 'Failed to disarm devices', 'error');
-            }
-        }
-
-        // ========== USER MANAGEMENT ==========
-        async function createUser() {
-            try {
-                const response = await fetch(`${API_URL}/api/system/users/create`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${systemAdminKey}` }
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok) {
-                    document.getElementById('newUserKey').textContent = data.masterKey;
-                    document.getElementById('userKeyModal').classList.add('active');
-                    showToast('Success', 'Master key created successfully', 'success');
-                    loadDashboard();
-                } else {
-                    showToast('Error', data.error || 'Failed to create user', 'error');
-                }
-            } catch (error) {
-                console.error('Create user error:', error);
-                showToast('Error', 'Failed to create user', 'error');
-            }
-        }
-
-        function copyUserKey() {
-            const key = document.getElementById('newUserKey').textContent;
-            navigator.clipboard.writeText(key);
-            showToast('Copied', 'Master key copied to clipboard', 'success');
-        }
-
-        async function revokeUser(keyHash, displayHash) {
-            try {
-                const response = await fetch(`${API_URL}/api/system/users/revoke`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${systemAdminKey}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ keyHash })
-                });
-                
-                if (response.ok) {
-                    showToast('Success', 'User revoked successfully', 'success');
-                    loadUsers();
-                    loadDashboard();
-                } else {
-                    const data = await response.json();
-                    showToast('Error', data.error || 'Failed to revoke user', 'error');
-                }
-            } catch (error) {
-                console.error('Revoke user error:', error);
-                showToast('Error', 'Failed to revoke user', 'error');
-            }
-        }
-
-        // ========== GEOFENCING ==========
-        async function createGeofence(event) {
-            event.preventDefault();
-            
-            const deviceId = document.getElementById('geofenceDeviceId').value.trim();
-            const lat = parseFloat(document.getElementById('geofenceLat').value);
-            const lon = parseFloat(document.getElementById('geofenceLon').value);
-            const radius = parseInt(document.getElementById('geofenceRadius').value);
-            
-            try {
-                const response = await fetch(`${API_URL}/api/system/geofence`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${systemAdminKey}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ deviceId, lat, lon, radius })
-                });
-                
-                if (response.ok) {
-                    showToast('Success', 'Geofence created successfully', 'success');
-                    document.querySelector('#geofencingView form').reset();
-                    loadGeofences();
-                    loadDashboard();
-                } else {
-                    const data = await response.json();
-                    showToast('Error', data.error || 'Failed to create geofence', 'error');
-                }
-            } catch (error) {
-                console.error('Create geofence error:', error);
-                showToast('Error', 'Failed to create geofence', 'error');
-            }
-        }
-
-        async function removeGeofence(deviceId) {
-            try {
-                const response = await fetch(`${API_URL}/api/system/geofence`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${systemAdminKey}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ deviceId })
-                });
-                
-                if (response.ok) {
-                    showToast('Success', 'Geofence removed successfully', 'success');
-                    loadGeofences();
-                    loadDashboard();
-                } else {
-                    const data = await response.json();
-                    showToast('Error', data.error || 'Failed to remove geofence', 'error');
-                }
-            } catch (error) {
-                console.error('Remove geofence error:', error);
-                showToast('Error', 'Failed to remove geofence', 'error');
-            }
-        }
-
-        // ========== MAP FUNCTIONS ==========
-        function toggleMapView() {
-            isMapView = !isMapView;
-            const mapView = document.getElementById('locationsMapView');
-            const listView = document.getElementById('locationsListView');
-            const toggleText = document.getElementById('mapViewToggleText');
-            
-            if (isMapView) {
-                mapView.classList.remove('hidden');
-                listView.classList.add('hidden');
-                toggleText.textContent = 'Show List';
-                
-                if (!locationsMap) {
-                    locationsMap = L.map('locationsMap').setView([40.7128, -74.0060], 4);
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                        attribution: '© OpenStreetMap contributors'
-                    }).addTo(locationsMap);
-                }
-                
-                loadLocations();
-            } else {
-                mapView.classList.add('hidden');
-                listView.classList.remove('hidden');
-                toggleText.textContent = 'Show Map';
-            }
-            
-            lucide.createIcons();
-        }
-
-        // ========== UTILITY FUNCTIONS ==========
-        function refreshData() {
-            loadDashboard();
-            const activeView = document.querySelector('.view-container.active');
-            if (activeView) {
-                const viewId = activeView.id.replace('View', '');
-                if (viewId === 'devices') loadDevices();
-                else if (viewId === 'users') loadUsers();
-                else if (viewId === 'geofencing') loadGeofences();
-                else if (viewId === 'locations') loadLocations();
-                else if (viewId === 'breaches') loadBreaches();
-                else if (viewId === 'activity') loadActivity();
-            }
-            showToast('Refreshed', 'Data updated successfully', 'success');
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('active');
-        }
-
-        function timeSince(timestamp) {
-            const seconds = Math.floor((Date.now() - timestamp) / 1000);
-            
-            if (seconds < 10) return 'just now';
-            if (seconds < 60) return seconds + 's ago';
-            const minutes = Math.floor(seconds / 60);
-            if (minutes < 60) return minutes + 'm ago';
-            const hours = Math.floor(minutes / 60);
-            if (hours < 24) return hours + 'h ago';
-            const days = Math.floor(hours / 24);
-            return days + 'd ago';
-        }
-
-        function escapeHtml(text) {
-            if (!text) return '';
-            const map = {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#039;'
-            };
-            return String(text).replace(/[&<>"']/g, m => map[m]);
-        }
-
-        function showToast(title, message, type = 'success') {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = `toast toast-${type}`;
-            toast.innerHTML = `
-                <div class="toast-title">${escapeHtml(title)}</div>
-                <div class="toast-message">${escapeHtml(message)}</div>
-            `;
-            
-            container.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.style.animation = 'slideIn 0.3s reverse';
-                setTimeout(() => toast.remove(), 300);
-            }, 4000);
-        }
+        lucide.createIcons();
     </script>
 </body>
 </html>
