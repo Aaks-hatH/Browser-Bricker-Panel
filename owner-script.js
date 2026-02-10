@@ -472,9 +472,7 @@ async function deleteRegistrationCode(code) {
     if (!confirm(`Delete registration code ${code}?`)) return;
     
     try {
-        await apiCall(`/api/admin/registration-code/${code}`, {
-            method: 'DELETE'
-        });
+        await apiCall(`/api/admin/registration-code/${code}`, 'DELETE');
         
         showToast('Success', 'Registration code deleted', 'success');
         await loadRegistrationCodes();
