@@ -292,7 +292,7 @@ async function loadStats() {
         document.getElementById('onlineDevices').textContent = devices.online || 0;
         document.getElementById('quarantinedDevices').textContent = devices.quarantined || 0;
         document.getElementById('geofencedDevices').textContent = data.geofences?.total || 0;
-        document.getElementById('breachCount').textContent = data.statistics?.breachAttempts || 0;
+        document.getElementById('breachCount').textContent = data.statistics?.geofenceViolations || 0;
         document.getElementById('blockedIPCount').textContent = data.security?.blockedIPs || 0;
         
         if (data.systemAdmins) {
@@ -303,6 +303,19 @@ async function loadStats() {
         // Update health indicators
         if (data.uptime) {
             document.getElementById('uptimeVal').textContent = formatUptime(data.uptime / 1000);
+        }
+
+        // Show recent activity on overview if element exists
+        const overviewActivity = document.getElementById('overviewRecentActivity');
+        if (overviewActivity && data.recentActivity && data.recentActivity.length > 0) {
+            overviewActivity.innerHTML = data.recentActivity.slice(0, 5).map(log => `
+                <div style="padding: 8px 0; border-bottom: 1px solid var(--zinc-100); font-size: 0.8rem;">
+                    <span class="badge badge-info" style="font-size: 0.65rem; margin-right: 6px;">${log.type}</span>
+                    ${escapeHtml(log.description)}
+                    <div style="font-size: 0.7rem; color: var(--zinc-400); margin-top: 2px;">${formatTime(log.timestamp)}</div>
+                </div>
+            `).join('');
+            lucide.createIcons();
         }
         
         document.getElementById('apiStatusBadge').className = 'badge badge-safe';
@@ -506,12 +519,16 @@ async function loadDevices() {
             const lastSeen = device.lastHeartbeat ? formatTime(device.lastHeartbeat) : 'Never';
             
             const ownerInfo = device.systemAdminId ? 
-                `<span class="badge badge-info" style="font-size: 0.65rem;">SysAdmin</span>` :
+                `<span class="badge badge-info" style="font-size: 0.65rem;" title="Group: ${escapeHtml(device.groupId || '')}">SysAdmin</span>` :
                 `<span class="badge badge-safe" style="font-size: 0.65rem;">User</span>`;
+
+            const tagsBadges = device.tags && device.tags.length > 0
+                ? device.tags.map(t => `<span class="badge" style="background:var(--zinc-200);color:var(--zinc-700);font-size:0.65rem;">${escapeHtml(t)}</span>`).join(' ')
+                : '';
 
             return `
                 <tr>
-                    <td style="font-weight: 600;">${escapeHtml(device.deviceName)}</td>
+                    <td style="font-weight: 600;">${escapeHtml(device.deviceName)}${tagsBadges ? '<div style="margin-top:4px;display:flex;gap:3px;flex-wrap:wrap;">' + tagsBadges + '</div>' : ''}</td>
                     <td style="font-family: var(--mono); font-size: 0.75rem; color: var(--zinc-500);">${device.deviceId.substring(0, 16)}...</td>
                     <td>${ownerInfo}</td>
                     <td>${statusBadge}</td>
@@ -594,6 +611,10 @@ async function loadUsers() {
                 `<span class="badge badge-info" title="Managed by System Admin">SysAdmin</span>` :
                 `<span class="badge badge-safe" title="Independent User">User</span>`;
 
+            const groupDisplay = user.groupName && user.groupName !== 'No Group'
+                ? `<span style="font-size:0.8rem;color:var(--zinc-600);">${escapeHtml(user.groupName)}</span>`
+                : '<span style="color:var(--zinc-400);font-size:0.8rem;">—</span>';
+
             // Calculate counts from devices array
             const armedCount = user.devices ? user.devices.filter(d => d.armed).length : 0;
             const onlineCount = 0; // Not currently tracked
@@ -603,6 +624,7 @@ async function loadUsers() {
                 <tr>
                     <td style="font-family: var(--mono); font-size: 0.8rem;">${user.keyHash.substring(0, 16)}...</td>
                     <td>${ownerBadge}</td>
+                    <td>${groupDisplay}</td>
                     <td>${new Date(user.createdAt).toLocaleDateString()}</td>
                     <td>${formatTime(user.lastUsed)}</td>
                     <td><span class="badge badge-info">${user.uses || 0}</span></td>
@@ -610,7 +632,7 @@ async function loadUsers() {
                     <td><span class="badge badge-${armedCount > 0 ? 'danger' : 'safe'}">${armedCount}</span></td>
                     <td><span class="badge badge-${onlineCount > 0 ? 'safe' : 'warn'}">${onlineCount}</span></td>
                     <td><span class="badge badge-${quarantinedCount > 0 ? 'danger' : 'safe'}">${quarantinedCount}</span></td>
-                    <td>${statusBadge}</td>
+                    <td>${statusBadge}${user.revokedAt ? `<div style="font-size:0.7rem;color:var(--zinc-400);margin-top:2px;">${formatTime(user.revokedAt)}</div>` : ''}</td>
                     <td>
                         ${!user.revoked ? 
                             `<button class="btn btn-danger" style="padding: 6px 12px; font-size: 0.75rem;" onclick="revokeKey('${user.keyHash}')"><i data-lucide="x-circle" size="12"></i> Revoke</button>` :
@@ -758,17 +780,18 @@ async function loadSessions() {
         }
 
         list.innerHTML = data.sessions.map(session => {
-            const isActive = session.expiresAt > Date.now();
+            const isActive = (Date.now() - session.lastActive) < 3600000;
             return `
                 <div style="background: var(--zinc-50); padding: 16px; border-radius: 12px; margin-bottom: 12px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <div>
-                            <div style="font-family: var(--mono); font-weight: 700; margin-bottom: 4px;">${session.id}</div>
+                            <div style="font-family: var(--mono); font-weight: 700; margin-bottom: 4px;">${escapeHtml(session.email || session.systemAdminId)}</div>
                             <div style="font-size: 0.85rem; color: var(--zinc-600);">
-                                Expires: ${new Date(session.expiresAt).toLocaleString()}
+                                Admin ID: ${escapeHtml(session.systemAdminId)}<br>
+                                Last Active: ${formatTime(session.lastActive)}
                             </div>
                         </div>
-                        <span class="badge badge-${isActive ? 'safe' : 'danger'}">${isActive ? 'Active' : 'Expired'}</span>
+                        <span class="badge badge-${isActive ? 'safe' : 'warn'}">${isActive ? 'Active' : 'Idle'}</span>
                     </div>
                 </div>
             `;
@@ -869,6 +892,7 @@ async function loadGeofences() {
                             📍 Center: ${geo.lat.toFixed(6)}, ${geo.lon.toFixed(6)}<br>
                             📏 Radius: ${geo.radius} meters
                         </div>
+                        ${geo.createdBy ? `<div style="font-size:0.75rem;color:var(--zinc-500);margin-top:6px;">Created by: ${escapeHtml(geo.createdBy)}${geo.createdAt ? ' · ' + formatTime(geo.createdAt) : ''}</div>` : ''}
                     </div>
                     <button class="btn btn-danger" style="padding: 6px 12px; font-size: 0.75rem; width: 100%;" onclick="removeGeofence('${geo.deviceId}')">
                         <i data-lucide="trash-2" size="12"></i> Remove Geofence
@@ -1024,8 +1048,10 @@ async function loadLocations() {
                             <div style="font-weight: 700; margin-bottom: 4px;">${escapeHtml(loc.deviceName)}</div>
                             <div style="font-family: var(--mono); font-size: 0.75rem; color: var(--zinc-500);">${loc.deviceId}</div>
                         </div>
-                        <div style="display: flex; gap: 6px;">
+                        <div style="display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end;">
                             ${isRecent ? '<span class="badge badge-safe"><i data-lucide="radio" size="10"></i> LIVE</span>' : ''}
+                            ${loc.armed ? '<span class="badge badge-armed"><i data-lucide="lock" size="10"></i> Armed</span>' : ''}
+                            ${loc.quarantined ? '<span class="badge badge-danger"><i data-lucide="shield-alert" size="10"></i> Quarantine</span>' : ''}
                             ${loc.geofenced ? '<span class="badge badge-info"><i data-lucide="map-pin" size="10"></i> Geofenced</span>' : ''}
                         </div>
                     </div>
@@ -1109,14 +1135,21 @@ async function loadNotifications() {
                 'info': 'var(--status-info)',
                 'success': 'var(--status-safe)',
                 'warning': 'var(--status-warn)',
+                'high': 'var(--status-danger)',
                 'critical': 'var(--status-danger)'
             }[notif.severity] || 'var(--zinc-500)';
 
+            const title = notif.deviceName || notif.type || 'Notification';
+            const message = notif.details || '';
+
             return `
                 <div style="background: var(--zinc-50); padding: 16px; border-radius: 12px; margin-bottom: 12px; border-left: 4px solid ${severityColor};">
-                    <div style="font-weight: 700; margin-bottom: 4px;">${escapeHtml(notif.title)}</div>
-                    <div style="font-size: 0.85rem; color: var(--zinc-600); margin-bottom: 8px;">${escapeHtml(notif.message)}</div>
-                    <div style="font-size: 0.7rem; color: var(--zinc-400);">${new Date(notif.timestamp).toLocaleString()}</div>
+                    <div style="font-weight: 700; margin-bottom: 4px;">${escapeHtml(title)}</div>
+                    <div style="font-size: 0.85rem; color: var(--zinc-600); margin-bottom: 8px;">${escapeHtml(message)}</div>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <span class="badge badge-info" style="font-size: 0.7rem;">${notif.type || 'event'}</span>
+                        <span style="font-size: 0.7rem; color: var(--zinc-400);">${new Date(notif.timestamp).toLocaleString()}</span>
+                    </div>
                 </div>
             `;
         }).join('');
@@ -1141,12 +1174,12 @@ async function loadAudit() {
             });
         }
         
-        if (!data.audit || data.audit.length === 0) {
+        if (!data.logs || data.logs.length === 0) {
             tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--zinc-400);">No audit entries</td></tr>';
             return;
         }
 
-        tbody.innerHTML = data.audit.map(entry => `
+        tbody.innerHTML = data.logs.map(entry => `
             <tr>
                 <td>${new Date(entry.timestamp).toLocaleString()}</td>
                 <td><span class="badge badge-info">${entry.action}</span></td>
@@ -1242,10 +1275,7 @@ async function handleCreateSystemAdmin(event) {
     }
     
     try {
-        const data = await apiCall('/api/admin/system-admins/create', {
-            method: 'POST',
-            body: JSON.stringify({ groupName, name, email })
-        });
+        const data = await apiCall('/api/admin/system-admins/create', 'POST', { groupName, name, email });
         
         if (data.success) {
             // Copy to clipboard
@@ -1445,7 +1475,7 @@ async function deleteSystemAdmin(adminId, adminName) {
 async function showAdminDetails(adminId) {
     try {
         const data = await apiCall('/api/admin/system-admins');
-        const admin = data.systemAdmins.find(a => a.id === adminId);
+        const admin = data.systemAdmins.find(a => a.systemAdminId === adminId);
         
         if (!admin) {
             showToast('Error', 'System administrator not found', 'error');
@@ -1455,12 +1485,13 @@ async function showAdminDetails(adminId) {
         let html = `
             <div style="margin-bottom: 20px;">
                 <h3 style="font-weight: 700; margin-bottom: 4px;">${escapeHtml(admin.name)}</h3>
-                <div style="font-family: var(--mono); font-size: 0.75rem; color: var(--zinc-500);">${admin.id}</div>
+                <div style="font-family: var(--mono); font-size: 0.75rem; color: var(--zinc-500);">${admin.systemAdminId}</div>
             </div>
             
             <div style="background: var(--zinc-50); padding: 16px; border-radius: 12px; margin-bottom: 16px;">
                 <div style="font-weight: 700; margin-bottom: 12px;">Information</div>
                 <div style="font-size: 0.85rem; line-height: 1.8;">
+                    Group: ${escapeHtml(admin.groupName || 'N/A')}<br>
                     Email: ${escapeHtml(admin.email || 'N/A')}<br>
                     Status: ${admin.active ? '✅ Active' : '❌ Inactive'}<br>
                     Created: ${new Date(admin.createdAt).toLocaleString()}<br>
@@ -1471,8 +1502,8 @@ async function showAdminDetails(adminId) {
             <div style="background: var(--zinc-50); padding: 16px; border-radius: 12px; margin-bottom: 16px;">
                 <div style="font-weight: 700; margin-bottom: 12px;">Statistics</div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 0.85rem;">
-                    <div>Total Devices: ${admin.deviceCount || 0}</div>
-                    <div>Total Users: ${admin.userCount || 0}</div>
+                    <div>Total Devices: ${admin.devicesManaged || 0}</div>
+                    <div>Total Users: ${admin.usersManaged || 0}</div>
                 </div>
             </div>
         `;
@@ -1575,6 +1606,8 @@ async function showDeviceDetails(deviceId) {
                     <div>Quarantined: ${device.quarantined ? '⚠️ Yes' : '✅ No'}</div>
                     <div>Geofenced: ${device.geofenced ? '📍 Yes' : '❌ No'}</div>
                 </div>
+                ${device.armed && device.armedBy ? `<div style="margin-top:10px;font-size:0.8rem;color:var(--zinc-600);">Armed by: <strong>${escapeHtml(device.armedBy)}</strong>${device.armReason ? ` — ${escapeHtml(device.armReason)}` : ''}</div>` : ''}
+                ${device.quarantined && device.quarantinedBy ? `<div style="margin-top:6px;font-size:0.8rem;color:var(--zinc-600);">Quarantined by: <strong>${escapeHtml(device.quarantinedBy)}</strong>${device.quarantineReason ? ` — ${escapeHtml(device.quarantineReason)}` : ''}</div>` : ''}
             </div>
             
             <div style="background: var(--zinc-50); padding: 16px; border-radius: 12px; margin-bottom: 16px;">
@@ -2435,6 +2468,7 @@ function generateUsersHTML() {
                         <tr>
                             <th>Key Hash</th>
                             <th>Owner Type</th>
+                            <th>Group</th>
                             <th>Created</th>
                             <th>Last Used</th>
                             <th>Total Uses</th>
