@@ -1077,6 +1077,120 @@
                     </div>
                 </div>
             </div>
+
+            <!-- GROUPS VIEW -->
+            <div class="view-container" id="groupsView">
+                <div class="card-main">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i data-lucide="users" size="20"></i>
+                            Groups Management
+                        </h2>
+                        <button class="btn btn-primary" onclick="showCreateGroupModal()">
+                            <i data-lucide="plus" size="16"></i>
+                            Create Group
+                        </button>
+                    </div>
+                    
+                    <div class="grid-stats" style="margin: 20px 0;">
+                        <div class="stat-card">
+                            <h4>Total Groups</h4>
+                            <div class="stat-value" id="totalGroupsCount">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Active Groups</h4>
+                            <div class="stat-value" style="color: var(--status-safe);" id="activeGroupsCount">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Total Devices</h4>
+                            <div class="stat-value" id="groupTotalDevices">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Total Breaches</h4>
+                            <div class="stat-value" style="color: var(--status-danger);" id="groupTotalBreaches">0</div>
+                        </div>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table id="groupsTable">
+                            <thead>
+                                <tr>
+                                    <th>Group Name</th>
+                                    <th>Description</th>
+                                    <th>Devices</th>
+                                    <th>Active</th>
+                                    <th>Breaches</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="groupsTableBody">
+                                <tr><td colspan="7" style="text-align: center; padding: 40px;">
+                                    <i data-lucide="users" size="48" style="opacity: 0.3;"></i>
+                                    <p style="margin-top: 10px; color: var(--zinc-500);">Loading groups...</p>
+                                </td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- POLICIES VIEW -->
+            <div class="view-container" id="policiesView">
+                <div class="card-main">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i data-lucide="shield" size="20"></i>
+                            Policies Management
+                        </h2>
+                        <button class="btn btn-primary" onclick="showCreatePolicyModal()">
+                            <i data-lucide="plus" size="16"></i>
+                            Create Policy
+                        </button>
+                    </div>
+                    
+                    <div class="grid-stats" style="margin: 20px 0;">
+                        <div class="stat-card">
+                            <h4>Total Policies</h4>
+                            <div class="stat-value" id="totalPoliciesCount">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Active Policies</h4>
+                            <div class="stat-value" style="color: var(--status-safe);" id="activePoliciesCount">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Violations (24h)</h4>
+                            <div class="stat-value" style="color: var(--status-warn);" id="recentViolationsCount">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <h4>With Time Limits</h4>
+                            <div class="stat-value" id="timeLimitPoliciesCount">0</div>
+                        </div>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table id="policiesTable">
+                            <thead>
+                                <tr>
+                                    <th>Policy Name</th>
+                                    <th>Scope</th>
+                                    <th>Priority</th>
+                                    <th>Features</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="policiesTableBody">
+                                <tr><td colspan="7" style="text-align: center; padding: 40px;">
+                                    <i data-lucide="shield" size="48" style="opacity: 0.3;"></i>
+                                    <p style="margin-top: 10px; color: var(--zinc-500);">Loading policies...</p>
+                                </td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 
