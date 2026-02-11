@@ -2857,6 +2857,21 @@ function generateGroupsHTML() {
                 </button>
             </div>
             
+            <!-- Info Box -->
+            <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 12px; padding: 16px; margin: 20px 0; color: white;">
+                <div style="display: flex; align-items: start; gap: 12px;">
+                    <i data-lucide="info" size="20" style="flex-shrink: 0; margin-top: 2px;"></i>
+                    <div>
+                        <strong style="display: block; margin-bottom: 4px;">About Groups</strong>
+                        <p style="font-size: 0.85rem; opacity: 0.95; margin: 0;">
+                            Groups help you organize devices into logical collections (e.g., "Sales Team", "Engineering", "Interns"). 
+                            Once created, click a group to view details and use the <strong>"Assign Device"</strong> button to add unassigned devices. 
+                            You can then apply policies to entire groups for easier management.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
             <div class="grid-stats" style="margin: 20px 0;">
                 <div class="stat-card">
                     <h4>Total Groups</h4>
@@ -2909,6 +2924,20 @@ function generatePoliciesHTML() {
                 <button class="btn btn-primary" onclick="showCreatePolicyModal()">
                     <i data-lucide="plus"></i> Create Policy
                 </button>
+            </div>
+            
+            <!-- Info Box -->
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 16px; margin: 20px 0; color: white;">
+                <div style="display: flex; align-items: start; gap: 12px;">
+                    <i data-lucide="info" size="20" style="flex-shrink: 0; margin-top: 2px;"></i>
+                    <div>
+                        <strong style="display: block; margin-bottom: 4px;">About Policies</strong>
+                        <p style="font-size: 0.85rem; opacity: 0.95; margin: 0;">
+                            Policies let you set rules for devices or groups. Control time limits, allowed hours, auto-arming schedules, geofencing, and more. 
+                            Policies can be applied <strong>globally</strong> (all devices), to specific <strong>groups</strong>, or individual <strong>devices</strong>.
+                        </p>
+                    </div>
+                </div>
             </div>
             
             <div class="grid-stats" style="margin: 20px 0;">
