@@ -17,6 +17,24 @@ let locationMarkers = [];
 let geofenceCircles = [];
 let isMapView = false;
 
+// ========== FETCH WITH TIMEOUT ==========
+async function fetchWithTimeout(url, options = {}, timeout = 30000) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+    
+    try {
+        const response = await fetch(url, { ...options, signal: controller.signal });
+        clearTimeout(timeoutId);
+        return response;
+    } catch (error) {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+            throw new Error('Request timed out - check server connection');
+        }
+        throw error;
+    }
+}
+
 // ========== INITIALIZATION ==========
 document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
@@ -1721,7 +1739,7 @@ async function openAssignDeviceModal(deviceId) {
     try {
         // Fetch all groups
         const response = await fetch(`${API_URL}/api/groups`, {
-            headers: { 'Authorization': `Bearer ${getApiKey()}` }
+            headers: { 'Authorization': `Bearer ${systemAdminKey}` }
         });
         
         if (!response.ok) throw new Error('Failed to fetch groups');
