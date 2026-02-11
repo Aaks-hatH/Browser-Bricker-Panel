@@ -1100,6 +1100,66 @@
                     </div>
                 </div>
 
+                <!-- Allowed Hours -->
+                <div class="field-group">
+                    <label><input type="checkbox" id="allowedHoursEnabled" onchange="toggleSection('allowedHours')"> Enable Allowed Hours Schedule</label>
+                </div>
+                
+                <div id="allowedHoursSection" style="display: none; padding: 15px; background: var(--zinc-100); border-radius: 8px; margin-top: 10px;">
+                    <p style="color: var(--zinc-600); font-size: 0.85rem; margin-bottom: 15px;">Define when devices can be used each day:</p>
+                    <div style="display: grid; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px;">
+                            <input type="checkbox" id="day0" style="margin: 0;">
+                            <label for="day0" style="flex: 1; margin: 0;">Sunday</label>
+                            <input type="time" id="day0Start" class="input-control" value="08:00" style="width: 120px;">
+                            <span>to</span>
+                            <input type="time" id="day0End" class="input-control" value="22:00" style="width: 120px;">
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px;">
+                            <input type="checkbox" id="day1" checked style="margin: 0;">
+                            <label for="day1" style="flex: 1; margin: 0;">Monday</label>
+                            <input type="time" id="day1Start" class="input-control" value="08:00" style="width: 120px;">
+                            <span>to</span>
+                            <input type="time" id="day1End" class="input-control" value="22:00" style="width: 120px;">
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px;">
+                            <input type="checkbox" id="day2" checked style="margin: 0;">
+                            <label for="day2" style="flex: 1; margin: 0;">Tuesday</label>
+                            <input type="time" id="day2Start" class="input-control" value="08:00" style="width: 120px;">
+                            <span>to</span>
+                            <input type="time" id="day2End" class="input-control" value="22:00" style="width: 120px;">
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px;">
+                            <input type="checkbox" id="day3" checked style="margin: 0;">
+                            <label for="day3" style="flex: 1; margin: 0;">Wednesday</label>
+                            <input type="time" id="day3Start" class="input-control" value="08:00" style="width: 120px;">
+                            <span>to</span>
+                            <input type="time" id="day3End" class="input-control" value="22:00" style="width: 120px;">
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px;">
+                            <input type="checkbox" id="day4" checked style="margin: 0;">
+                            <label for="day4" style="flex: 1; margin: 0;">Thursday</label>
+                            <input type="time" id="day4Start" class="input-control" value="08:00" style="width: 120px;">
+                            <span>to</span>
+                            <input type="time" id="day4End" class="input-control" value="22:00" style="width: 120px;">
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px;">
+                            <input type="checkbox" id="day5" checked style="margin: 0;">
+                            <label for="day5" style="flex: 1; margin: 0;">Friday</label>
+                            <input type="time" id="day5Start" class="input-control" value="08:00" style="width: 120px;">
+                            <span>to</span>
+                            <input type="time" id="day5End" class="input-control" value="22:00" style="width: 120px;">
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px;">
+                            <input type="checkbox" id="day6" style="margin: 0;">
+                            <label for="day6" style="flex: 1; margin: 0;">Saturday</label>
+                            <input type="time" id="day6Start" class="input-control" value="08:00" style="width: 120px;">
+                            <span>to</span>
+                            <input type="time" id="day6End" class="input-control" value="22:00" style="width: 120px;">
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Auto-Arm -->
                 <div class="field-group">
                     <label><input type="checkbox" id="autoArmEnabled" onchange="toggleSection('autoArm')"> Enable Automatic Arming</label>
