@@ -1634,25 +1634,45 @@ async function showAssignDeviceModal(groupId) {
         const devicesList = document.getElementById('unassignedDevicesList');
         
         if (devices.length === 0) {
-            devicesList.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No unassigned devices available</p>';
+            devicesList.innerHTML = `
+                <div style="text-align: center; padding: 40px;">
+                    <i data-lucide="inbox" size="48" style="color: #ccc; margin-bottom: 10px;"></i>
+                    <p style="color: #666; margin-bottom: 10px;">No unassigned devices available</p>
+                    <p style="color: #999; font-size: 0.85rem;">All devices are already assigned to groups.</p>
+                </div>
+            `;
         } else {
-            devicesList.innerHTML = devices.map(d => `
-                <div class="device-item" style="padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <strong>${escapeHtml(d.deviceName)}</strong><br>
-                        <small style="color: #666;">${d.deviceId}</small>
+            devicesList.innerHTML = `
+                <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 12px; margin-bottom: 15px;">
+                    <strong style="color: #0369a1;">📋 How to assign devices:</strong>
+                    <p style="color: #075985; font-size: 0.85rem; margin: 5px 0 0 0;">
+                        Click "Assign" next to any device below to add it to this group. Devices can only belong to one group at a time.
+                    </p>
+                </div>
+                ${devices.map(d => `
+                <div class="device-item" style="padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; background: white;">
+                    <div style="flex: 1;">
+                        <strong style="color: #111827;">${escapeHtml(d.deviceName)}</strong>
+                        <br>
+                        <small style="color: #6b7280; font-family: monospace;">${d.deviceId}</small>
+                        ${d.online ? '<span style="margin-left: 10px; color: #10b981;">● Online</span>' : '<span style="margin-left: 10px; color: #6b7280;">○ Offline</span>'}
                     </div>
-                    <button class="btn-primary" onclick="assignDeviceToGroupNow('${groupId}', '${d.deviceId}')">
-                        Assign
+                    <button class="btn-primary" onclick="assignDeviceToGroupNow('${groupId}', '${d.deviceId}')" style="white-space: nowrap;">
+                        <i data-lucide="plus-circle" size="14"></i> Assign
                     </button>
                 </div>
-            `).join('');
+            `).join('')}
+            `;
+            // Re-initialize lucide icons
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
         }
         
         document.getElementById('assignDeviceModal').style.display = 'flex';
     } catch (error) {
         console.error('Load unassigned devices error:', error);
-        showToast('Error', 'Failed to load unassigned devices', 'error');
+        showToast('Error', 'Failed to load unassigned devices. ' + error.message, 'error');
     }
 }
 
@@ -2004,6 +2024,8 @@ async function handleCreatePolicy(event) {
         }
     };
     
+    console.log('Creating policy with data:', policyData);
+    
     try {
         const response = await fetch(`${API_URL}/api/policies`, {
             method: 'POST',
@@ -2014,15 +2036,20 @@ async function handleCreatePolicy(event) {
             body: JSON.stringify(policyData)
         });
         
-        if (!response.ok) throw new Error('Failed to create policy');
-        
         const result = await response.json();
+        
+        if (!response.ok) {
+            console.error('Policy creation failed:', result);
+            throw new Error(result.message || result.error || 'Failed to create policy');
+        }
+        
+        console.log('Policy created successfully:', result);
         showToast('Success', 'Policy created successfully', 'success');
         closeCreatePolicyModal();
         loadPolicies();
     } catch (error) {
         console.error('Create policy error:', error);
-        showToast('Error', 'Failed to create policy', 'error');
+        showToast('Error', error.message || 'Failed to create policy. Please check your permissions and try again.', 'error');
     }
 }
 
