@@ -938,6 +938,14 @@
                 </div>
                 
                 <div class="field-group">
+                    <label class="field-label">Policy</label>
+                    <select id="groupPolicySelect" class="input-control">
+                        <option value="">No Policy</option>
+                        <!-- Policies will be loaded dynamically -->
+                    </select>
+                </div>
+                
+                <div class="field-group">
                     <label class="field-label">Max Devices</label>
                     <input type="number" id="maxDevices" class="input-control" value="100" min="1">
                 </div>
@@ -978,6 +986,14 @@
                 </div>
                 
                 <div class="field-group">
+                    <label class="field-label">Policy</label>
+                    <select id="editGroupPolicySelect" class="input-control">
+                        <option value="">No Policy</option>
+                        <!-- Policies will be loaded dynamically -->
+                    </select>
+                </div>
+                
+                <div class="field-group">
                     <label class="field-label">Max Devices</label>
                     <input type="number" id="editMaxDevices" class="input-control" min="1">
                 </div>
@@ -1006,6 +1022,18 @@
             <h2><i data-lucide="info" size="20"></i> Group Details</h2>
             <div id="groupDetailsContent"></div>
             <button type="button" class="btn btn-ghost" onclick="closeGroupDetailsModal()" style="width: 100%; margin-top: 20px;">Close</button>
+        </div>
+    </div>
+
+    <!-- ASSIGN DEVICE TO GROUP MODAL -->
+    <div class="modal-overlay" id="assignDeviceModal">
+        <div class="modal" style="max-width: 600px;">
+            <h2><i data-lucide="user-plus" size="20"></i> Assign Device to Group</h2>
+            <p style="color: #666; margin-bottom: 20px;">Select an unassigned device to add to this group:</p>
+            <div id="unassignedDevicesList" style="max-height: 400px; overflow-y: auto;">
+                <!-- Devices will be loaded here -->
+            </div>
+            <button type="button" class="btn btn-ghost" onclick="closeAssignDeviceModal()" style="width: 100%; margin-top: 20px;">Cancel</button>
         </div>
     </div>
 
