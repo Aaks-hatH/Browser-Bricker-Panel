@@ -228,24 +228,37 @@ function updateSessionTimer() {
 
 // ========== API HELPER ==========
 async function apiCall(endpoint, method = 'GET', body = null) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+    
     const options = {
         method,
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${ownerApiKey}`
-        }
+        },
+        signal: controller.signal
     };
 
     if (body) options.body = JSON.stringify(body);
 
-    const response = await fetch(API_URL + endpoint, options);
-    const data = await response.json();
+    try {
+        const response = await fetch(API_URL + endpoint, options);
+        clearTimeout(timeoutId);
+        const data = await response.json();
 
-    if (!response.ok) {
-        throw new Error(data.error || 'Request failed');
+        if (!response.ok) {
+            throw new Error(data.error || 'Request failed');
+        }
+
+        return data;
+    } catch (error) {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+            throw new Error('Request timed out - check server connection');
+        }
+        throw error;
     }
-
-    return data;
 }
 
 // ========== SEARCH HANDLER ==========
@@ -2950,8 +2963,12 @@ function generateSettingsHTML() {
                 <div style="flex: 1;">
                     <h3 class="card-title" style="margin-bottom: 4px;">Email Notifications</h3>
                     <p style="font-size: 0.85rem; color: var(--zinc-600); margin-bottom: 20px; line-height: 1.5;">
-                        Configure where security alerts are sent. Emails are delivered over TLS-encrypted SMTP from <strong>browserbricker@gmail.com</strong>.
-                        Requires <code>SMTP_PASS</code> to be set in your server <code>.env</code> file (Gmail App Password).
+                        <strong>Real-time security alerts delivered to your inbox.</strong><br>
+                        Get instant notifications when devices breach geofences, IPs get blocked, or extension resets are attempted.<br>
+                        <span style="font-size:0.8rem;color:var(--zinc-500);">
+                            📧 Emails sent via secure TLS from <code>browserbricker@gmail.com</code><br>
+                            ⚙️ Setup required: Add <code>SMTP_PASS</code> (Gmail App Password) to your server's <code>.env</code> file
+                        </span>
                     </p>
                     <div id="emailNotifSettings">
                         <div style="text-align:center;padding:20px;color:var(--zinc-400);">Loading...</div>
@@ -3557,7 +3574,7 @@ async function openAssignDeviceModal(deviceId) {
     try {
         // Fetch all groups
         const response = await fetch(`${API_URL}/api/groups`, {
-            headers: { 'Authorization': `Bearer ${getApiKey()}` }
+            headers: { 'Authorization': `Bearer ${ownerApiKey}` }
         });
         
         if (!response.ok) throw new Error('Failed to fetch groups');
@@ -3601,7 +3618,7 @@ async function assignDeviceToGroupNow(groupId, deviceId) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getApiKey()}`
+                'Authorization': `Bearer ${ownerApiKey}`
             }
         });
         
