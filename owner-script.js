@@ -547,6 +547,7 @@ async function loadDevices() {
                                 `<button class="btn btn-success" style="padding: 6px 12px; font-size: 0.75rem;" onclick="releaseQuarantine('${device.deviceId}')"><i data-lucide="shield-check" size="12"></i></button>` :
                                 `<button class="btn btn-warn" style="padding: 6px 12px; font-size: 0.75rem;" onclick="quarantineDeviceDirect('${device.deviceId}', '${escapeHtml(device.deviceName)}')"><i data-lucide="shield-alert" size="12"></i></button>`
                             }
+                            <button class="${device.reconfigurationProtected !== false ? 'btn btn-primary' : 'btn btn-ghost'}" style="padding: 6px 12px; font-size: 0.75rem; ${device.reconfigurationProtected !== false ? '' : 'border: 1px dashed #f59e0b; color:#f59e0b;'}" title="${device.reconfigurationProtected !== false ? 'Reconfiguration Protected — click to disable' : 'Reconfiguration Unprotected — click to enable'}" onclick="toggleReconfigProtection('${device.deviceId}', ${device.reconfigurationProtected !== false})"><i data-lucide="${device.reconfigurationProtected !== false ? 'shield-check' : 'shield-off'}" size="12"></i></button>
                             <button class="btn btn-ghost" style="padding: 6px 12px; font-size: 0.75rem; color: var(--status-danger);" onclick="deleteDevice('${device.deviceId}', '${escapeHtml(device.deviceName)}')"><i data-lucide="trash-2" size="12"></i></button>
                         </div>
                     </td>
@@ -1193,6 +1194,105 @@ async function loadAudit() {
     }
 }
 
+// ========== EMAIL NOTIFICATION SETTINGS ==========
+async function loadEmailNotifSettings() {
+    const el = document.getElementById('emailNotifSettings');
+    if (!el) return;
+    try {
+        const data = await apiCall('/api/admin/notification-settings');
+        el.innerHTML = `
+            <div style="display:grid;gap:14px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--zinc-50);border-radius:10px;border:1px solid var(--zinc-200);">
+                    <div>
+                        <div style="font-weight:600;font-size:0.9rem;">Enable Email Notifications</div>
+                        <div style="font-size:0.8rem;color:var(--zinc-500);margin-top:2px;">
+                            ${data.smtpConfigured ? '✅ SMTP configured' : '⚠️ SMTP_PASS not set in .env — emails cannot be sent until configured'}
+                        </div>
+                    </div>
+                    <label style="position:relative;display:inline-block;width:44px;height:24px;cursor:pointer;">
+                        <input type="checkbox" id="emailNotifsEnabled" ${data.emailNotificationsEnabled ? 'checked' : ''} style="opacity:0;width:0;height:0;" onchange="saveEmailNotifSettings()">
+                        <span style="position:absolute;inset:0;background:${data.emailNotificationsEnabled ? 'var(--brand-primary)' : '#d1d5db'};border-radius:12px;transition:0.3s;"></span>
+                        <span style="position:absolute;left:${data.emailNotificationsEnabled ? '22px' : '2px'};top:2px;width:20px;height:20px;background:white;border-radius:50%;transition:0.3s;"></span>
+                    </label>
+                </div>
+
+                <div style="padding:14px 16px;background:var(--zinc-50);border-radius:10px;border:1px solid var(--zinc-200);">
+                    <label style="font-weight:600;font-size:0.9rem;display:block;margin-bottom:8px;">Notification Email Address</label>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                        <input type="email" id="notifyEmailInput" value="${data.notifyEmail || ''}" placeholder="alerts@yourcompany.com"
+                            style="flex:1;min-width:220px;padding:10px 14px;border:1px solid var(--zinc-300);border-radius:8px;font-size:0.9rem;background:white;"
+                            oninput="document.getElementById('emailSaveBtn').style.display='inline-flex'">
+                        <button id="emailSaveBtn" class="btn btn-primary" onclick="saveEmailNotifSettings()" style="display:${data.notifyEmail ? 'inline-flex' : 'none'};">
+                            <i data-lucide="save" size="14"></i> Save Address
+                        </button>
+                        <button class="btn btn-ghost" onclick="sendTestEmail()" style="border:1px solid var(--zinc-300);">
+                            <i data-lucide="send" size="14"></i> Send Test Email
+                        </button>
+                    </div>
+                </div>
+
+                <div style="padding:14px 16px;background:var(--zinc-50);border-radius:10px;border:1px solid var(--zinc-200);">
+                    <div style="font-weight:600;font-size:0.9rem;margin-bottom:12px;">Notify Me When…</div>
+                    <div style="display:grid;gap:8px;">
+                        ${[
+                            ['notifyOnGeofenceBreach',   'Geofence Violation',               data.notifyOnGeofenceBreach],
+                            ['notifyOnIpBlock',          'IP Address Auto-Blocked',           data.notifyOnIpBlock],
+                            ['notifyOnReconfigAttempt',  'Extension Reset / Reconfig Blocked',data.notifyOnReconfigAttempt],
+                            ['notifyOnPolicyViolation',  'Policy Violation',                  data.notifyOnPolicyViolation],
+                            ['notifyOnQuarantine',       'Device Auto-Quarantined',           data.notifyOnQuarantine],
+                        ].map(([id, label, checked]) => `
+                        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+                            <input type="checkbox" id="${id}" ${checked ? 'checked' : ''} onchange="saveEmailNotifSettings()"
+                                style="width:16px;height:16px;accent-color:var(--brand-primary);cursor:pointer;">
+                            <span style="font-size:0.875rem;">${label}</span>
+                        </label>`).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+        lucide.createIcons();
+    } catch (error) {
+        const el = document.getElementById('emailNotifSettings');
+        if (el) el.innerHTML = '<div style="color:var(--status-danger);padding:10px;">Failed to load notification settings</div>';
+    }
+}
+
+async function saveEmailNotifSettings() {
+    const notifyEmail    = document.getElementById('notifyEmailInput')?.value?.trim() || '';
+    const enabled        = document.getElementById('emailNotifsEnabled')?.checked ?? false;
+    const geofence       = document.getElementById('notifyOnGeofenceBreach')?.checked ?? true;
+    const ipBlock        = document.getElementById('notifyOnIpBlock')?.checked ?? true;
+    const reconfig       = document.getElementById('notifyOnReconfigAttempt')?.checked ?? true;
+    const policy         = document.getElementById('notifyOnPolicyViolation')?.checked ?? true;
+    const quarantine     = document.getElementById('notifyOnQuarantine')?.checked ?? true;
+
+    try {
+        await apiCall('/api/admin/notification-settings', 'PATCH', {
+            emailNotificationsEnabled: enabled,
+            notifyEmail,
+            notifyOnGeofenceBreach:   geofence,
+            notifyOnIpBlock:          ipBlock,
+            notifyOnReconfigAttempt:  reconfig,
+            notifyOnPolicyViolation:  policy,
+            notifyOnQuarantine:       quarantine
+        });
+        showToast('Saved', 'Notification settings updated', 'success');
+        const saveBtn = document.getElementById('emailSaveBtn');
+        if (saveBtn) saveBtn.style.display = 'none';
+    } catch (error) {
+        showToast('Error', error.message || 'Failed to save', 'error');
+    }
+}
+
+async function sendTestEmail() {
+    try {
+        const data = await apiCall('/api/admin/notifications/test-email', 'POST', {});
+        showToast('Sent', `Test email sent to ${data.sentTo}`, 'success');
+    } catch (error) {
+        showToast('Error', error.message || 'Failed to send test email. Check SMTP_PASS in .env', 'error');
+    }
+}
+
 async function loadSettings() {
     try {
         const data = await apiCall('/api/admin/settings');
@@ -1752,6 +1852,44 @@ async function releaseQuarantine(deviceId) {
     }
 }
 
+// ========== RECONFIGURATION PROTECTION ==========
+async function toggleReconfigProtection(deviceId, currentlyProtected) {
+    const action = currentlyProtected ? 'disable' : 'enable';
+    const msg = currentlyProtected
+        ? 'Disable reconfiguration protection? The extension on this device will be allowed to reset or reconfigure.'
+        : 'Enable reconfiguration protection? Any extension reset or reconfiguration attempt on this device will be blocked and you will be notified.';
+
+    if (!confirm(msg)) return;
+
+    try {
+        await apiCall(`/api/admin/device/${deviceId}/reconfig-protection`, 'POST', { enabled: !currentlyProtected });
+        showToast(
+            'Success',
+            `Reconfiguration protection ${!currentlyProtected ? 'enabled' : 'disabled'} — emails will ${!currentlyProtected ? 'now' : 'no longer'} be sent on reset attempts`,
+            'success'
+        );
+        logTerminal(`Device ${deviceId.substring(0, 8)}... reconfig protection ${!currentlyProtected ? 'ON' : 'OFF'}`, !currentlyProtected ? 'warn' : 'info');
+        await loadDevices();
+    } catch (error) {
+        showToast('Error', error.message, 'error');
+    }
+}
+
+async function toggleReconfigProtectionAll(enable) {
+    const msg = enable
+        ? 'Enable reconfiguration protection on ALL devices? Extension resets will be blocked system-wide.'
+        : 'Disable reconfiguration protection on ALL devices? Extension resets will be allowed system-wide.';
+    if (!confirm(msg)) return;
+    try {
+        const data = await apiCall('/api/admin/devices/reconfig-protection-all', 'POST', { enabled: enable });
+        showToast('Success', `Reconfiguration protection ${enable ? 'enabled' : 'disabled'} on ${data.updated} devices`, 'success');
+        logTerminal(`Bulk reconfig protection ${enable ? 'enabled' : 'disabled'} (${data.updated} devices)`, enable ? 'warn' : 'info');
+        await loadDevices();
+    } catch (error) {
+        showToast('Error', error.message, 'error');
+    }
+}
+
 // ========== IP OPERATIONS ==========
 async function unblockIP() {
     const ip = document.getElementById('unblockIPInput').value.trim();
@@ -1953,7 +2091,7 @@ function switchView(viewId) {
     }
     if (viewId === 'notifications') loadNotifications();
     if (viewId === 'audit') loadAudit();
-    if (viewId === 'settings') loadSettings();
+    if (viewId === 'settings') { loadSettings(); loadEmailNotifSettings(); }
     
     lucide.createIcons();
 }
@@ -2800,6 +2938,25 @@ function generateSettingsHTML() {
             </p>
             <div id="settingsForm">
                 <div style="text-align: center; padding: 20px; color: var(--zinc-400);">Loading settings...</div>
+            </div>
+        </div>
+
+        <!-- Email Notification Settings Card -->
+        <div class="card-main" style="border: 1px solid #10b981; background: rgba(16,185,129,0.03);">
+            <div style="display: flex; align-items: flex-start; gap: 16px;">
+                <div style="background: #10b981; color: white; padding: 12px; border-radius: 12px; flex-shrink:0;">
+                    <i data-lucide="mail" size="24"></i>
+                </div>
+                <div style="flex: 1;">
+                    <h3 class="card-title" style="margin-bottom: 4px;">Email Notifications</h3>
+                    <p style="font-size: 0.85rem; color: var(--zinc-600); margin-bottom: 20px; line-height: 1.5;">
+                        Configure where security alerts are sent. Emails are delivered over TLS-encrypted SMTP from <strong>browserbricker@gmail.com</strong>.
+                        Requires <code>SMTP_PASS</code> to be set in your server <code>.env</code> file (Gmail App Password).
+                    </p>
+                    <div id="emailNotifSettings">
+                        <div style="text-align:center;padding:20px;color:var(--zinc-400);">Loading...</div>
+                    </div>
+                </div>
             </div>
         </div>
 
