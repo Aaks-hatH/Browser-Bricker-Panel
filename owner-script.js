@@ -3623,11 +3623,35 @@ function getPriorityClass(priority) {
 
 // ========== CREATE POLICY ==========
 function showCreatePolicyModal() {
-    document.getElementById('createPolicyModal').style.display = 'flex';
-    document.getElementById('createPolicyForm').reset();
+    const modal = document.getElementById('createPolicyModal');
+    const form = document.getElementById('createPolicyForm');
+    
+    // Show modal first
+    modal.style.display = 'flex';
+    
+    // Reset form
+    form.reset();
+    
+    // Reset any conditional sections
+    const timeLimitsSection = document.getElementById('timeLimitsSection');
+    const allowedHoursSection = document.getElementById('allowedHoursSection');
+    const autoArmSection = document.getElementById('autoArmSection');
+    const inactivitySection = document.getElementById('inactivitySection');
+    const scopeTargetsDiv = document.getElementById('scopeTargetsDiv');
+    
+    if (timeLimitsSection) timeLimitsSection.style.display = 'none';
+    if (allowedHoursSection) allowedHoursSection.style.display = 'none';
+    if (autoArmSection) autoArmSection.style.display = 'none';
+    if (inactivitySection) inactivitySection.style.display = 'none';
+    if (scopeTargetsDiv) scopeTargetsDiv.style.display = 'none';
     
     // Load groups and devices for scope selection
-    loadScopeTargets();
+    loadScopeTargets().then(() => {
+        console.log('Scope targets loaded successfully');
+    }).catch(error => {
+        console.error('Failed to load scope targets:', error);
+        showToast('Warning', 'Could not load all groups/devices for scope selection', 'warning');
+    });
 }
 
 function closeCreatePolicyModal() {
@@ -3701,10 +3725,15 @@ function toggleSection(sectionName) {
 async function handleCreatePolicy(event) {
     event.preventDefault();
     
+    console.log('=== CREATE POLICY FORM SUBMITTED ===');
+    
     // Collect form data
     const scope = document.getElementById('policyScope').value;
     const scopeTargets = Array.from(document.getElementById('scopeTargets').selectedOptions)
         .map(opt => opt.value);
+    
+    console.log('Scope:', scope);
+    console.log('Scope Targets:', scopeTargets);
     
     const policyData = {
         policyName: document.getElementById('policyName').value,
@@ -3725,7 +3754,7 @@ async function handleCreatePolicy(event) {
             
             // Allowed Hours
             allowedHours: {
-                enabled: document.getElementById('allowedHoursEnabled').checked,
+                enabled: document.getElementById('allowedHoursEnabled')?.checked || false,
                 schedule: getAllowedHoursSchedule()
             },
             
@@ -3763,7 +3792,11 @@ async function handleCreatePolicy(event) {
         }
     };
     
+    console.log('=== POLICY DATA TO SUBMIT ===');
+    console.log(JSON.stringify(policyData, null, 2));
+    
     try {
+        console.log('Sending POST request to:', `${API_URL}/api/policies`);
         const response = await fetch(`${API_URL}/api/policies`, {
             method: 'POST',
             headers: {
@@ -3773,15 +3806,22 @@ async function handleCreatePolicy(event) {
             body: JSON.stringify(policyData)
         });
         
-        if (!response.ok) throw new Error('Failed to create policy');
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+            const result = await response.json();
+            console.error('❌ Policy creation failed:', result);
+            throw new Error(result.message || result.error || 'Failed to create policy');
+        }
         
         const result = await response.json();
-        showToast('Success', 'Policy created successfully', 'success');
+        console.log('✅ Policy created successfully:', result);
+        showToast('Success', 'Policy created successfully!', 'success');
         closeCreatePolicyModal();
         loadPolicies();
     } catch (error) {
-        console.error('Create policy error:', error);
-        showToast('Error', 'Failed to create policy', 'error');
+        console.error('❌ Create policy error:', error);
+        showToast('Error', error.message || 'Failed to create policy. Check console for details.', 'error');
     }
 }
 
@@ -3806,13 +3846,18 @@ function getAutoArmDays() {
     const days = [];
     const checkboxes = document.querySelectorAll('.days-selector input[type="checkbox"]');
     
+    // If no checkboxes with .days-selector class, return default (all days)
+    if (!checkboxes || checkboxes.length === 0) {
+        return [0, 1, 2, 3, 4, 5, 6]; // All days of the week
+    }
+    
     checkboxes.forEach(checkbox => {
         if (checkbox.checked) {
             days.push(parseInt(checkbox.value));
         }
     });
     
-    return days;
+    return days.length > 0 ? days : [0, 1, 2, 3, 4, 5, 6];
 }
 
 // ========== TOGGLE POLICY STATUS ==========
