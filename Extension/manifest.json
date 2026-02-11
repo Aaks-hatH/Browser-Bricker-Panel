@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Device Lockdown",
-  "version": "5.0.1",
+  "name": "Browser Bricker",
+  "version": "6.0.0",
   "description": "Advanced remote browser lockdown with geofencing, breach detection, and automated security",
 
   "permissions": [
