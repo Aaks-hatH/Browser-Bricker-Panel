@@ -432,6 +432,7 @@ function renderDevices(devices) {
                         ${armBtn}
                         <button class="btn btn-primary" style="padding: 8px 16px; font-size: 0.8rem;" onclick="openAssignDeviceModal('${device.deviceId}')" title="Add to Group"><i data-lucide="users" size="14"></i></button>
                         <button class="btn btn-ghost" style="padding: 8px 16px; font-size: 0.8rem;" onclick="editDevice('${device.deviceId}', '${escapeHtml(device.deviceName)}')"><i data-lucide="edit-2" size="14"></i></button>
+                        <button class="${device.reconfigurationProtected !== false ? 'btn btn-primary' : 'btn btn-ghost'}" style="padding: 8px 16px; font-size: 0.8rem; ${device.reconfigurationProtected !== false ? '' : 'border:1px dashed #f59e0b;color:#f59e0b;'}" title="${device.reconfigurationProtected !== false ? 'Reconfig Protected (click to disable)' : 'Reconfig Unprotected (click to enable)'}" onclick="toggleReconfigProtection('${device.deviceId}', ${device.reconfigurationProtected !== false})"><i data-lucide="${device.reconfigurationProtected !== false ? 'shield-check' : 'shield-off'}" size="14"></i></button>
                         <button class="btn btn-ghost" style="padding: 8px 16px; font-size: 0.8rem; color: var(--status-danger);" onclick="deleteDevice('${device.deviceId}', '${escapeHtml(device.deviceName)}')"><i data-lucide="trash-2" size="14"></i></button>
                     </div>
                 </td>
@@ -997,6 +998,34 @@ async function deleteDevice(deviceId, deviceName) {
     } catch (error) {
         console.error('Delete device error:', error);
         showToast('Error', 'Failed to delete device', 'error');
+    }
+}
+
+// ========== RECONFIGURATION PROTECTION ==========
+async function toggleReconfigProtection(deviceId, currentlyProtected) {
+    const action = currentlyProtected ? 'disable' : 'enable';
+    const msg = currentlyProtected
+        ? 'Disable reconfiguration protection? The extension on this device will be allowed to reset or reconfigure.'
+        : 'Enable reconfiguration protection? Any extension reset or reconfiguration attempt will be blocked and an email notification will be sent.';
+    if (!confirm(msg)) return;
+    try {
+        const response = await fetch(`${API_URL}/api/system/device/${deviceId}/reconfig-protection`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${systemAdminKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ enabled: !currentlyProtected })
+        });
+        const data = await response.json();
+        if (response.ok) {
+            showToast('Success', `Reconfiguration protection ${!currentlyProtected ? 'enabled' : 'disabled'}`, 'success');
+            loadDevices();
+        } else {
+            showToast('Error', data.error || 'Failed to update protection', 'error');
+        }
+    } catch (error) {
+        showToast('Error', 'Failed to update reconfiguration protection', 'error');
     }
 }
 
