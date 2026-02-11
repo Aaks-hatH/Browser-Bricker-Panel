@@ -1514,7 +1514,13 @@ async function viewGroupDetails(groupId) {
                     `).join('')}
                 </tbody>
             </table>
-        ` : '<p style="text-align: center; color: #666; padding: 20px;">No devices in this group</p>';
+        ` : `
+            <div style="text-align: center; padding: 40px; background: var(--zinc-50); border-radius: 8px; border: 2px dashed var(--zinc-300);">
+                <i data-lucide="inbox" size="48" style="color: var(--zinc-400); margin-bottom: 10px;"></i>
+                <p style="color: var(--zinc-600); font-weight: 600; margin-bottom: 8px;">No devices in this group yet</p>
+                <p style="color: var(--zinc-500); font-size: 0.9rem; margin-bottom: 15px;">Click the "Assign Device" button above to add unassigned devices to this group.</p>
+            </div>
+        `;
         
         const content = `
             <div class="group-details">
@@ -1884,11 +1890,29 @@ function getPriorityClass(priority) {
 
 // ========== CREATE POLICY ==========
 function showCreatePolicyModal() {
-    document.getElementById('createPolicyModal').style.display = 'flex';
-    document.getElementById('createPolicyForm').reset();
+    const modal = document.getElementById('createPolicyModal');
+    const form = document.getElementById('createPolicyForm');
+    
+    // Show modal first
+    modal.style.display = 'flex';
+    
+    // Reset form
+    form.reset();
+    
+    // Reset any conditional sections
+    document.getElementById('timeLimitsSection').style.display = 'none';
+    document.getElementById('allowedHoursSection').style.display = 'none';
+    document.getElementById('autoArmSection').style.display = 'none';
+    document.getElementById('inactivitySection').style.display = 'none';
+    document.getElementById('scopeTargetsDiv').style.display = 'none';
     
     // Load groups and devices for scope selection
-    loadScopeTargets();
+    loadScopeTargets().then(() => {
+        console.log('Scope targets loaded successfully');
+    }).catch(error => {
+        console.error('Failed to load scope targets:', error);
+        showToast('Warning', 'Could not load all groups/devices for scope selection', 'warning');
+    });
 }
 
 function closeCreatePolicyModal() {
@@ -1962,10 +1986,15 @@ function toggleSection(sectionName) {
 async function handleCreatePolicy(event) {
     event.preventDefault();
     
+    console.log('=== CREATE POLICY FORM SUBMITTED ===');
+    
     // Collect form data
     const scope = document.getElementById('policyScope').value;
     const scopeTargets = Array.from(document.getElementById('scopeTargets').selectedOptions)
         .map(opt => opt.value);
+    
+    console.log('Scope:', scope);
+    console.log('Scope Targets:', scopeTargets);
     
     const policyData = {
         policyName: document.getElementById('policyName').value,
@@ -1986,7 +2015,7 @@ async function handleCreatePolicy(event) {
             
             // Allowed Hours
             allowedHours: {
-                enabled: document.getElementById('allowedHoursEnabled').checked,
+                enabled: document.getElementById('allowedHoursEnabled')?.checked || false,
                 schedule: getAllowedHoursSchedule()
             },
             
@@ -2024,9 +2053,11 @@ async function handleCreatePolicy(event) {
         }
     };
     
-    console.log('Creating policy with data:', policyData);
+    console.log('=== POLICY DATA TO SUBMIT ===');
+    console.log(JSON.stringify(policyData, null, 2));
     
     try {
+        console.log('Sending POST request to:', `${API_URL}/api/policies`);
         const response = await fetch(`${API_URL}/api/policies`, {
             method: 'POST',
             headers: {
@@ -2036,20 +2067,23 @@ async function handleCreatePolicy(event) {
             body: JSON.stringify(policyData)
         });
         
+        console.log('Response status:', response.status);
+        
         const result = await response.json();
+        console.log('Response data:', result);
         
         if (!response.ok) {
-            console.error('Policy creation failed:', result);
+            console.error('❌ Policy creation failed:', result);
             throw new Error(result.message || result.error || 'Failed to create policy');
         }
         
-        console.log('Policy created successfully:', result);
-        showToast('Success', 'Policy created successfully', 'success');
+        console.log('✅ Policy created successfully:', result);
+        showToast('Success', 'Policy created successfully!', 'success');
         closeCreatePolicyModal();
         loadPolicies();
     } catch (error) {
-        console.error('Create policy error:', error);
-        showToast('Error', error.message || 'Failed to create policy. Please check your permissions and try again.', 'error');
+        console.error('❌ Create policy error:', error);
+        showToast('Error', error.message || 'Failed to create policy. Check console for details.', 'error');
     }
 }
 
@@ -2074,13 +2108,18 @@ function getAutoArmDays() {
     const days = [];
     const checkboxes = document.querySelectorAll('.days-selector input[type="checkbox"]');
     
+    // If no checkboxes with .days-selector class, return default (all days)
+    if (!checkboxes || checkboxes.length === 0) {
+        return [0, 1, 2, 3, 4, 5, 6]; // All days of the week
+    }
+    
     checkboxes.forEach(checkbox => {
         if (checkbox.checked) {
             days.push(parseInt(checkbox.value));
         }
     });
     
-    return days;
+    return days.length > 0 ? days : [0, 1, 2, 3, 4, 5, 6];
 }
 
 // ========== TOGGLE POLICY STATUS ==========
@@ -2136,9 +2175,54 @@ async function deletePolicy(policyId) {
 }
 
 // ========== VIEW POLICY DETAILS ==========
-function viewPolicyDetails(policyId) {
+async function viewPolicyDetails(policyId) {
     const policy = currentPolicies.find(p => p.policyId === policyId);
     if (!policy) return;
+    
+    // Fetch additional details about affected devices/groups
+    let affectedTargetsHtml = '';
+    try {
+        if (policy.scope.type === 'group' && policy.scope.targetIds.length > 0) {
+            const groupNames = policy.scope.targetIds.map(id => {
+                const group = currentGroups?.find(g => g.groupId === id);
+                return group ? group.groupName : id;
+            });
+            affectedTargetsHtml = `
+                <div class="detail-section">
+                    <h4>Affected Groups (${groupNames.length})</h4>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        ${groupNames.map(name => `<span class="badge badge-info">${escapeHtml(name)}</span>`).join('')}
+                    </div>
+                </div>
+            `;
+        } else if (policy.scope.type === 'device' && policy.scope.targetIds.length > 0) {
+            const deviceNames = policy.scope.targetIds.map(id => {
+                const device = window.availableDevices?.find(d => d.deviceId === id);
+                return device ? device.deviceName : id;
+            });
+            affectedTargetsHtml = `
+                <div class="detail-section">
+                    <h4>Affected Devices (${deviceNames.length})</h4>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        ${deviceNames.map(name => `<span class="badge badge-info">${escapeHtml(name)}</span>`).join('')}
+                    </div>
+                </div>
+            `;
+        } else if (policy.scope.type === 'global') {
+            affectedTargetsHtml = `
+                <div class="detail-section">
+                    <h4>Scope</h4>
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; padding: 12px; color: white;">
+                        <i data-lucide="globe" size="16" style="vertical-align: middle;"></i>
+                        <strong> Global Policy</strong>
+                        <p style="margin: 5px 0 0 0; opacity: 0.9; font-size: 0.85rem;">This policy applies to all devices in the system</p>
+                    </div>
+                </div>
+            `;
+        }
+    } catch (e) {
+        console.error('Error building affected targets:', e);
+    }
     
     // Build detailed view HTML
     const content = `
@@ -2148,7 +2232,7 @@ function viewPolicyDetails(policyId) {
                 <table class="details-table">
                     <tr>
                         <td><strong>Policy ID:</strong></td>
-                        <td>${escapeHtml(policy.policyId)}</td>
+                        <td style="font-family: monospace; font-size: 0.85rem;">${escapeHtml(policy.policyId)}</td>
                     </tr>
                     <tr>
                         <td><strong>Name:</strong></td>
@@ -2156,20 +2240,16 @@ function viewPolicyDetails(policyId) {
                     </tr>
                     <tr>
                         <td><strong>Description:</strong></td>
-                        <td>${escapeHtml(policy.description || 'No description')}</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Scope:</strong></td>
-                        <td>${policy.scope.type} ${policy.scope.targetIds.length > 0 ? `(${policy.scope.targetIds.length} targets)` : ''}</td>
+                        <td>${escapeHtml(policy.description || 'No description provided')}</td>
                     </tr>
                     <tr>
                         <td><strong>Priority:</strong></td>
-                        <td><span class="priority-badge priority-${getPriorityClass(policy.priority)}">${policy.priority}</span></td>
+                        <td><span class="priority-badge priority-${getPriorityClass(policy.priority)}">${policy.priority}</span> <small style="color: var(--zinc-500);">(Higher = more important)</small></td>
                     </tr>
                     <tr>
                         <td><strong>Status:</strong></td>
                         <td><span class="badge ${policy.active ? 'badge-success' : 'badge-danger'}">
-                            ${policy.active ? 'Active' : 'Inactive'}
+                            ${policy.active ? '✓ Active' : '✗ Inactive'}
                         </span></td>
                     </tr>
                     <tr>
@@ -2179,19 +2259,34 @@ function viewPolicyDetails(policyId) {
                 </table>
             </div>
             
+            ${affectedTargetsHtml}
+            
             <div class="detail-section">
-                <h4>Rules</h4>
+                <h4>Configured Rules</h4>
                 ${getPolicyRulesHTML(policy.rules)}
             </div>
             
             <div class="detail-section">
-                <h4>Notifications</h4>
-                <ul>
-                    <li>Breach Notifications: ${policy.notifications.onBreach ? '✓' : '✗'}</li>
-                    <li>Geofence Exit: ${policy.notifications.onGeofenceExit ? '✓' : '✗'}</li>
-                    <li>Time Limit: ${policy.notifications.onTimeLimitReached ? '✓' : '✗'}</li>
+                <h4>Notification Settings</h4>
+                <ul style="list-style: none; padding: 0;">
+                    <li style="padding: 8px; background: ${policy.notifications.onBreach ? 'var(--zinc-50)' : 'transparent'}; border-radius: 4px; margin-bottom: 4px;">
+                        ${policy.notifications.onBreach ? '✅' : '❌'} Breach Notifications
+                    </li>
+                    <li style="padding: 8px; background: ${policy.notifications.onGeofenceExit ? 'var(--zinc-50)' : 'transparent'}; border-radius: 4px; margin-bottom: 4px;">
+                        ${policy.notifications.onGeofenceExit ? '✅' : '❌'} Geofence Exit Alerts
+                    </li>
+                    <li style="padding: 8px; background: ${policy.notifications.onTimeLimitReached ? 'var(--zinc-50)' : 'transparent'}; border-radius: 4px; margin-bottom: 4px;">
+                        ${policy.notifications.onTimeLimitReached ? '✅' : '❌'} Time Limit Warnings
+                    </li>
                     ${policy.notifications.recipients.length > 0 ? 
-                        `<li>Recipients: ${policy.notifications.recipients.join(', ')}</li>` : ''}
+                        `<li style="padding: 8px; background: var(--zinc-50); border-radius: 4px; margin-top: 10px;">
+                            <strong>📧 Email Recipients:</strong><br>
+                            <span style="font-size: 0.9rem; color: var(--zinc-700);">${policy.notifications.recipients.join(', ')}</span>
+                        </li>` : 
+                        `<li style="padding: 8px; color: var(--zinc-500); font-style: italic; margin-top: 10px;">
+                            No email recipients configured
+                        </li>`
+                    }
                 </ul>
             </div>
         </div>
@@ -2199,39 +2294,115 @@ function viewPolicyDetails(policyId) {
     
     // Show in a modal (you'll need to create this modal in HTML)
     const modal = document.getElementById('policyDetailsModal') || createPolicyDetailsModal();
-    modal.querySelector('.modal-body').innerHTML = content;
+    const modalBody = modal.querySelector('.modal-body');
+    if (modalBody) {
+        modalBody.innerHTML = content;
+    }
     modal.style.display = 'flex';
+    
+    // Re-initialize lucide icons
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
 }
 
 function getPolicyRulesHTML(rules) {
-    let html = '<ul>';
+    let html = '<div style="display: grid; gap: 10px;">';
+    let hasRules = false;
     
     if (rules.timeLimits?.enabled) {
-        html += `<li><strong>Time Limits:</strong> ${rules.timeLimits.dailyMinutes} minutes/day, `;
-        html += `Action: ${rules.timeLimits.action}</li>`;
+        hasRules = true;
+        html += `
+            <div style="padding: 12px; background: var(--zinc-50); border-left: 3px solid var(--brand-primary); border-radius: 6px;">
+                <strong>⏱️ Daily Time Limits</strong><br>
+                <span style="color: var(--zinc-600); font-size: 0.9rem;">
+                    Maximum: ${rules.timeLimits.dailyMinutes} minutes per day<br>
+                    Resets at: ${rules.timeLimits.resetTime}<br>
+                    Action: ${rules.timeLimits.action.charAt(0).toUpperCase() + rules.timeLimits.action.slice(1)}
+                </span>
+            </div>
+        `;
     }
     
-    if (rules.allowedHours?.enabled) {
-        html += `<li><strong>Allowed Hours:</strong> ${rules.allowedHours.schedule.length} schedules configured</li>`;
+    if (rules.allowedHours?.enabled && rules.allowedHours.schedule?.length > 0) {
+        hasRules = true;
+        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const scheduleText = rules.allowedHours.schedule.map(s => 
+            `${dayNames[s.day]}: ${s.startTime} - ${s.endTime}`
+        ).join('<br>');
+        html += `
+            <div style="padding: 12px; background: var(--zinc-50); border-left: 3px solid var(--status-info); border-radius: 6px;">
+                <strong>📅 Allowed Hours Schedule</strong><br>
+                <span style="color: var(--zinc-600); font-size: 0.85rem;">
+                    ${scheduleText}
+                </span>
+            </div>
+        `;
     }
     
     if (rules.autoArm) {
-        html += `<li><strong>Auto-Arm:</strong> Enabled`;
+        hasRules = true;
+        let scheduleInfo = 'Always enabled';
         if (rules.autoArmSchedule?.enabled) {
-            html += ` (${rules.autoArmSchedule.startTime} - ${rules.autoArmSchedule.endTime})`;
+            scheduleInfo = `${rules.autoArmSchedule.startTime} - ${rules.autoArmSchedule.endTime}`;
         }
-        html += `</li>`;
+        html += `
+            <div style="padding: 12px; background: var(--zinc-50); border-left: 3px solid var(--status-warn); border-radius: 6px;">
+                <strong>🛡️ Automatic Arming</strong><br>
+                <span style="color: var(--zinc-600); font-size: 0.9rem;">
+                    Schedule: ${scheduleInfo}
+                </span>
+            </div>
+        `;
     }
     
     if (rules.enforceGeofence) {
-        html += `<li><strong>Geofence:</strong> ${rules.geofenceAction}</li>`;
+        hasRules = true;
+        html += `
+            <div style="padding: 12px; background: var(--zinc-50); border-left: 3px solid var(--status-danger); border-radius: 6px;">
+                <strong>📍 Geofence Enforcement</strong><br>
+                <span style="color: var(--zinc-600); font-size: 0.9rem;">
+                    Action on exit: ${rules.geofenceAction.charAt(0).toUpperCase() + rules.geofenceAction.slice(1)}
+                </span>
+            </div>
+        `;
     }
     
     if (rules.inactivityTimeout?.enabled) {
-        html += `<li><strong>Inactivity Timeout:</strong> ${rules.inactivityTimeout.minutes} minutes</li>`;
+        hasRules = true;
+        html += `
+            <div style="padding: 12px; background: var(--zinc-50); border-left: 3px solid var(--zinc-400); border-radius: 6px;">
+                <strong>💤 Inactivity Auto-Arm</strong><br>
+                <span style="color: var(--zinc-600); font-size: 0.9rem;">
+                    Timeout: ${rules.inactivityTimeout.minutes} minutes of inactivity
+                </span>
+            </div>
+        `;
     }
     
-    html += '</ul>';
+    if (rules.breachThreshold) {
+        hasRules = true;
+        html += `
+            <div style="padding: 12px; background: var(--zinc-50); border-left: 3px solid var(--status-danger); border-radius: 6px;">
+                <strong>⚠️ Breach Response</strong><br>
+                <span style="color: var(--zinc-600); font-size: 0.9rem;">
+                    Threshold: ${rules.breachThreshold} breaches<br>
+                    Action: ${rules.breachAction ? rules.breachAction.charAt(0).toUpperCase() + rules.breachAction.slice(1) : 'None'}
+                </span>
+            </div>
+        `;
+    }
+    
+    if (!hasRules) {
+        html += `
+            <div style="padding: 20px; text-align: center; color: var(--zinc-500); background: var(--zinc-50); border-radius: 8px;">
+                <i data-lucide="alert-circle" size="24" style="opacity: 0.5;"></i>
+                <p style="margin: 8px 0 0 0;">No rules configured for this policy</p>
+            </div>
+        `;
+    }
+    
+    html += '</div>';
     return html;
 }
 
