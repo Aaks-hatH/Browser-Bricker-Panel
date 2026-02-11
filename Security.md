@@ -2,7 +2,7 @@
 
 Comprehensive security architecture, threat model, and vulnerability reporting procedures for BrowserBricker.
 
-**Version**: 5.0.1  
+**Version**: 6.0.0  
 **Last Updated**: February 8, 2026  
 **Maintained by**: Aakshat Hariharan
 
@@ -1291,7 +1291,7 @@ Heartbeat Endpoint:
 
 ### Current Version Security Status
 
-**Version 5.0.1** (February 8, 2026):
+**Version 6.0.0** (February 8, 2026):
 - No known critical vulnerabilities
 - Regular dependency updates
 - Security best practices followed
@@ -1397,7 +1397,7 @@ Heartbeat Endpoint:
 
 ---
 
-**Security Documentation v5.0.1**
+**Security Documentation v6.0.0**
 
 **Last Updated**: February 8, 2026
 
