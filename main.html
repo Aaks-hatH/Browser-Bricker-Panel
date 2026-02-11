@@ -1217,6 +1217,23 @@
                                 </span>
                             </div>
 
+                            ${device.groupId || device.systemAdminId ? `
+                                <div style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border-radius: 8px; padding: 10px 12px; margin: 12px 0; color: white; font-size: 0.8rem;">
+                                    ${device.groupId ? `
+                                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                                            <i data-lucide="users" size="14"></i>
+                                            <strong>Group:</strong> <span style="opacity: 0.9;">${device.groupName || device.groupId}</span>
+                                        </div>
+                                    ` : ''}
+                                    ${device.systemAdminId && device.systemAdminId !== 'owner' ? `
+                                        <div style="display: flex; align-items: center; gap: 6px;">
+                                            <i data-lucide="shield" size="14"></i>
+                                            <strong>Managed by:</strong> <span style="opacity: 0.9;">System Administrator</span>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            ` : ''}
+
                             <div class="device-meta">
                                 <div class="meta-item">
                                     <span class="meta-label">Device ID</span>
