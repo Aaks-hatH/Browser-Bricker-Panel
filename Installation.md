@@ -1,14 +1,15 @@
-# Installation Guide
+# Installation Guide - BrowserBricker 6.0
 
-Complete step-by-step instructions for installing and configuring BrowserBricker.
+Complete step-by-step instructions for installing and configuring BrowserBricker with the new group management system.
 
 ## Table of Contents
 
 - [System Requirements](#system-requirements)
 - [Extension Installation](#extension-installation)
-- [Account Setup](#account-setup)
-- [Device Registration](#device-registration)
-- [First Lock Test](#first-lock-test)
+- [System Administrator Setup](#system-administrator-setup)
+- [Regular User Setup](#regular-user-setup)
+- [Group Management Guide](#group-management-guide)
+- [Policy Configuration](#policy-configuration)
 - [Troubleshooting](#troubleshooting)
 
 ---
@@ -41,16 +42,14 @@ Complete step-by-step instructions for installing and configuring BrowserBricker
 
 ## Extension Installation
 
-### Method 1: Manual Installation (Recommended)
-
-#### Step 1: Download
+### Step 1: Download
 
 ```bash
 # Clone the repository
-git clone https://github.com/Aaks-hatH/browserbricker.git
+git clone https://github.com/Aaks-hatH/Browser-Bricker-Panel
 
 # Navigate to directory
-cd browserbricker
+cd Browser-Bricker-Panel
 ```
 
 Or download ZIP:
@@ -58,7 +57,7 @@ Or download ZIP:
 2. Click **Code** → **Download ZIP**
 3. Extract to a permanent location (don't delete after installation)
 
-#### Step 2: Load Extension
+### Step 2: Load Extension
 
 **For Chrome/Edge:**
 
@@ -72,7 +71,7 @@ Or download ZIP:
 
 3. Click **Load Unpacked**
 
-4. Select the `browserbricker` folder
+4. Navigate to the extracted folder and select the **Extension** folder
 
 5. Extension should now appear in your extensions list
 
@@ -83,1395 +82,786 @@ Same process, use your browser's extension page:
 - Opera: `opera://extensions/`
 - Vivaldi: `vivaldi://extensions/`
 
-#### Step 3: Verify Installation
+### Step 3: Verify Installation
 
 1. Look for BrowserBricker icon in browser toolbar
 2. Icon should show a lock symbol
 3. Click icon - you should see the setup screen
 4. Status should indicate "Not Configured"
 
-### Method 2: Chrome Web Store (Coming Soon)
+---
 
-One-click installation will be available from the Chrome Web Store.
+## System Administrator Setup
+
+**Note for Owner:** This section is for System Administrators you create. As the platform owner, you already have full access.
+
+### Prerequisites
+
+- You must have received a registration code from the service owner
+- Valid email address
+- Secure location to store your admin key
+
+### Step 1: Receive Registration Code
+
+Your service owner will provide:
+- Unique registration code (format: XXXX-XXXX-XXXX-XXXX)
+- Organization/group assignment
+- Access portal URL
+
+### Step 2: Initial Registration
+
+1. Navigate to System Administrator Portal:
+   ```
+   https://browser-bricker-panel.onrender.com/admin
+   ```
+
+2. On the login screen, click **"Register New Admin"**
+
+3. Enter your registration code
+
+4. Fill in your information:
+   - **Name**: Your full name
+   - **Email**: Your organizational email* if asked
+   - **Create Password**: Secure password for your admin key
+
+5. Click **"Complete Registration"**
+
+6. **CRITICAL**: Copy and securely store your System Admin Key
+   - This 64-character key is shown ONCE
+   - Store in password manager or secure location
+   - You cannot recover this key if lost
+
+### Step 3: First Login
+
+1. Use your System Admin Key to log in
+
+2. You'll see your admin dashboard with:
+   - Organization overview
+   - Device management panel
+   - Group management (NEW in v6.0)
+   - User management
+   - Analytics and reporting
+
+### Step 4: Create Your First Group
+
+**Important**: In BrowserBricker 6.0, groups must be created before assigning devices.
+
+1. Navigate to **Groups** section in your admin panel
+
+2. Click **"Create Group"** button
+
+3. Fill in group details:
+   - **Group Name**: Descriptive name (e.g., "Engineering Dept")
+   - **Description**: Optional details about this group
+   - **Policy**: Select a policy or leave as "No Policy"
+   - **Max Devices**: Maximum devices allowed (default: 100)
+   - **Settings**:
+     - ☑ Allow Geofencing
+     - ☑ Allow Quarantine
+     - ☐ Default Armed State
+
+4. Click **"Create Group"**
+
+Your group is now ready to receive devices!
+
+### Step 5: Generate Registration Codes for Users
+
+1. Go to **User Management** section
+
+2. Click **"Generate Registration Code"**
+
+3. Configure the code:
+   - **User Name**: Name of person receiving code (optional)
+   - **User Email**: Their email address (optional)
+   - **Expiration**: Code validity period (default: 24 hours)
+   - **Max Uses**: Usually 1 per user
+
+4. Click **"Generate"**
+
+5. Share the registration code with your user via secure channel
+
+6. User will use this code to register their devices
+
+### Step 6: Assign Devices to Groups
+
+**Method 1: From Group Details**
+
+1. Click **View** (👁 icon) next to a group
+
+2. In group details, click **"Assign Device"**
+
+3. Select device from unassigned devices list
+
+4. Click **"Assign"**
+
+**Method 2: From Devices View**
+
+1. Navigate to **Devices** section
+
+2. Find device you want to assign
+
+3. Click device name to open details
+
+4. Click **"Assign to Group"** button
+
+5. Select target group
+
+6. Confirm assignment
+
+### Administrative Best Practices
+
+**Group Organization:**
+- Create groups by department, location, or function
+- Use descriptive names (e.g., "Sales Team - West Coast")
+- Document group purposes in descriptions
+- Start with 2-3 test groups before full rollout
+
+**Device Management:**
+- Review unassigned devices daily
+- Assign new devices within 24 hours of registration
+- Regularly audit group memberships
+- Remove inactive devices from groups
+
+**Policy Management:**
+- Create policies before assigning to groups
+- Test policies on small groups first
+- Document policy rules and purposes
+- Review and update policies quarterly
+
+**Security:**
+- Store your admin key in a password manager
+- Enable 2FA if available
+- Regularly review audit logs
+- Monitor for unauthorized access attempts
 
 ---
 
-## Account Setup
+## Regular User Setup
 
-### Creating Your Master Key
+### Prerequisites
 
-Your master key is the root credential for your account. It controls all devices.
+- BrowserBricker extension installed in your browser
+- Registration code from your System Administrator
+- Active internet connection
 
-1. **Access Control Panel**
+### Step 1: Access User Portal
+
+1. Navigate to the user portal:
    ```
    https://browser-bricker-panel.onrender.com/main
    ```
 
-2. **Generate Master Key**
-   - Click **"CREATE ACCOUNT"** tab
-   - Click **"GENERATE MASTER KEY"** button
-   - Wait for generation (takes 1-2 seconds)
+2. You'll see the login/registration screen
 
-3. **Save Your Master Key**
-   
-   **CRITICAL: This key is shown only once!**
-   
-   The key looks like:
-   ```
-   a7f3c8e2d1b9f5a4c6e8d2b1f7a3c5e9d4b2f8a6c3e1d7b5f2a9c4e6d8b3f1a5c7e2
-   ```
-   
-   **Where to save it:**
-   - Password manager (1Password, LastPass, Bitwarden)
-   - Encrypted note file
-   - Offline secure storage
-   
-   **Where NOT to save it:**
-   - Plain text file on desktop
-   - Email to yourself
-   - Screenshot on cloud storage
-   - Unencrypted notes app
+### Step 2: Register Your Account
 
-4. **Copy Master Key**
-   - Click **"COPY KEY"** button
-   - Paste into your password manager
-   - Click **"COPY KEY & CONTINUE"**
+1. Click **"Register New Account"** or **"First Time Setup"**
 
-5. **First Login**
-   - You'll be redirected to login screen
-   - Master key auto-filled temporarily
-   - Click **"ACCESS DASHBOARD"**
-   - You're now in your control panel
+2. Enter the registration code provided by your administrator
 
-### Understanding Master Keys
+3. Create your Master Key:
+   - The system will generate a secure 64-character key
+   - **CRITICAL**: Save this key immediately
+   - Store in password manager or secure location
+   - You CANNOT recover this if lost
 
-**Security Features:**
-- 64 characters (256-bit entropy)
-- Cryptographically random
-- SHA-256 hashed on server
-- Never stored in plaintext
-- Cannot be recovered if lost
+4. Click **"Complete Registration"**
 
-**What Master Keys Control:**
-- Register new devices
-- Arm/disarm devices
-- Delete devices
-- View device status
-- Access all your data
+### Step 3: Register Your First Device
 
----
+**Important**: In v6.0, devices start as "unassigned". Your administrator will assign your device to a group.
 
-## Device Registration
+1. After registration, click **"Register Device"**
 
-Now that you have your account, register your first device.
+2. Enter device information:
+   - **Device Name**: Descriptive name (e.g., "Work Laptop")
+   - **Tags**: Optional organizational tags
 
-### Step 1: Initiate Registration
+3. Click **"Register"**
 
-In the Control Panel:
+4. You'll receive a Device API Key (automatically saved in extension)
 
-1. Click **"REGISTER DEVICE"** button (top right)
-2. Registration modal opens
+### Step 4: Configure Browser Extension
 
-### Step 2: Fill Device Information
+1. Click the BrowserBricker icon in your browser toolbar
 
-**Required:**
-- **Device Name**: Give it a friendly name
-  - Examples: "Living Room PC", "Sarah's Laptop", "Office Computer"
-  - Use descriptive names for easy identification
+2. Click **"Configure Device"**
 
-**Optional:**
-- **Tags**: Comma-separated labels for organization
-  - Examples: "work", "family", "monitored", "school"
-  - Helps filter and search devices later
+3. The extension will automatically use your Device API Key
 
-- **Location**: Physical location description
-  - Examples: "Home Office", "Kid's Bedroom", "Library Computer"
-  - Not GPS coordinates - just a label
+4. Verify configuration:
+   - Status should show "Connected"
+   - Device name should be displayed
+   - Heartbeat indicator should be green
 
-### Step 3: Register
+### Step 5: Test Your Device
 
-1. Click **"REGISTER DEVICE"**
-2. Server creates device record
-3. Device API Key is generated
-4. Modal shows your new key
+1. In the user portal, locate your device in the devices list
 
-### Step 4: Save Device API Key
+2. Click **"Lock Device"** button
 
-You'll see a 64-character key:
+3. Your browser should immediately show the lock screen
 
-```
-d8f2a9c5e7b3f1a6c4e2d9b7f5a3c8e6d1b4f9a2c7e5d3b8f6a1c9e4d2b7f5a3c8e
-```
+4. Return to user portal (on another device/tab)
 
-**Important:**
-- This key is shown only once
-- It authenticates this specific device
-- Store it temporarily (you'll use it in next step)
-- Click **"COPY KEY"**
+5. Click **"Unlock Device"**
 
-### Step 5: Configure Extension
+6. Lock screen should disappear
 
-On the device you want to protect:
+**Success!** Your device is now protected and managed.
 
-1. **Open Extension**
-   - Click BrowserBricker icon in toolbar
-   - Setup screen should appear
+### Using Your Device
 
-2. **Enter Device API Key**
-   - Paste the 64-character key from Step 4
-   - Key will appear as dots (password field)
+**Daily Operation:**
+- Extension runs in background monitoring connection
+- Green status = protected and monitored
+- Red status = check your connection
+- Lock screen appears when device is locked remotely
 
-3. **Activate Protection**
-   - Click **"Activate Protection"**
-   - Extension connects to server
-   - Wait for confirmation (2-5 seconds)
+**Lock Screen Behavior:**
+- Full-screen overlay prevents browser use
+- Cannot be closed or bypassed
+- Shows device name and status
+- Displays unlock message when unlocked
 
-4. **Verify Connection**
-   - Status should change to **"DISARMED"**
-   - Connection should show **"ONLINE"**
-   - Device name appears
-   - Location/battery info may populate
+**What You Can Do:**
+- Lock/unlock your own devices
+- View device status and location
+- Check lock history
+- Update device settings
+- Remove devices you own
 
-### Step 6: Verify in Control Panel
-
-Back in your Control Panel:
-
-1. Refresh the page (or wait 5 seconds for auto-refresh)
-2. Your new device should appear in the list
-3. Status indicators:
-   - Online (green)
-   - Disarmed (unlocked)
-   - Last seen: "just now"
+**What You Cannot Do:**
+- Change your group assignment (admin-controlled)
+- View other users' devices
+- Modify organization policies
+- Create or delete groups
 
 ---
 
-## First Lock Test
+## Group Management Guide
 
-Test that everything works correctly.
+**For Service Owner / Platform Administrator**
 
-### Locking the Device
+### Understanding the Group System
 
-1. **In Control Panel:**
-   - Find your device in the list
-   - Click the **"ARM"** button
-   - Button changes to green with lock icon
+**What are Groups?**
+- Organizational containers for devices
+- Apply policies to multiple devices at once
+- Manage devices collectively
+- Track statistics per group
 
-2. **On Target Device:**
-   - Within 2 seconds, all tabs redirect
-   - Lock screen appears
-   - Browser becomes locked
+**Group-Policy-Device Relationship:**
+```
+Policy → Group → Devices
+  ↓       ↓        ↓
+Rules  Container  Inherit
+```
 
-3. **Lock Screen Features:**
-   - Cannot navigate away
-   - Keyboard shortcuts disabled
-   - Context menu blocked
-   - F12/DevTools suppressed
+### Creating Groups
 
-### Unlocking the Device
+1. Access Owner Panel:
+   ```
+   https://browser-bricker-panel.onrender.com/owner
+   ```
 
-1. **In Control Panel:**
-   - Find the device (will show Armed status)
-   - Click the **"DISARM"** button
-   - Button changes to red with unlock icon
+2. Navigate to **Groups** section
 
-2. **On Target Device:**
-   - Within 2 seconds, lock releases
-   - Can navigate normally
-   - All functionality restored
+3. Click **"Create Group"**
 
-### What to Test
+4. Configure group:
 
-**Verify These Work:**
-- Device locks within 2 seconds
-- Lock screen appears on all tabs
-- New tabs show lock screen
-- Navigation is blocked
-- Device unlocks within 2 seconds
-- Normal browsing resumes after unlock
+   **Basic Information:**
+   - **Group Name** (required): Clear, descriptive name
+   - **Description**: Purpose and membership details
+   - **System Admin**: Which admin owns this group (you can create for any)
 
-**Common Issues:**
+   **Policy Assignment:**
+   - **Policy**: Select from dropdown or "No Policy"
+   - Policies define device behavior rules
+   - Can be changed later
 
-| Issue | Solution |
-|-------|----------|
-| "Offline" status | Check internet connection |
-| Slow lock (>5 sec) | Verify server accessibility |
-| Lock doesn't appear | Check extension is enabled |
-| Can still browse | Reload extension and retry |
+   **Settings:**
+   - **Max Devices**: Limit for group (default 100)
+   - **Allow Geofencing**: Enable location-based controls
+   - **Allow Quarantine**: Allow device isolation
+   - **Default Arm State**: Lock devices by default
+
+5. Click **"Create Group"**
+
+### Assigning Devices to Groups
+
+**View Unassigned Devices:**
+
+1. Groups section → Click any group
+
+2. Click **"Assign Device"** button
+
+3. See list of all unassigned devices
+
+**Assign Individual Device:**
+
+1. From unassigned devices list, click **"Assign"** next to device
+
+2. Confirm assignment
+
+3. Device immediately inherits group's policy
+
+**Move Device Between Groups:**
+
+1. Open current group details
+
+2. Click **"Remove"** next to device
+
+3. Device becomes unassigned
+
+4. Open target group details
+
+5. Click **"Assign Device"**
+
+6. Select and assign device
+
+### Managing Groups
+
+**Edit Group:**
+
+1. Click **✏️ Edit** icon next to group
+
+2. Modify any settings:
+   - Change name or description
+   - Update policy assignment
+   - Adjust device limits
+   - Toggle settings
+
+3. Click **"Save Changes"**
+
+4. All devices in group instantly affected by policy changes
+
+**View Group Details:**
+
+1. Click **👁 View** icon
+
+2. See full group information:
+   - Member devices with status
+   - Group statistics
+   - Policy details
+   - Recent activity
+
+**Delete Group:**
+
+1. Click **🗑️ Delete** icon
+
+2. Confirm deletion
+
+3. **Important**: All devices in group become unassigned
+
+4. You must reassign devices to other groups
+
+### Group Best Practices
+
+**Organizational Structure:**
+
+Good group organization:
+```
+✅ Engineering Team - Full Access
+✅ Sales Department - Restricted Hours
+✅ Contractors - Limited Access
+✅ Executive Devices - High Security
+```
+
+Bad group organization:
+```
+❌ Group 1
+❌ Test Group
+❌ Miscellaneous
+❌ Old Devices
+```
+
+**Policy Assignment Strategy:**
+
+1. **Create policies first**: Define rules before groups
+2. **Test on small groups**: Verify policy behavior
+3. **Roll out gradually**: Expand to more groups
+4. **Document policies**: Keep notes on each policy's purpose
+5. **Review regularly**: Update policies quarterly
+
+**Device Assignment Workflow:**
+
+```
+New Device Registration
+↓
+Appears in "Unassigned Devices"
+↓
+Admin Reviews Device
+↓
+Assigns to Appropriate Group
+↓
+Device Inherits Group Policy
+↓
+Monitor and Manage
+```
+
+---
+
+## Policy Configuration
+
+**For Service Owner / Platform Administrator**
+
+### Understanding Policies
+
+**What are Policies?**
+- Sets of rules controlling device behavior
+- Applied at group level (not device level)
+- Inherited by all devices in a group
+- Can be shared across multiple groups
+
+**Available Policy Rules:**
+
+1. **Auto-Arm Schedule**
+   - Automatically lock devices at specified times
+   - Set days and time ranges
+   - Useful for after-hours protection
+
+2. **Geofencing**
+   - Define geographic boundaries
+   - Auto-arm when device leaves area
+   - Alert or quarantine on breach
+
+3. **Time Limits**
+   - Daily usage limits in minutes
+   - Auto-lock when limit reached
+   - Resets at specified time
+
+4. **Allowed Hours**
+   - Specify when devices can be used
+   - Different schedules per day
+   - Auto-lock outside allowed times
+
+5. **Breach Threshold**
+   - Maximum allowed security violations
+   - Auto-quarantine after threshold
+   - Escalating responses
+
+6. **Inactivity Timeout**
+   - Auto-lock after idle period
+   - Configurable timeout duration
+
+### Creating a Policy
+
+1. Navigate to **Policies** section in owner panel
+
+2. Click **"Create Policy"**
+
+3. Configure policy:
+
+   **Basic Information:**
+   - **Policy Name**: Descriptive name (e.g., "9-5 Weekday Access")
+   - **Description**: Explain policy purpose
+   - **Priority**: 0-100 (higher = more important)
+
+   **Scope:**
+   - **Type**: Global, Group, or Device
+   - **Target**: Which groups this applies to
+
+   **Rules:**
+   
+   - **Auto-Arm**:
+     - ☑ Enable Auto-Arm
+     - Days: Monday-Friday
+     - Time: 18:00 - 08:00
+   
+   - **Geofencing**:
+     - ☑ Enforce Geofence
+     - Action on Exit: Alert / Arm / Quarantine
+   
+   - **Time Limits**:
+     - ☑ Enable Daily Limits
+     - Minutes: 480 (8 hours)
+     - Action: Warn / Arm / Block
+   
+   - **Allowed Hours**:
+     - ☑ Enable Time Restrictions
+     - Monday-Friday: 09:00 - 17:00
+     - Saturday-Sunday: Blocked
+   
+   - **Breach Response**:
+     - Threshold: 3 violations
+     - Action: Notify / Quarantine
+
+4. Click **"Create Policy"**
+
+### Applying Policies to Groups
+
+**Method 1: During Group Creation**
+- Select policy from dropdown when creating group
+
+**Method 2: Edit Existing Group**
+1. Edit group
+2. Change policy selection
+3. Save changes
+4. All group devices immediately affected
+
+**Method 3: Bulk Application**
+- Edit policy scope to include multiple groups
+- All targeted groups inherit policy
+
+### Policy Examples
+
+**Example 1: Contractor Devices**
+```
+Policy Name: Contractor Access
+Rules:
+- Allowed Hours: Mon-Fri 09:00-17:00
+- Time Limits: 8 hours/day
+- Geofence: Office location required
+- Breach Threshold: 2 violations → Auto-quarantine
+```
+
+**Example 2: Executive Devices**
+```
+Policy Name: Executive Protection
+Rules:
+- Auto-Arm: Never (manual control only)
+- Geofencing: Disabled (travel frequently)
+- Time Limits: None
+- Breach Threshold: 5 violations → Alert only
+```
+
+**Example 3: Sales Team**
+```
+Policy Name: Sales Team Standard
+Rules:
+- Allowed Hours: 24/7 (field work)
+- Auto-Arm: Weekends only
+- Geofence: Regional boundaries
+- Time Limits: None
+- Breach Threshold: 3 violations → Notify manager
+```
+
+**Example 4: After-Hours Security**
+```
+Policy Name: Night Security Lock
+Rules:
+- Auto-Arm: Daily 20:00-06:00
+- Allowed Hours: 06:00-20:00 weekdays
+- Geofencing: Office location during work hours
+- Breach Threshold: Immediate quarantine
+```
+
+### Policy Testing
+
+**Before Deployment:**
+
+1. Create test group with 1-2 devices
+2. Assign policy to test group
+3. Verify each rule:
+   - Time limits trigger correctly
+   - Auto-arm works as expected
+   - Geofencing responds appropriately
+   - Breach detection functions
+4. Monitor for 24-48 hours
+5. Adjust rules as needed
+6. Deploy to production groups
+
+**Common Testing Scenarios:**
+
+1. **Time Limit Test**:
+   - Set very short limit (e.g., 5 minutes)
+   - Monitor device behavior
+   - Verify lock occurs at limit
+   - Reset and verify reset time works
+
+2. **Auto-Arm Test**:
+   - Set auto-arm for next hour
+   - Wait for scheduled time
+   - Verify device locks automatically
+   - Test unlock and re-arm cycle
+
+3. **Geofence Test**:
+   - Set geofence boundary
+   - Move device outside boundary
+   - Verify alert/action occurs
+   - Move back inside and verify
+
+4. **Allowed Hours Test**:
+   - Set narrow allowed window
+   - Attempt use outside window
+   - Verify device locks
+   - Wait for allowed time
+   - Verify unlock
 
 ---
 
 ## Troubleshooting
 
-### Extension Issues
+### Common Issues and Solutions
 
-#### "Extension Not Loading"
+#### Extension Issues
 
-**Symptoms:** Extension doesn't appear in toolbar or extensions list
+**Problem: Extension not loading**
 
-**Solutions:**
-1. Ensure Developer Mode is enabled
-2. Try reloading the extension:
-   - Go to `chrome://extensions/`
-   - Find BrowserBricker
-   - Click reload icon (circular arrow)
-3. Check browser console for errors (F12)
+Solution:
+1. Verify Developer Mode is enabled
+2. Check that you loaded the correct folder
+3. Look for errors in browser console
+4. Try removing and re-adding extension
 
-#### "Setup Screen Won't Appear"
+**Problem: Extension shows "Not Configured"**
 
-**Symptoms:** Clicking icon does nothing
+Solution:
+1. Verify device registration completed
+2. Check that Device API Key was saved
+3. Re-configure extension with correct key
+4. Verify internet connection
 
-**Solutions:**
-1. Right-click extension icon → Inspect popup
-2. Check for JavaScript errors
-3. Verify `popup.html` and `popup.js` exist
-4. Reload extension
+**Problem: Heartbeat not connecting**
 
-#### "Cannot Activate Protection"
-
-**Symptoms:** Error when entering device key
-
-**Solutions:**
-1. Verify key is exactly 64 characters
-2. Check for extra spaces at start/end
-3. Confirm internet connection
-4. Verify API server is accessible:
-   ```
-   https://browserbricker.onrender.com/health
-   ```
-
-### Connection Issues
-
-#### "Shows Offline"
-
-**Symptoms:** Extension shows "OFFLINE" badge
-
-**Solutions:**
+Solution:
 1. Check internet connection
-2. Verify firewall isn't blocking:
-   - `browserbricker.onrender.com`
-   - Port 443 (HTTPS)
-3. Try manual heartbeat:
-   - Click extension icon
-   - Click "Refresh Status"
-4. Check server status
+2. Verify API server is accessible
+3. Check browser console for errors
+4. Disable conflicting extensions
+5. Clear browser cache and reload
 
-#### "Lock Delayed"
+#### Device Issues
 
-**Symptoms:** Device takes >5 seconds to lock
+**Problem: Device not appearing in admin panel**
 
-**Solutions:**
-1. Check network latency
-2. Verify 2-second heartbeat is running:
-   - Open browser console
-   - Look for `[Lockdown] Heartbeat` messages
-3. Reload extension to restart heartbeat
+Solution:
+1. Verify device registration completed
+2. Check that device is online
+3. Verify heartbeat is active
+4. Refresh admin panel
+5. Check device API key is correct
 
-### Lock Screen Issues
+**Problem: Device shows as "Unassigned"**
 
-#### "Can Navigate Away from Lock"
+This is normal in v6.0! Solution:
+1. This is expected behavior
+2. Admin must manually assign device to group
+3. Contact your administrator to assign your device
 
-**Symptoms:** User can still browse despite lock
+**Problem: Lock screen not appearing**
 
-**Solutions:**
-1. Verify extension is enabled:
-   - `chrome://extensions/`
-   - BrowserBricker toggle is ON
-2. Check extension permissions granted
-3. Reload extension
-4. Clear browser cache
+Solution:
+1. Verify device is armed
+2. Check that extension is active
+3. Disable conflicting extensions
+4. Check browser console for errors
+5. Reload extension
 
-#### "Lock Screen Looks Broken"
+**Problem: Cannot unlock device**
 
-**Symptoms:** Styling issues, missing elements
+Solution:
+1. Verify you have permission
+2. Check that disarm command was sent
+3. Wait 2-3 seconds for heartbeat
+4. Check internet connection
+5. Manually reload page
 
-**Solutions:**
-1. Verify `lock.html` exists and is intact
-2. Check browser console for errors
-3. Reload the lock screen tab
-4. Update extension to latest version
+#### Group Management Issues
 
-### Account Issues
+**Problem: Cannot create group**
 
-#### "Lost Master Key"
+Solution:
+1. Verify you have admin/owner permissions
+2. Check that group name is unique
+3. Ensure required fields are filled
+4. Check for error messages
+5. Try with simpler group name
 
-**Symptoms:** Cannot access account
+**Problem: Cannot assign device to group**
 
-**Solutions:**
-- Master keys cannot be recovered
-- You must generate a new master key
-- All devices must be re-registered
-- This is a security feature, not a bug
+Solution:
+1. Verify device is unassigned
+2. Check you own both device and group
+3. Verify group has space (max devices)
+4. Check permission level
+5. Try removing device from current group first
 
-**Prevention:**
-- Always store master key in password manager
-- Keep backup in secure location
-- Don't rely on browser autofill
+**Problem: Policy not applying to devices**
 
-#### "Device Not Appearing in Panel"
+Solution:
+1. Verify policy is assigned to group
+2. Check that devices are in correct group
+3. Wait 2-3 heartbeat cycles (10 seconds)
+4. Verify policy is active (not disabled)
+5. Check policy rules are configured correctly
 
-**Symptoms:** Registered device doesn't show up
+**Problem: Devices not inheriting group policy**
 
-**Solutions:**
-1. Refresh the control panel
-2. Wait 5 seconds for auto-refresh
-3. Verify device is online (check extension)
-4. Check device API key is correct
-5. Try registering again
+Solution:
+1. Verify device is actually in group (check group details)
+2. Confirm policy is assigned to group
+3. Wait for next heartbeat cycle
+4. Check device connection status
+5. Review policy logs for errors
 
-### Advanced Debugging
+#### Permission Issues
 
-#### Enable Debug Mode
+**Problem: "Unauthorized" errors**
 
-Add to browser console:
-```javascript
-localStorage.setItem('debug', 'true');
-```
+Solution:
+1. Verify your key is correct
+2. Check your permission level (owner/admin/user)
+3. Ensure you're accessing correct endpoints
+4. Try logging out and back in
+5. Contact service owner if problem persists
 
-This enables verbose logging.
+**Problem: Cannot see other admin's groups**
 
-#### Check Heartbeat Status
-
-In browser console on target device:
-```javascript
-chrome.storage.local.get(['deviceConfig', 'isArmed'], console.log);
-```
-
-#### Verify API Connectivity
-
-Test API endpoint:
-```bash
-curl https://browserbricker.onrender.com/health
-```
-
-Should return: `{"status": "ok"}`
-
-#### Reset Extension
-
-Complete reset:
-1. Open extension popup
-2. Click "Reconfigure Device"
-3. Confirm reset
-4. Re-enter device API key
-
----
-
-## Next Steps
-
-After successful installation:
-
-1. **Explore Features**
-   - Test geofencing
-   - Enable location tracking
-   - Try quarantine mode
-
-2. **Register Additional Devices**
-   - Repeat device registration process
-   - Organize with tags
-
-3. **Set Up Admin Panel** (Optional)
-   - Access advanced features
-   - Bulk operations
-   - System monitoring
-
-4. **Read Documentation**
-   - [User Guide](FEATURES.md)
-   - [Security Best Practices](SECURITY.md)
-   - [FAQ](README.md#faq)
+This is correct behavior! Solution:
+- System admins can only see their own groups
+- This is a security feature
+- Only the owner can see all groups
+- Working as intended
 
 ---
 
 ## Support
 
-Need help? 
+### Getting Help
 
+**Email Support**: browserbricker@gmail.com
+
+**Include in your request:**
+- BrowserBricker version (6.0.0)
+- Browser type and version
+- Operating system
+- Detailed description of issue
+- Steps to reproduce
+- Screenshots if applicable
+- Error messages
+
+**Response Time**: 24-48 hours
+
+### Security Issues
+
+Report security vulnerabilities confidentially to:
 - Email: browserbricker@gmail.com
-- Issues: [GitHub Issues](# Installation Guide
-
-Complete step-by-step instructions for installing and configuring BrowserBricker.
-
-## Table of Contents
-
-- [System Requirements](#system-requirements)
-- [Extension Installation](#extension-installation)
-- [Account Setup](#account-setup)
-- [Device Registration](#device-registration)
-- [First Lock Test](#first-lock-test)
-- [Troubleshooting](#troubleshooting)
+- Subject: "SECURITY: [Brief Description]"
+- Do NOT post publicly
 
 ---
 
-## System Requirements
+## Additional Resources
 
-### Supported Browsers
+### Documentation
+- [API Documentation](https://github.com/Aaks-hatH/Browser-Bricker-Panel)
+- [Security Guide](./Security.md)
+- [Feature Documentation](./Features.md)
+- [Changelog](./ChangeLog.md)
 
-- Google Chrome (v88+)
-- Microsoft Edge (v88+)
-- Brave Browser (v1.20+)
-- Opera (v74+)
-- Vivaldi (v3.6+)
-- Any Chromium-based browser
+### Service URLs
+- **Owner Panel**: https://browser-bricker-panel.onrender.com/owner
+- **Admin Panel**: https://browser-bricker-panel.onrender.com/admin
+- **User Panel**: https://browser-bricker-panel.onrender.com/main
 
-### Operating Systems
-
-- Windows 10/11
-- macOS 10.15+
-- Linux (Ubuntu, Fedora, etc.)
-- Chrome OS
-
-### Requirements
-
-- Active internet connection
-- JavaScript enabled
-- Location services (for geofencing features)
+### GitHub Repository
+https://github.com/Aaks-hatH/Browser-Bricker-Panel
 
 ---
 
-## Extension Installation
-
-### Method 1: Manual Installation (Recommended)
-
-#### Step 1: Download
-
-```bash
-# Clone the repository
-git clone https://github.com/Aaks-hatH/browserbricker.git
-
-# Navigate to directory
-cd browserbricker
-```
-
-Or download ZIP:
-1. Visit [GitHub Repository](https://github.com/Aaks-hatH/Browser-Bricker-Panel)
-2. Click **Code** → **Download ZIP**
-3. Extract to a permanent location (don't delete after installation)
-
-#### Step 2: Load Extension
-
-**For Chrome/Edge:**
-
-1. Open browser and navigate to extensions page:
-   - Chrome: `chrome://extensions/`
-   - Edge: `edge://extensions/`
-
-2. Enable **Developer Mode**:
-   - Look for toggle in top-right corner
-   - Switch to ON position
-
-3. Click **Load Unpacked**
-
-4. Select the `browserbricker` folder
-
-5. Extension should now appear in your extensions list
-
-**For Other Chromium Browsers:**
-
-Same process, use your browser's extension page:
-- Brave: `brave://extensions/`
-- Opera: `opera://extensions/`
-- Vivaldi: `vivaldi://extensions/`
-
-#### Step 3: Verify Installation
-
-1. Look for BrowserBricker icon in browser toolbar
-2. Icon should show a lock symbol
-3. Click icon - you should see the setup screen
-4. Status should indicate "Not Configured"
-
-### Method 2: Chrome Web Store (Coming Soon)
-
-One-click installation will be available from the Chrome Web Store.
-
----
-
-## Account Setup
-
-### Creating Your Master Key
-
-Your master key is the root credential for your account. It controls all devices.
-
-1. **Access Control Panel**
-   ```
-   https://browser-bricker-panel.onrender.com/main
-   ```
-
-2. **Generate Master Key**
-   - Click **"CREATE ACCOUNT"** tab
-   - Click **"GENERATE MASTER KEY"** button
-   - Wait for generation (takes 1-2 seconds)
-
-3. **Save Your Master Key**
-   
-   **CRITICAL: This key is shown only once!**
-   
-   The key looks like:
-   ```
-   a7f3c8e2d1b9f5a4c6e8d2b1f7a3c5e9d4b2f8a6c3e1d7b5f2a9c4e6d8b3f1a5c7e2
-   ```
-   
-   **Where to save it:**
-   - Password manager (1Password, LastPass, Bitwarden)
-   - Encrypted note file
-   - Offline secure storage
-   
-   **Where NOT to save it:**
-   - Plain text file on desktop
-   - Email to yourself
-   - Screenshot on cloud storage
-   - Unencrypted notes app
-
-4. **Copy Master Key**
-   - Click **"COPY KEY"** button
-   - Paste into your password manager
-   - Click **"COPY KEY & CONTINUE"**
-
-5. **First Login**
-   - You'll be redirected to login screen
-   - Master key auto-filled temporarily
-   - Click **"ACCESS DASHBOARD"**
-   - You're now in your control panel
-
-### Understanding Master Keys
-
-**Security Features:**
-- 64 characters (256-bit entropy)
-- Cryptographically random
-- SHA-256 hashed on server
-- Never stored in plaintext
-- Cannot be recovered if lost
-
-**What Master Keys Control:**
-- Register new devices
-- Arm/disarm devices
-- Delete devices
-- View device status
-- Access all your data
-
----
-
-## Device Registration
-
-Now that you have your account, register your first device.
-
-### Step 1: Initiate Registration
-
-In the Control Panel:
-
-1. Click **"REGISTER DEVICE"** button (top right)
-2. Registration modal opens
-
-### Step 2: Fill Device Information
-
-**Required:**
-- **Device Name**: Give it a friendly name
-  - Examples: "Living Room PC", "Sarah's Laptop", "Office Computer"
-  - Use descriptive names for easy identification
-
-**Optional:**
-- **Tags**: Comma-separated labels for organization
-  - Examples: "work", "family", "monitored", "school"
-  - Helps filter and search devices later
-
-- **Location**: Physical location description
-  - Examples: "Home Office", "Kid's Bedroom", "Library Computer"
-  - Not GPS coordinates - just a label
-
-### Step 3: Register
-
-1. Click **"REGISTER DEVICE"**
-2. Server creates device record
-3. Device API Key is generated
-4. Modal shows your new key
-
-### Step 4: Save Device API Key
-
-You'll see a 64-character key:
-
-```
-d8f2a9c5e7b3f1a6c4e2d9b7f5a3c8e6d1b4f9a2c7e5d3b8f6a1c9e4d2b7f5a3c8e
-```
-
-**Important:**
-- This key is shown only once
-- It authenticates this specific device
-- Store it temporarily (you'll use it in next step)
-- Click **"COPY KEY"**
-
-### Step 5: Configure Extension
-
-On the device you want to protect:
-
-1. **Open Extension**
-   - Click BrowserBricker icon in toolbar
-   - Setup screen should appear
-
-2. **Enter Device API Key**
-   - Paste the 64-character key from Step 4
-   - Key will appear as dots (password field)
-
-3. **Activate Protection**
-   - Click **"Activate Protection"**
-   - Extension connects to server
-   - Wait for confirmation (2-5 seconds)
-
-4. **Verify Connection**
-   - Status should change to **"DISARMED"**
-   - Connection should show **"ONLINE"**
-   - Device name appears
-   - Location/battery info may populate
-
-### Step 6: Verify in Control Panel
-
-Back in your Control Panel:
-
-1. Refresh the page (or wait 5 seconds for auto-refresh)
-2. Your new device should appear in the list
-3. Status indicators:
-   - Online (green)
-   - Disarmed (unlocked)
-   - Last seen: "just now"
-
----
-
-## First Lock Test
-
-Test that everything works correctly.
-
-### Locking the Device
-
-1. **In Control Panel:**
-   - Find your device in the list
-   - Click the **"ARM"** button
-   - Button changes to green with lock icon
-
-2. **On Target Device:**
-   - Within 2 seconds, all tabs redirect
-   - Lock screen appears
-   - Browser becomes locked
-
-3. **Lock Screen Features:**
-   - Cannot navigate away
-   - Keyboard shortcuts disabled
-   - Context menu blocked
-   - F12/DevTools suppressed
-
-### Unlocking the Device
-
-1. **In Control Panel:**
-   - Find the device (will show Armed status)
-   - Click the **"DISARM"** button
-   - Button changes to red with unlock icon
-
-2. **On Target Device:**
-   - Within 2 seconds, lock releases
-   - Can navigate normally
-   - All functionality restored
-
-### What to Test
-
-**Verify These Work:**
-- Device locks within 2 seconds
-- Lock screen appears on all tabs
-- New tabs show lock screen
-- Navigation is blocked
-- Device unlocks within 2 seconds
-- Normal browsing resumes after unlock
-
-**Common Issues:**
-
-| Issue | Solution |
-|-------|----------|
-| "Offline" status | Check internet connection |
-| Slow lock (>5 sec) | Verify server accessibility |
-| Lock doesn't appear | Check extension is enabled |
-| Can still browse | Reload extension and retry |
-
----
-
-## Troubleshooting
-
-### Extension Issues
-
-#### "Extension Not Loading"
-
-**Symptoms:** Extension doesn't appear in toolbar or extensions list
-
-**Solutions:**
-1. Ensure Developer Mode is enabled
-2. Try reloading the extension:
-   - Go to `chrome://extensions/`
-   - Find BrowserBricker
-   - Click reload icon (circular arrow)
-3. Check browser console for errors (F12)
-
-#### "Setup Screen Won't Appear"
-
-**Symptoms:** Clicking icon does nothing
-
-**Solutions:**
-1. Right-click extension icon → Inspect popup
-2. Check for JavaScript errors
-3. Verify `popup.html` and `popup.js` exist
-4. Reload extension
-
-#### "Cannot Activate Protection"
-
-**Symptoms:** Error when entering device key
-
-**Solutions:**
-1. Verify key is exactly 64 characters
-2. Check for extra spaces at start/end
-3. Confirm internet connection
-4. Verify API server is accessible:
-   ```
-   https://browserbricker.onrender.com/health
-   ```
-
-### Connection Issues
-
-#### "Shows Offline"
-
-**Symptoms:** Extension shows "OFFLINE" badge
-
-**Solutions:**
-1. Check internet connection
-2. Verify firewall isn't blocking:
-   - `browserbricker.onrender.com`
-   - Port 443 (HTTPS)
-3. Try manual heartbeat:
-   - Click extension icon
-   - Click "Refresh Status"
-4. Check server status
-
-#### "Lock Delayed"
-
-**Symptoms:** Device takes >5 seconds to lock
-
-**Solutions:**
-1. Check network latency
-2. Verify 2-second heartbeat is running:
-   - Open browser console
-   - Look for `[Lockdown] Heartbeat` messages
-3. Reload extension to restart heartbeat
-
-### Lock Screen Issues
-
-#### "Can Navigate Away from Lock"
-
-**Symptoms:** User can still browse despite lock
-
-**Solutions:**
-1. Verify extension is enabled:
-   - `chrome://extensions/`
-   - BrowserBricker toggle is ON
-2. Check extension permissions granted
-3. Reload extension
-4. Clear browser cache
-
-#### "Lock Screen Looks Broken"
-
-**Symptoms:** Styling issues, missing elements
-
-**Solutions:**
-1. Verify `lock.html` exists and is intact
-2. Check browser console for errors
-3. Reload the lock screen tab
-4. Update extension to latest version
-
-### Account Issues
-
-#### "Lost Master Key"
-
-**Symptoms:** Cannot access account
-
-**Solutions:**
-- Master keys cannot be recovered
-- You must generate a new master key
-- All devices must be re-registered
-- This is a security feature, not a bug
-
-**Prevention:**
-- Always store master key in password manager
-- Keep backup in secure location
-- Don't rely on browser autofill
-
-#### "Device Not Appearing in Panel"
-
-**Symptoms:** Registered device doesn't show up
-
-**Solutions:**
-1. Refresh the control panel
-2. Wait 5 seconds for auto-refresh
-3. Verify device is online (check extension)
-4. Check device API key is correct
-5. Try registering again
-
-### Advanced Debugging
-
-#### Enable Debug Mode
-
-Add to browser console:
-```javascript
-localStorage.setItem('debug', 'true');
-```
-
-This enables verbose logging.
-
-#### Check Heartbeat Status
-
-In browser console on target device:
-```javascript
-chrome.storage.local.get(['deviceConfig', 'isArmed'], console.log);
-```
-
-#### Verify API Connectivity
-
-Test API endpoint:
-```bash
-curl https://browserbricker.onrender.com/health
-```
-
-Should return: `{"status": "ok"}`
-
-#### Reset Extension
-
-Complete reset:
-1. Open extension popup
-2. Click "Reconfigure Device"
-3. Confirm reset
-4. Re-enter device API key
-
----
-
-## Next Steps
-
-After successful installation:
-
-1. **Explore Features**
-   - Test geofencing
-   - Enable location tracking
-   - Try quarantine mode
-
-2. **Register Additional Devices**
-   - Repeat device registration process
-   - Organize with tags
-
-3. **Set Up Admin Panel** (Optional)
-   - Access advanced features
-   - Bulk operations
-   - System monitoring
-
-4. **Read Documentation**
-   - [User Guide](FEATURES.md)
-   - [Security Best Practices](SECURITY.md)
-   - [FAQ](README.md#faq)
-
----
-
-## Support
-
-Need help? 
-
-- Email: browserbricker@gmail.com
-- Issues: [GitHub Issues](https://github.com/Aaks-hatH/Browser-Bricker-Panel/issues)
-- Docs: [Wiki](# Installation Guide
-
-Complete step-by-step instructions for installing and configuring BrowserBricker.
-
-## Table of Contents
-
-- [System Requirements](#system-requirements)
-- [Extension Installation](#extension-installation)
-- [Account Setup](#account-setup)
-- [Device Registration](#device-registration)
-- [First Lock Test](#first-lock-test)
-- [Troubleshooting](#troubleshooting)
-
----
-
-## System Requirements
-
-### Supported Browsers
-
-- Google Chrome (v88+)
-- Microsoft Edge (v88+)
-- Brave Browser (v1.20+)
-- Opera (v74+)
-- Vivaldi (v3.6+)
-- Any Chromium-based browser
-
-### Operating Systems
-
-- Windows 10/11
-- macOS 10.15+
-- Linux (Ubuntu, Fedora, etc.)
-- Chrome OS
-
-### Requirements
-
-- Active internet connection
-- JavaScript enabled
-- Location services (for geofencing features)
-
----
-
-## Extension Installation
-
-### Method 1: Manual Installation (Recommended)
-
-#### Step 1: Download
-
-```bash
-# Clone the repository
-git clone https://github.com/Aaks-hatH/Browser-Bricker-Panel.git
-
-# Navigate to directory
-cd browserbricker
-```
-
-Or download ZIP:
-1. Visit [GitHub Repository](https://github.com/Aaks-hatH/Browser-Bricker-Panel)
-2. Click **Code** → **Download ZIP**
-3. Extract to a permanent location (don't delete after installation)
-
-#### Step 2: Load Extension
-
-**For Chrome/Edge:**
-
-1. Open browser and navigate to extensions page:
-   - Chrome: `chrome://extensions/`
-   - Edge: `edge://extensions/`
-
-2. Enable **Developer Mode**:
-   - Look for toggle in top-right corner
-   - Switch to ON position
-
-3. Click **Load Unpacked**
-
-4. Select the `browserbricker` folder
-
-5. Extension should now appear in your extensions list
-
-**For Other Chromium Browsers:**
-
-Same process, use your browser's extension page:
-- Brave: `brave://extensions/`
-- Opera: `opera://extensions/`
-- Vivaldi: `vivaldi://extensions/`
-
-#### Step 3: Verify Installation
-
-1. Look for BrowserBricker icon in browser toolbar
-2. Icon should show a lock symbol
-3. Click icon - you should see the setup screen
-4. Status should indicate "Not Configured"
-
-### Method 2: Chrome Web Store (Coming Soon)
-
-One-click installation will be available from the Chrome Web Store.
-
----
-
-## Account Setup
-
-### Creating Your Master Key
-
-Your master key is the root credential for your account. It controls all devices.
-
-1. **Access Control Panel**
-   ```
-   https://browserbricker.onrender.com
-   ```
-
-2. **Generate Master Key**
-   - Click **"CREATE ACCOUNT"** tab
-   - Click **"GENERATE MASTER KEY"** button
-   - Wait for generation (takes 1-2 seconds)
-
-3. **Save Your Master Key**
-   
-   **CRITICAL: This key is shown only once!**
-   
-   The key looks like:
-   ```
-   a7f3c8e2d1b9f5a4c6e8d2b1f7a3c5e9d4b2f8a6c3e1d7b5f2a9c4e6d8b3f1a5c7e2
-   ```
-   
-   **Where to save it:**
-   - Password manager (1Password, LastPass, Bitwarden)
-   - Encrypted note file
-   - Offline secure storage
-   
-   **Where NOT to save it:**
-   - Plain text file on desktop
-   - Email to yourself
-   - Screenshot on cloud storage
-   - Unencrypted notes app
-
-4. **Copy Master Key**
-   - Click **"COPY KEY"** button
-   - Paste into your password manager
-   - Click **"COPY KEY & CONTINUE"**
-
-5. **First Login**
-   - You'll be redirected to login screen
-   - Master key auto-filled temporarily
-   - Click **"ACCESS DASHBOARD"**
-   - You're now in your control panel
-
-### Understanding Master Keys
-
-**Security Features:**
-- 64 characters (256-bit entropy)
-- Cryptographically random
-- SHA-256 hashed on server
-- Never stored in plaintext
-- Cannot be recovered if lost
-
-**What Master Keys Control:**
-- Register new devices
-- Arm/disarm devices
-- Delete devices
-- View device status
-- Access all your data
-
----
-
-## Device Registration
-
-Now that you have your account, register your first device.
-
-### Step 1: Initiate Registration
-
-In the Control Panel:
-
-1. Click **"REGISTER DEVICE"** button (top right)
-2. Registration modal opens
-
-### Step 2: Fill Device Information
-
-**Required:**
-- **Device Name**: Give it a friendly name
-  - Examples: "Living Room PC", "Sarah's Laptop", "Office Computer"
-  - Use descriptive names for easy identification
-
-**Optional:**
-- **Tags**: Comma-separated labels for organization
-  - Examples: "work", "family", "monitored", "school"
-  - Helps filter and search devices later
-
-- **Location**: Physical location description
-  - Examples: "Home Office", "Kid's Bedroom", "Library Computer"
-  - Not GPS coordinates - just a label
-
-### Step 3: Register
-
-1. Click **"REGISTER DEVICE"**
-2. Server creates device record
-3. Device API Key is generated
-4. Modal shows your new key
-
-### Step 4: Save Device API Key
-
-You'll see a 64-character key:
-
-```
-d8f2a9c5e7b3f1a6c4e2d9b7f5a3c8e6d1b4f9a2c7e5d3b8f6a1c9e4d2b7f5a3c8e
-```
-
-**Important:**
-- This key is shown only once
-- It authenticates this specific device
-- Store it temporarily (you'll use it in next step)
-- Click **"COPY KEY"**
-
-### Step 5: Configure Extension
-
-On the device you want to protect:
-
-1. **Open Extension**
-   - Click BrowserBricker icon in toolbar
-   - Setup screen should appear
-
-2. **Enter Device API Key**
-   - Paste the 64-character key from Step 4
-   - Key will appear as dots (password field)
-
-3. **Activate Protection**
-   - Click **"Activate Protection"**
-   - Extension connects to server
-   - Wait for confirmation (2-5 seconds)
-
-4. **Verify Connection**
-   - Status should change to **"DISARMED"**
-   - Connection should show **"ONLINE"**
-   - Device name appears
-   - Location/battery info may populate
-
-### Step 6: Verify in Control Panel
-
-Back in your Control Panel:
-
-1. Refresh the page (or wait 5 seconds for auto-refresh)
-2. Your new device should appear in the list
-3. Status indicators:
-   - Online (green)
-   - Disarmed (unlocked)
-   - Last seen: "just now"
-
----
-
-## First Lock Test
-
-Test that everything works correctly.
-
-### Locking the Device
-
-1. **In Control Panel:**
-   - Find your device in the list
-   - Click the **"ARM"** button
-   - Button changes to green with lock icon
-
-2. **On Target Device:**
-   - Within 2 seconds, all tabs redirect
-   - Lock screen appears
-   - Browser becomes locked
-
-3. **Lock Screen Features:**
-   - Cannot navigate away
-   - Keyboard shortcuts disabled
-   - Context menu blocked
-   - F12/DevTools suppressed
-
-### Unlocking the Device
-
-1. **In Control Panel:**
-   - Find the device (will show Armed status)
-   - Click the **"DISARM"** button
-   - Button changes to red with unlock icon
-
-2. **On Target Device:**
-   - Within 2 seconds, lock releases
-   - Can navigate normally
-   - All functionality restored
-
-### What to Test
-
-**Verify These Work:**
-- Device locks within 2 seconds
-- Lock screen appears on all tabs
-- New tabs show lock screen
-- Navigation is blocked
-- Device unlocks within 2 seconds
-- Normal browsing resumes after unlock
-
-**Common Issues:**
-
-| Issue | Solution |
-|-------|----------|
-| "Offline" status | Check internet connection |
-| Slow lock (>5 sec) | Verify server accessibility |
-| Lock doesn't appear | Check extension is enabled |
-| Can still browse | Reload extension and retry |
-
----
-
-## Troubleshooting
-
-### Extension Issues
-
-#### "Extension Not Loading"
-
-**Symptoms:** Extension doesn't appear in toolbar or extensions list
-
-**Solutions:**
-1. Ensure Developer Mode is enabled
-2. Try reloading the extension:
-   - Go to `chrome://extensions/`
-   - Find BrowserBricker
-   - Click reload icon (circular arrow)
-3. Check browser console for errors (F12)
-
-#### "Setup Screen Won't Appear"
-
-**Symptoms:** Clicking icon does nothing
-
-**Solutions:**
-1. Right-click extension icon → Inspect popup
-2. Check for JavaScript errors
-3. Verify `popup.html` and `popup.js` exist
-4. Reload extension
-
-#### "Cannot Activate Protection"
-
-**Symptoms:** Error when entering device key
-
-**Solutions:**
-1. Verify key is exactly 64 characters
-2. Check for extra spaces at start/end
-3. Confirm internet connection
-4. Verify API server is accessible:
-   ```
-   https://browserbricker.onrender.com/health
-   ```
-
-### Connection Issues
-
-#### "Shows Offline"
-
-**Symptoms:** Extension shows "OFFLINE" badge
-
-**Solutions:**
-1. Check internet connection
-2. Verify firewall isn't blocking:
-   - `browserbricker.onrender.com`
-   - Port 443 (HTTPS)
-3. Try manual heartbeat:
-   - Click extension icon
-   - Click "Refresh Status"
-4. Check server status
-
-#### "Lock Delayed"
-
-**Symptoms:** Device takes >5 seconds to lock
-
-**Solutions:**
-1. Check network latency
-2. Verify 2-second heartbeat is running:
-   - Open browser console
-   - Look for `[Lockdown] Heartbeat` messages
-3. Reload extension to restart heartbeat
-
-### Lock Screen Issues
-
-#### "Can Navigate Away from Lock"
-
-**Symptoms:** User can still browse despite lock
-
-**Solutions:**
-1. Verify extension is enabled:
-   - `chrome://extensions/`
-   - BrowserBricker toggle is ON
-2. Check extension permissions granted
-3. Reload extension
-4. Clear browser cache
-
-#### "Lock Screen Looks Broken"
-
-**Symptoms:** Styling issues, missing elements
-
-**Solutions:**
-1. Verify `lock.html` exists and is intact
-2. Check browser console for errors
-3. Reload the lock screen tab
-4. Update extension to latest version
-
-### Account Issues
-
-#### "Lost Master Key"
-
-**Symptoms:** Cannot access account
-
-**Solutions:**
-- Master keys cannot be recovered
-- You must generate a new master key
-- All devices must be re-registered
-- This is a security feature, not a bug
-
-**Prevention:**
-- Always store master key in password manager
-- Keep backup in secure location
-- Don't rely on browser autofill
-
-#### "Device Not Appearing in Panel"
-
-**Symptoms:** Registered device doesn't show up
-
-**Solutions:**
-1. Refresh the control panel
-2. Wait 5 seconds for auto-refresh
-3. Verify device is online (check extension)
-4. Check device API key is correct
-5. Try registering again
-
-### Advanced Debugging
-
-#### Enable Debug Mode
-
-Add to browser console:
-```javascript
-localStorage.setItem('debug', 'true');
-```
-
-This enables verbose logging.
-
-#### Check Heartbeat Status
-
-In browser console on target device:
-```javascript
-chrome.storage.local.get(['deviceConfig', 'isArmed'], console.log);
-```
-
-#### Verify API Connectivity
-
-Test API endpoint:
-```bash
-curl https://browserbricker.onrender.com/health
-```
-
-Should return: `{"status": "ok"}`
-
-#### Reset Extension
-
-Complete reset:
-1. Open extension popup
-2. Click "Reconfigure Device"
-3. Confirm reset
-4. Re-enter device API key
-
----
-
-## Next Steps
-
-After successful installation:
-
-1. **Explore Features**
-   - Test geofencing
-   - Enable location tracking
-   - Try quarantine mode
-
-2. **Register Additional Devices**
-   - Repeat device registration process
-   - Organize with tags
-
-3. **Set Up Admin Panel** (Optional)
-   - Access advanced features
-   - Bulk operations
-   - System monitoring
-
-4. **Read Documentation**
-   - [User Guide](FEATURES.md)
-   - [Security Best Practices](SECURITY.md)
-   - [FAQ](README.md#faq)
-
----
-
-## Support
-
-Need help? 
-
-- Email: browserbricker@gmail.com
-- Issues: [GitHub Issues](https://github.com/aakshathariharan/browserbricker/issues)
-- Docs: [Wiki](https://github.com/aakshathariharan/browserbricker/wiki)
-
----
-
-**Installation Guide v4.1** • Last Updated: January 2026 • By Aakshat Hariharan/wiki)
-
----
-
-**Installation Guide v4.1** • Last Updated: January 2026 • By Aakshat Hariharan/issues)
-- Docs: [Wiki](https://github.com/aakshathariharan/browserbricker/wiki)
-
----
-
-**Installation Guide v4.1** • Last Updated: January 2026 • By Aakshat Hariharan
+**Document Version**: 6.0.0  
+**Last Updated**: February 11, 2026  
+**Maintained By**: Aakshat Hariharan
