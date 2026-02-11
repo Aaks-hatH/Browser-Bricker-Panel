@@ -541,6 +541,7 @@ async function loadDevices() {
                                 `<button class="btn btn-danger" style="padding: 6px 12px; font-size: 0.75rem;" onclick="toggleDevice('${device.deviceId}', true)"><i data-lucide="lock" size="12"></i></button>`
                             }
                             <button class="btn btn-ghost" style="padding: 6px 12px; font-size: 0.75rem;" onclick="showDeviceDetails('${device.deviceId}')"><i data-lucide="info" size="12"></i></button>
+                            <button class="btn btn-primary" style="padding: 6px 12px; font-size: 0.75rem;" onclick="openAssignDeviceModal('${device.deviceId}')" title="Add to Group"><i data-lucide="users" size="12"></i></button>
                             <button class="btn btn-ghost" style="padding: 6px 12px; font-size: 0.75rem;" onclick="editDevice('${device.deviceId}', '${escapeHtml(device.deviceName)}')"><i data-lucide="edit" size="12"></i></button>
                             ${device.quarantined ?
                                 `<button class="btn btn-success" style="padding: 6px 12px; font-size: 0.75rem;" onclick="releaseQuarantine('${device.deviceId}')"><i data-lucide="shield-check" size="12"></i></button>` :
@@ -3393,6 +3394,45 @@ async function showAssignDeviceModal(groupId) {
         showToast('Error', 'Failed to load unassigned devices', 'error');
     }
 }
+
+// New function to show group selection modal for a specific device
+async function openAssignDeviceModal(deviceId) {
+    try {
+        // Fetch all groups
+        const response = await fetch(`${API_URL}/api/groups`, {
+            headers: { 'Authorization': `Bearer ${getApiKey()}` }
+        });
+        
+        if (!response.ok) throw new Error('Failed to fetch groups');
+        
+        const data = await response.json();
+        const groups = data.groups || [];
+        
+        const groupsList = document.getElementById('unassignedDevicesList');
+        
+        if (groups.length === 0) {
+            groupsList.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No groups available. Please create a group first.</p>';
+        } else {
+            groupsList.innerHTML = groups.map(g => `
+                <div class="device-item" style="padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <strong>${escapeHtml(g.groupName)}</strong><br>
+                        <small style="color: #666;">${g.description || 'No description'}</small>
+                    </div>
+                    <button class="btn-primary" onclick="assignDeviceToGroupNow('${g.groupId}', '${deviceId}')">
+                        Add to Group
+                    </button>
+                </div>
+            `).join('');
+        }
+        
+        document.getElementById('assignDeviceModal').style.display = 'flex';
+    } catch (error) {
+        console.error('Load groups error:', error);
+        showToast('Error', 'Failed to load groups', 'error');
+    }
+}
+
 
 function closeAssignDeviceModal() {
     document.getElementById('assignDeviceModal').style.display = 'none';
