@@ -2,6 +2,240 @@
 
 All notable changes to BrowserBricker are documented in this file following semantic versioning.
 
+## [6.0.0] - 2026-02-11
+
+### MAJOR RELEASE: Explicit Group Management System
+
+**BREAKING CHANGE**: Complete refactoring of group assignment model from implicit key-based to explicit admin-managed system.
+
+#### Core Architecture Change
+
+**Previous Model (5.x):**
+- Devices automatically assigned to groups via master key inheritance
+- Group membership determined cryptographically at registration
+- No ability to reassign devices after registration
+
+**New Model (6.0):**
+- Groups are first-class administrative entities
+- Devices start unassigned after registration
+- Manual device-to-group assignment by administrators
+- Full device mobility between groups
+- Policy inheritance through group membership
+
+#### New Group Management Features
+
+**Group Administration:**
+- Create groups with optional policy assignment
+- Edit group properties including assigned policy
+- Delete groups (with automatic device unassignment)
+- View group details with full device roster
+- Track group statistics (device count, active devices, breaches)
+
+**Device Assignment:**
+- Assign unassigned devices to groups
+- Remove devices from groups (returns to unassigned state)
+- View all unassigned devices per system admin
+- Bulk group assignments through UI
+- Real-time group membership updates
+
+**Policy-Group Integration:**
+- Assign policies at group level (not device level)
+- Devices inherit all rules from group's policy
+- Change group policy to update all member devices instantly
+- Multiple groups can share same policy
+- Groups can operate without policies
+
+#### New API Endpoints
+
+**Group Operations:**
+- `GET /api/groups` - List all groups (filtered by permission)
+- `POST /api/groups` - Create new group with policy
+- `GET /api/groups/:groupId` - Get group details with devices
+- `PUT /api/groups/:groupId` - Update group properties
+- `DELETE /api/groups/:groupId` - Soft-delete group
+
+**Device Assignment:**
+- `POST /api/groups/:groupId/devices/:deviceId` - Assign device to group
+- `DELETE /api/groups/:groupId/devices/:deviceId` - Remove device from group
+- `GET /api/devices/unassigned` - List unassigned devices
+
+#### Enhanced Permission Model
+
+**Owner Capabilities:**
+- View all groups across all system administrators
+- Create groups for any system administrator
+- Edit and delete any group regardless of owner
+- Assign any device to any group
+- Full cross-organization visibility
+
+**System Administrator Capabilities:**
+- View only their own groups
+- Create groups for themselves
+- Edit and delete their own groups
+- Assign only their own devices to their own groups
+- No cross-admin access
+
+**Security Enforcement:**
+- All operations validated server-side
+- Permission checks prevent unauthorized access
+- Audit logging for all group operations
+- Activity logging for transparency
+- No client-side security assumptions
+
+#### Database Schema Updates
+
+**Group Schema Enhancements:**
+- Added `policyId` field for direct policy reference
+- Enhanced group statistics tracking
+- Improved indexing for performance
+
+**New Database Operations:**
+- `assignDeviceToGroup(deviceId, groupId, assignedBy)`
+- `removeDeviceFromGroup(deviceId, removedBy)`
+- `moveDeviceToGroup(deviceId, newGroupId, movedBy)`
+- `updateGroupStats(groupId)`
+- `getUnassignedDevices(systemAdminId)`
+- `getPolicyForDevice(deviceId)` - resolves device → group → policy
+
+#### Admin Panel UI Improvements
+
+**Group Management Interface:**
+- Policy selection dropdowns in create/edit group modals
+- "Assign Device" button in group details view
+- Live device list with inline remove buttons
+- Unassigned devices modal with one-click assignment
+- Policy column in groups table
+- Visual indicators for group-policy relationships
+
+**Enhanced Group Details:**
+- Full device roster with status indicators
+- Quick access to device assignment
+- Policy information display
+- Group statistics dashboard
+- Device management actions
+
+#### Migration Impact
+
+**For Existing Installations:**
+- ⚠️ **BREAKING**: New devices no longer auto-assigned to groups
+- ⚠️ Existing devices with groupId are preserved
+- ⚠️ Admins must manually assign new devices
+- ✅ No data loss - all existing group memberships maintained
+- ✅ Backward compatible with existing device configurations
+
+**Migration Options:**
+1. **Preserve Existing** (Recommended): Keep current group assignments, manually assign new devices
+2. **Clean Slate**: Reset all devices to unassigned, reassign as needed
+
+**Migration Steps:**
+1. Deploy version 6.0.0
+2. Existing devices retain their group assignments
+3. New device registrations create unassigned devices
+4. Use admin panel to assign new devices to groups
+5. Review and organize device-group relationships
+
+#### Breaking Changes
+
+**Device Registration:**
+```javascript
+// OLD (5.x):
+groupId: masterKey.groupId  // Auto-inherited
+
+// NEW (6.0):
+groupId: null  // Explicitly unassigned
+```
+
+**Group Assignment:**
+- OLD: Automatic via master key
+- NEW: Manual via admin panel or API
+
+**Policy Application:**
+- OLD: Via device groupId inherited from master key
+- NEW: Via explicit group membership → policy lookup
+
+#### Affected Workflows
+
+**⚠️ Requires Updates:**
+- Device onboarding procedures
+- Automated device provisioning scripts
+- Group management procedures
+- Policy deployment workflows
+
+**✅ Unchanged:**
+- Device locking/unlocking
+- Heartbeat monitoring
+- Location tracking
+- Geofencing
+- Quarantine operations
+- User-level device control
+
+#### Security Improvements
+
+**Enhanced Access Control:**
+- Server-side enforcement of all group operations
+- Prevention of cross-admin device hijacking
+- Audit trail for all group changes
+- Validation of device ownership before assignment
+- Protection against unauthorized policy manipulation
+
+**New Security Features:**
+- Group-level permission checks
+- Device assignment authorization
+- Policy modification logging
+- Cross-admin access prevention
+- Comprehensive operation auditing
+
+#### Performance Optimizations
+
+**Database Performance:**
+- New indexes for group-device lookups
+- Optimized group statistics queries
+- Improved device filtering
+- Faster unassigned device retrieval
+
+**API Performance:**
+- Reduced response times for group operations
+- Efficient batch device queries
+- Optimized permission checking
+- Cached group-policy lookups
+
+#### Documentation
+
+**New Documentation:**
+- Complete group management guide
+- Policy-group integration documentation
+- Migration guide for 5.x → 6.0
+- Admin workflow documentation
+- API reference updates
+
+#### Known Issues
+
+**Limitations:**
+- Devices can only be in one group at a time
+- Policy changes require group reassignment
+- No bulk device assignment UI (coming in 6.1)
+- No device-to-device group transfers
+
+#### Upgrade Path
+
+**From 5.x to 6.0:**
+1. Back up database before upgrade
+2. Deploy new backend (database.js, server.js)
+3. Deploy new frontend (admin panels)
+4. Verify existing device group assignments
+5. Test group creation and device assignment
+6. Update documentation and procedures
+7. Train administrators on new workflows
+
+**Rollback Plan:**
+If issues occur:
+1. Restore database backup
+2. Revert to 5.x backend/frontend
+3. All group assignments preserved in backup
+4. No permanent changes to device data
+
+---
+
 ## [5.0.1] - 2026-02-08
 
 ### Enhanced Stability and Performance Improvements
@@ -268,15 +502,16 @@ Foundation release establishing core remote device management capabilities.
 
 | Version | Status | Support Until | Security Updates |
 |---------|--------|---------------|------------------|
-| 5.0.x | Full Support | Current | Yes |
-| 4.2.x | Maintenance | June 2026 | Yes |
-| 4.1.x | Limited | March 2026 | Critical Only |
+| 6.0.x | Full Support | Current | Yes |
+| 5.0.x | Maintenance | August 2026 | Yes |
+| 4.2.x | Limited | May 2026 | Critical Only |
+| 4.1.x | Unsupported | March 2026 | No |
 | 4.0.x | Unsupported | February 2026 | No |
 
 ### Update Recommendations
-- **Current Users**: Update to 5.0.1 immediately for best performance and security
-- **Enterprise Deployments**: Version 5.0.x recommended for all new deployments
-- **Legacy Systems**: Migrate from 4.x to 5.x before June 2026 end-of-life
+- **Current Users**: Update to 6.0.0 immediately for enhanced group management
+- **Enterprise Deployments**: Version 6.0.x required for explicit group control
+- **Legacy Systems**: Migrate from 5.x to 6.0.x for improved administrative capabilities
 
 ---
 
@@ -314,28 +549,47 @@ Submit enhancement requests to:
 
 ## Migration Guides
 
-### Upgrading from 4.x to 5.0.1
+### Upgrading from 5.x to 6.0.0
 
-**Automatic Migration**: No manual intervention required
-- All device configurations automatically preserved
-- Master keys remain valid
-- No service interruption during upgrade
-- Extension continues functioning without updates
+**Automatic Database Migration**: Existing group assignments preserved
+- All current device-group relationships maintained
+- No data loss during upgrade
+- Existing devices retain their group memberships
+
+**New Behavior**:
+- New device registrations create unassigned devices
+- Administrators must manually assign devices to groups
+- Groups can be created with policy selection
 
 **Recommended Actions**:
-1. Monitor device connectivity for 24 hours post-upgrade
-2. Verify geofencing configurations if applicable
-3. Test bulk operations if using admin features
-4. Review new security features in admin panel
+1. Back up database before upgrade
+2. Deploy backend updates (database.js, server.js)
+3. Deploy frontend updates (admin panels)
+4. Test group creation and device assignment
+5. Verify existing device group assignments intact
+6. Train administrators on new assignment workflow
+7. Update internal documentation
+
+**Testing Checklist**:
+- ✅ Existing devices show correct group membership
+- ✅ New devices appear in "Unassigned" list
+- ✅ Group creation works with policy selection
+- ✅ Device assignment functions properly
+- ✅ Device removal from groups works
+- ✅ Policy changes apply to all group devices
+- ✅ Permission checks prevent unauthorized access
 
 ### New Installation
 
 For fresh deployments:
-1. Download version 5.0.1 from GitHub repository
-2. Follow installation guide in README.md
+1. Download version 6.0.0 from GitHub repository
+2. Follow installation guide in Installation.md
 3. Configure extension on target devices
-4. Register devices through control panel
-5. Test lock/unlock functionality before production use
+4. Create groups with policies
+5. Register devices (will be unassigned)
+6. Assign devices to appropriate groups
+7. Test lock/unlock functionality
+8. Verify policy inheritance working
 
 ---
 
@@ -347,4 +601,4 @@ For fresh deployments:
 
 **Contact**: browserbricker@gmail.com
 
-**Last Updated**: February 8, 2026
+**Last Updated**: February 11, 2026
