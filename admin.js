@@ -6,6 +6,7 @@ const API_URL = 'https://browserbricker.onrender.com';
 let systemAdminKey = null;
 let refreshInterval = null;
 let locationRefreshInterval = null;
+let currentGroupIdForAssignment = null;
 
 // Map variables
 let locationsMap = null;
@@ -1283,7 +1284,7 @@ function displayGroups(groups) {
     if (!groups || groups.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="7" style="text-align: center; padding: 40px; color: #666;">
+                <td colspan="8" style="text-align: center; padding: 40px; color: #666;">
                     <i class="fas fa-users" style="font-size: 48px; opacity: 0.3; margin-bottom: 10px;"></i>
                     <p>No groups found. Create your first group to get started.</p>
                 </td>
@@ -1299,6 +1300,7 @@ function displayGroups(groups) {
                 ${!group.active ? '<span class="badge badge-danger">Inactive</span>' : ''}
             </td>
             <td>${escapeHtml(group.description || 'No description')}</td>
+            <td>${group.policyId ? `<span class="badge badge-info">${escapeHtml(group.policyId)}</span>` : '<span style="color: #999;">No policy</span>'}</td>
             <td>${group.stats?.totalDevices || 0}</td>
             <td>${group.stats?.activeDevices || 0}</td>
             <td>
@@ -1353,6 +1355,7 @@ async function handleCreateGroup(event) {
     const groupData = {
         groupName: document.getElementById('groupName').value,
         description: document.getElementById('groupDescription').value,
+        policyId: document.getElementById('groupPolicySelect')?.value || null,
         settings: {
             maxDevices: parseInt(document.getElementById('maxDevices').value),
             allowGeofencing: document.getElementById('allowGeofencing').checked,
@@ -1391,6 +1394,7 @@ function editGroup(groupId) {
     document.getElementById('editGroupId').value = groupId;
     document.getElementById('editGroupName').value = group.groupName;
     document.getElementById('editGroupDescription').value = group.description || '';
+    document.getElementById('editGroupPolicySelect').value = group.policyId || '';
     document.getElementById('editMaxDevices').value = group.settings?.maxDevices || 100;
     document.getElementById('editAllowGeofencing').checked = group.settings?.allowGeofencing !== false;
     document.getElementById('editAllowQuarantine').checked = group.settings?.allowQuarantine !== false;
@@ -1410,6 +1414,7 @@ async function handleEditGroup(event) {
     const updates = {
         groupName: document.getElementById('editGroupName').value,
         description: document.getElementById('editGroupDescription').value,
+        policyId: document.getElementById('editGroupPolicySelect')?.value || null,
         settings: {
             maxDevices: parseInt(document.getElementById('editMaxDevices').value),
             allowGeofencing: document.getElementById('editAllowGeofencing').checked,
@@ -1472,12 +1477,44 @@ async function viewGroupDetails(groupId) {
     if (!group) return;
     
     try {
-        const response = await fetch(`${API_URL}/api/groups/${groupId}/stats`, {
+        // Fetch group with devices
+        const response = await fetch(`${API_URL}/api/groups/${groupId}`, {
             headers: { 'Authorization': `Bearer ${getApiKey()}` }
         });
         
         const data = await response.json();
-        const stats = data.stats || {};
+        const devices = data.devices || [];
+        
+        const devicesHtml = devices.length > 0 ? `
+            <table class="details-table">
+                <thead>
+                    <tr>
+                        <th>Device Name</th>
+                        <th>Status</th>
+                        <th>Last Seen</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${devices.map(d => `
+                        <tr>
+                            <td>${escapeHtml(d.deviceName)}</td>
+                            <td>
+                                <span class="badge ${d.armed ? 'badge-danger' : 'badge-success'}">
+                                    ${d.armed ? 'Armed' : 'Disarmed'}
+                                </span>
+                            </td>
+                            <td>${d.lastHeartbeat ? new Date(d.lastHeartbeat).toLocaleString() : 'Never'}</td>
+                            <td>
+                                <button class="btn-sm btn-danger" onclick="removeDeviceFromGroup('${groupId}', '${d.deviceId}')">
+                                    Remove
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        ` : '<p style="text-align: center; color: #666; padding: 20px;">No devices in this group</p>';
         
         const content = `
             <div class="group-details">
@@ -1497,6 +1534,10 @@ async function viewGroupDetails(groupId) {
                             <td>${escapeHtml(group.description || 'No description')}</td>
                         </tr>
                         <tr>
+                            <td><strong>Policy:</strong></td>
+                            <td>${group.policyId ? escapeHtml(group.policyId) : 'No policy assigned'}</td>
+                        </tr>
+                        <tr>
                             <td><strong>Created:</strong></td>
                             <td>${new Date(group.createdAt).toLocaleString()}</td>
                         </tr>
@@ -1513,18 +1554,28 @@ async function viewGroupDetails(groupId) {
                     <h4>Statistics</h4>
                     <div class="group-stats">
                         <div class="group-stat">
-                            <div class="group-stat-value">${stats.totalDevices || 0}</div>
+                            <div class="group-stat-value">${group.stats?.totalDevices || devices.length}</div>
                             <div class="group-stat-label">Total Devices</div>
                         </div>
                         <div class="group-stat">
-                            <div class="group-stat-value">${stats.activeDevices || 0}</div>
+                            <div class="group-stat-value">${group.stats?.activeDevices || 0}</div>
                             <div class="group-stat-label">Active Devices</div>
                         </div>
                         <div class="group-stat">
-                            <div class="group-stat-value">${stats.totalBreaches || 0}</div>
+                            <div class="group-stat-value">${group.stats?.totalBreaches || 0}</div>
                             <div class="group-stat-label">Total Breaches</div>
                         </div>
                     </div>
+                </div>
+                
+                <div class="detail-section">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h4>Devices in Group</h4>
+                        <button class="btn-primary" onclick="showAssignDeviceModal('${groupId}')">
+                            <i data-lucide="plus"></i> Assign Device
+                        </button>
+                    </div>
+                    ${devicesHtml}
                 </div>
                 
                 <div class="detail-section">
@@ -1553,6 +1604,7 @@ async function viewGroupDetails(groupId) {
         
         document.getElementById('groupDetailsContent').innerHTML = content;
         document.getElementById('groupDetailsModal').style.display = 'flex';
+        lucide.createIcons();
     } catch (error) {
         console.error('Load group details error:', error);
         showToast('Error', 'Failed to load group details', 'error');
@@ -1561,6 +1613,107 @@ async function viewGroupDetails(groupId) {
 
 function closeGroupDetailsModal() {
     document.getElementById('groupDetailsModal').style.display = 'none';
+}
+
+// ========== DEVICE ASSIGNMENT TO GROUPS ==========
+
+async function showAssignDeviceModal(groupId) {
+    currentGroupIdForAssignment = groupId;
+    
+    try {
+        // Fetch unassigned devices
+        const response = await fetch(`${API_URL}/api/devices/unassigned`, {
+            headers: { 'Authorization': `Bearer ${getApiKey()}` }
+        });
+        
+        if (!response.ok) throw new Error('Failed to fetch unassigned devices');
+        
+        const data = await response.json();
+        const devices = data.devices || [];
+        
+        const devicesList = document.getElementById('unassignedDevicesList');
+        
+        if (devices.length === 0) {
+            devicesList.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No unassigned devices available</p>';
+        } else {
+            devicesList.innerHTML = devices.map(d => `
+                <div class="device-item" style="padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <strong>${escapeHtml(d.deviceName)}</strong><br>
+                        <small style="color: #666;">${d.deviceId}</small>
+                    </div>
+                    <button class="btn-primary" onclick="assignDeviceToGroupNow('${groupId}', '${d.deviceId}')">
+                        Assign
+                    </button>
+                </div>
+            `).join('');
+        }
+        
+        document.getElementById('assignDeviceModal').style.display = 'flex';
+    } catch (error) {
+        console.error('Load unassigned devices error:', error);
+        showToast('Error', 'Failed to load unassigned devices', 'error');
+    }
+}
+
+function closeAssignDeviceModal() {
+    document.getElementById('assignDeviceModal').style.display = 'none';
+}
+
+async function assignDeviceToGroupNow(groupId, deviceId) {
+    try {
+        const response = await fetch(`${API_URL}/api/groups/${groupId}/devices/${deviceId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getApiKey()}`
+            }
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to assign device');
+        }
+        
+        showToast('Success', 'Device assigned to group', 'success');
+        closeAssignDeviceModal();
+        
+        // Refresh group details
+        viewGroupDetails(groupId);
+        loadGroups();
+    } catch (error) {
+        console.error('Assign device error:', error);
+        showToast('Error', error.message || 'Failed to assign device', 'error');
+    }
+}
+
+async function removeDeviceFromGroup(groupId, deviceId) {
+    if (!confirm('Remove this device from the group? The device will become unassigned.')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_URL}/api/groups/${groupId}/devices/${deviceId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${getApiKey()}`
+            }
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to remove device');
+        }
+        
+        showToast('Success', 'Device removed from group', 'success');
+        
+        // Refresh group details
+        viewGroupDetails(groupId);
+        loadGroups();
+    } catch (error) {
+        console.error('Remove device error:', error);
+        showToast('Error', error.message || 'Failed to remove device', 'error');
+    }
 }
 
 // ========== HELPER FUNCTIONS ==========
