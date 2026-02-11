@@ -1095,14 +1095,15 @@
                     <!-- Info Box -->
                     <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 12px; padding: 16px; margin: 20px 0; color: white;">
                         <div style="display: flex; align-items: start; gap: 12px;">
-                            <i data-lucide="info" size="20" style="flex-shrink: 0; margin-top: 2px;"></i>
+                            <i data-lucide="lightbulb" size="20" style="flex-shrink: 0; margin-top: 2px;"></i>
                             <div>
-                                <strong style="display: block; margin-bottom: 4px;">About Groups</strong>
-                                <p style="font-size: 0.85rem; opacity: 0.95; margin: 0;">
-                                    Groups help you organize devices into logical collections (e.g., "Sales Team", "Engineering", "Interns"). 
-                                    Once created, click a group to view details and use the <strong>"Assign Device"</strong> button to add unassigned devices. 
-                                    You can then apply policies to entire groups for easier management.
-                                </p>
+                                <strong style="display: block; margin-bottom: 8px; font-size: 1.05rem;">Quick Start Guide</strong>
+                                <ol style="margin: 0; padding-left: 20px; font-size: 0.88rem; opacity: 0.95; line-height: 1.7;">
+                                    <li><strong>Create a group:</strong> Click the "Create Group" button above</li>
+                                    <li><strong>View group details:</strong> Click the eye icon (<span style="display: inline-block; width: 18px; height: 18px; border-radius: 3px; background: rgba(255,255,255,0.3); text-align: center; line-height: 18px; font-size: 12px;">👁</span>) to see devices in that group</li>
+                                    <li><strong>Assign devices:</strong> Inside group details, click "Assign Device" to add unassigned devices</li>
+                                    <li><strong>Assign policies:</strong> Edit a group to select a policy, or create policies that target specific groups</li>
+                                </ol>
                             </div>
                         </div>
                     </div>
@@ -1132,15 +1133,16 @@
                                 <tr>
                                     <th>Group Name</th>
                                     <th>Description</th>
-                                    <th>Devices</th>
-                                    <th>Active</th>
+                                    <th>Policy</th>
+                                    <th>Total Devices</th>
+                                    <th>Active Devices</th>
                                     <th>Breaches</th>
                                     <th>Created</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="groupsTableBody">
-                                <tr><td colspan="7" style="text-align: center; padding: 40px;">
+                                <tr><td colspan="8" style="text-align: center; padding: 40px;">
                                     <i data-lucide="users" size="48" style="opacity: 0.3;"></i>
                                     <p style="margin-top: 10px; color: var(--zinc-500);">Loading groups...</p>
                                 </td></tr>
@@ -1167,13 +1169,15 @@
                     <!-- Info Box -->
                     <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 16px; margin: 20px 0; color: white;">
                         <div style="display: flex; align-items: start; gap: 12px;">
-                            <i data-lucide="info" size="20" style="flex-shrink: 0; margin-top: 2px;"></i>
+                            <i data-lucide="lightbulb" size="20" style="flex-shrink: 0; margin-top: 2px;"></i>
                             <div>
-                                <strong style="display: block; margin-bottom: 4px;">About Policies</strong>
-                                <p style="font-size: 0.85rem; opacity: 0.95; margin: 0;">
-                                    Policies let you set rules for devices or groups. Control time limits, allowed hours, auto-arming schedules, geofencing, and more. 
-                                    Policies can be applied <strong>globally</strong> (all devices), to specific <strong>groups</strong>, or individual <strong>devices</strong>.
-                                </p>
+                                <strong style="display: block; margin-bottom: 8px; font-size: 1.05rem;">Quick Start Guide</strong>
+                                <ol style="margin: 0; padding-left: 20px; font-size: 0.88rem; opacity: 0.95; line-height: 1.7;">
+                                    <li><strong>Create a policy:</strong> Click "Create Policy" above and configure rules (time limits, auto-arm, geofencing, etc.)</li>
+                                    <li><strong>Set the scope:</strong> Choose if this policy applies to all devices (Global), specific Groups, or individual Devices</li>
+                                    <li><strong>Select targets:</strong> If using Group or Device scope, you'll see a dropdown to select which groups/devices this applies to</li>
+                                    <li><strong>Activate:</strong> Policies are active by default. Toggle them on/off using the play/pause icon</li>
+                                </ol>
                             </div>
                         </div>
                     </div>
@@ -1434,6 +1438,66 @@
                             <option value="arm">Arm Device</option>
                             <option value="block">Block Device</option>
                         </select>
+                    </div>
+                </div>
+
+                <!-- Allowed Hours -->
+                <div class="field-group">
+                    <label><input type="checkbox" id="allowedHoursEnabled" onchange="toggleSection('allowedHours')"> Enable Allowed Hours Schedule</label>
+                </div>
+                
+                <div id="allowedHoursSection" style="display: none; padding: 15px; background: var(--zinc-100); border-radius: 8px; margin-top: 10px;">
+                    <p style="color: var(--zinc-600); font-size: 0.85rem; margin-bottom: 15px;">Define when devices can be used each day:</p>
+                    <div style="display: grid; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px;">
+                            <input type="checkbox" id="day0" style="margin: 0;">
+                            <label for="day0" style="flex: 1; margin: 0;">Sunday</label>
+                            <input type="time" id="day0Start" class="input-control" value="08:00" style="width: 120px;">
+                            <span>to</span>
+                            <input type="time" id="day0End" class="input-control" value="22:00" style="width: 120px;">
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px;">
+                            <input type="checkbox" id="day1" checked style="margin: 0;">
+                            <label for="day1" style="flex: 1; margin: 0;">Monday</label>
+                            <input type="time" id="day1Start" class="input-control" value="08:00" style="width: 120px;">
+                            <span>to</span>
+                            <input type="time" id="day1End" class="input-control" value="22:00" style="width: 120px;">
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px;">
+                            <input type="checkbox" id="day2" checked style="margin: 0;">
+                            <label for="day2" style="flex: 1; margin: 0;">Tuesday</label>
+                            <input type="time" id="day2Start" class="input-control" value="08:00" style="width: 120px;">
+                            <span>to</span>
+                            <input type="time" id="day2End" class="input-control" value="22:00" style="width: 120px;">
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px;">
+                            <input type="checkbox" id="day3" checked style="margin: 0;">
+                            <label for="day3" style="flex: 1; margin: 0;">Wednesday</label>
+                            <input type="time" id="day3Start" class="input-control" value="08:00" style="width: 120px;">
+                            <span>to</span>
+                            <input type="time" id="day3End" class="input-control" value="22:00" style="width: 120px;">
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px;">
+                            <input type="checkbox" id="day4" checked style="margin: 0;">
+                            <label for="day4" style="flex: 1; margin: 0;">Thursday</label>
+                            <input type="time" id="day4Start" class="input-control" value="08:00" style="width: 120px;">
+                            <span>to</span>
+                            <input type="time" id="day4End" class="input-control" value="22:00" style="width: 120px;">
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px;">
+                            <input type="checkbox" id="day5" checked style="margin: 0;">
+                            <label for="day5" style="flex: 1; margin: 0;">Friday</label>
+                            <input type="time" id="day5Start" class="input-control" value="08:00" style="width: 120px;">
+                            <span>to</span>
+                            <input type="time" id="day5End" class="input-control" value="22:00" style="width: 120px;">
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px;">
+                            <input type="checkbox" id="day6" style="margin: 0;">
+                            <label for="day6" style="flex: 1; margin: 0;">Saturday</label>
+                            <input type="time" id="day6Start" class="input-control" value="08:00" style="width: 120px;">
+                            <span>to</span>
+                            <input type="time" id="day6End" class="input-control" value="22:00" style="width: 120px;">
+                        </div>
                     </div>
                 </div>
 
