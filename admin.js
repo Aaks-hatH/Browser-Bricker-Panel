@@ -1631,9 +1631,14 @@ async function viewGroupDetails(groupId) {
                 <div class="detail-section">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                         <h4>Devices in Group</h4>
-                        <button class="btn-primary" onclick="showAssignDeviceModal('${groupId}')">
-                            <i data-lucide="plus"></i> Assign Device
-                        </button>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-ghost" onclick="showGroupNotificationModal('${groupId}')" title="Send notification to all devices in this group">
+                                <i data-lucide="mail"></i> Send Notification
+                            </button>
+                            <button class="btn-primary" onclick="showAssignDeviceModal('${groupId}')">
+                                <i data-lucide="plus"></i> Assign Device
+                            </button>
+                        </div>
                     </div>
                     ${devicesHtml}
                 </div>
@@ -2407,9 +2412,22 @@ async function viewPolicyDetails(policyId) {
     // Show in a modal (you'll need to create this modal in HTML)
     const modal = document.getElementById('policyDetailsModal') || createPolicyDetailsModal();
     const modalBody = modal.querySelector('.modal-body');
+    const modalFooter = modal.querySelector('.modal-footer');
+    
     if (modalBody) {
         modalBody.innerHTML = content;
     }
+    
+    // Add test email button to footer
+    if (modalFooter) {
+        modalFooter.innerHTML = `
+            <button class="btn btn-ghost" onclick="document.getElementById('policyDetailsModal').style.display='none'">Close</button>
+            <button class="btn btn-primary" onclick="sendPolicyTestEmail('${policy.policyId}')" title="Send a test email for this policy">
+                <i class="fas fa-envelope"></i> Test Email Notification
+            </button>
+        `;
+    }
+    
     modal.style.display = 'flex';
     
     // Re-initialize lucide icons
@@ -3140,4 +3158,177 @@ function updateEmailStatus(email) {
 function isValidEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
+}
+// ============================
+// NEW: POLICY TEST EMAIL
+// ============================
+
+/**
+ * Send test email for a policy
+ */
+async function sendPolicyTestEmail(policyId) {
+    try {
+        const response = await fetch(`${API_BASE}/api/policies/${policyId}/test-email`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${getStoredKey()}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            showToast('Success', `Test email sent to ${data.recipient}!`, 'success');
+        } else {
+            const data = await response.json();
+            showToast('Error', data.error || 'Failed to send test email', 'error');
+        }
+    } catch (error) {
+        console.error('Send policy test email error:', error);
+        showToast('Error', 'Failed to send test email. Check your notification settings.', 'error');
+    }
+}
+
+// ============================
+// NEW: GROUP BULK NOTIFICATIONS
+// ============================
+
+/**
+ * Send bulk notification to all devices in a group
+ */
+async function sendGroupNotification(groupId) {
+    const subject = prompt('Enter notification subject:');
+    if (!subject) return;
+    
+    const message = prompt('Enter notification message:');
+    if (!message) return;
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/groups/${groupId}/notify-violations`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${getStoredKey()}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ subject, message })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            showToast('Success', `Notification sent to ${data.deviceCount} device(s)!`, 'success');
+        } else {
+            const data = await response.json();
+            showToast('Error', data.error || 'Failed to send notification', 'error');
+        }
+    } catch (error) {
+        console.error('Send group notification error:', error);
+        showToast('Error', 'Failed to send notification', 'error');
+    }
+}
+
+/**
+ * Show group notification modal
+ */
+function showGroupNotificationModal(groupId) {
+    const group = currentGroups.find(g => g.groupId === groupId);
+    if (!group) return;
+    
+    const modalHtml = `
+        <div class="modal" id="groupNotificationModal" style="display: flex;">
+            <div class="modal-content" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h3>📢 Send Group Notification</h3>
+                    <button class="modal-close" onclick="closeModal('groupNotificationModal')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p style="color: var(--zinc-600); margin-bottom: 20px;">
+                        Send an email notification to all devices in group <strong>${escapeHtml(group.groupName)}</strong>
+                    </p>
+                    
+                    <div class="form-group">
+                        <label>Subject:</label>
+                        <input type="text" id="groupNotificationSubject" class="form-input" 
+                               placeholder="e.g., Important Policy Update" />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Message:</label>
+                        <textarea id="groupNotificationMessage" class="form-input" rows="5" 
+                                  placeholder="Enter your notification message here..."></textarea>
+                    </div>
+                    
+                    <div class="alert alert-info" style="margin-top: 15px;">
+                        <i class="fas fa-info-circle"></i>
+                        This will send an email to the configured notification address about this group.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-ghost" onclick="closeModal('groupNotificationModal')">Cancel</button>
+                    <button class="btn btn-primary" onclick="sendGroupNotificationFromModal('${groupId}')">
+                        <i class="fas fa-paper-plane"></i> Send Notification
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remove existing modal if any
+    const existingModal = document.getElementById('groupNotificationModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Add new modal
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+/**
+ * Send notification from modal
+ */
+async function sendGroupNotificationFromModal(groupId) {
+    const subject = document.getElementById('groupNotificationSubject').value.trim();
+    const message = document.getElementById('groupNotificationMessage').value.trim();
+    
+    if (!subject) {
+        showToast('Error', 'Please enter a subject', 'error');
+        return;
+    }
+    
+    if (!message) {
+        showToast('Error', 'Please enter a message', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/groups/${groupId}/notify-violations`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${getStoredKey()}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ subject, message })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            showToast('Success', `Notification sent to ${data.deviceCount} device(s)!`, 'success');
+            closeModal('groupNotificationModal');
+        } else {
+            const data = await response.json();
+            showToast('Error', data.error || 'Failed to send notification', 'error');
+        }
+    } catch (error) {
+        console.error('Send group notification error:', error);
+        showToast('Error', 'Failed to send notification', 'error');
+    }
+}
+
+/**
+ * Close modal by ID
+ */
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.remove();
+    }
 }
