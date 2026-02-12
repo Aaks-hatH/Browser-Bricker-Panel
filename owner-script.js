@@ -1,11 +1,12 @@
 // BrowserBricker Owner Panel - Complete Enhanced JavaScript
-// Version: 5.0.1 - Hierarchical Edition
-// Features: System Admins, Registration Codes, Geofencing, Live Tracking, Bulk Operations
+// Version: 5.1.0 - Full Featured Edition
+// Features: System Admins, Registration Codes, Geofencing, Live Tracking, Bulk Operations, Email, Analytics, Webhooks
 
 lucide.createIcons();
 
 const API_URL = 'https://browserbricker.onrender.com';
 let ownerApiKey = null;
+let selectedDevices = new Set(); // NEW: For bulk operations
 let refreshInterval = null;
 let locationRefreshInterval = null;
 let sessionStartTime = Date.now();
@@ -394,7 +395,7 @@ async function loadSystemAdmins() {
             }).join('');
         }
         
-        // ✅ FIX: Load registration codes separately
+        //  FIX: Load registration codes separately
         await loadRegistrationCodes();
         
         lucide.createIcons();
@@ -732,12 +733,12 @@ async function loadBreaches() {
 
 async function loadBlockedIPs() {
     try {
-        // ✅ CORRECTED: Use the actual server endpoint
+        //  CORRECTED: Use the actual server endpoint
         const data = await apiCall('/api/admin/blocked-ips');
         const list = document.getElementById('blockedIPsList');
         const failedList = document.getElementById('failedAttemptsList');
         
-        // ✅ CORRECTED: Server returns { success: true, blockedIPs: [...] }
+        //  CORRECTED: Server returns { success: true, blockedIPs: [...] }
         const blockedIPs = data.blockedIPs || [];
         
         if (blockedIPs.length === 0) {
@@ -881,7 +882,7 @@ async function loadGeofences() {
                     <div style="font-weight: 700; margin-bottom: 4px;">${escapeHtml(geo.deviceName)}</div>
                     <div style="font-family: monospace; font-size: 0.7rem; color: #71717a; margin-bottom: 6px;">${geo.deviceId}</div>
                     <div style="font-size: 0.8rem; margin-bottom: 4px;"><strong>Radius:</strong> ${geo.radius}m</div>
-                    <div style="font-size: 0.8rem;"><strong>Status:</strong> ${geo.enabled ? '<span style="color: #10b981;">● Active</span>' : '<span style="color: #f59e0b;">● Disabled</span>'}</div>
+                    <div style="font-size: 0.8rem;"><strong>Status:</strong> ${geo.enabled ? '<span style="color: #10b981;"> Active</span>' : '<span style="color: #f59e0b;"> Disabled</span>'}</div>
                 </div>
             `;
             
@@ -903,8 +904,8 @@ async function loadGeofences() {
                     </div>
                     <div style="background: white; padding: 12px; border-radius: 8px; border: var(--border); margin-bottom: 12px;">
                         <div class="coordinates-display">
-                            📍 Center: ${geo.lat.toFixed(6)}, ${geo.lon.toFixed(6)}<br>
-                            📏 Radius: ${geo.radius} meters
+                             Center: ${geo.lat.toFixed(6)}, ${geo.lon.toFixed(6)}<br>
+                             Radius: ${geo.radius} meters
                         </div>
                         ${geo.createdBy ? `<div style="font-size:0.75rem;color:var(--zinc-500);margin-top:6px;">Created by: ${escapeHtml(geo.createdBy)}${geo.createdAt ? ' · ' + formatTime(geo.createdAt) : ''}</div>` : ''}
                     </div>
@@ -1070,7 +1071,7 @@ async function loadLocations() {
                         </div>
                     </div>
                     <div class="coordinates-display">
-                        📍 ${loc.location.lat.toFixed(6)}, ${loc.location.lon.toFixed(6)}
+                         ${loc.location.lat.toFixed(6)}, ${loc.location.lon.toFixed(6)}
                     </div>
                     <div style="font-size: 0.75rem; color: var(--zinc-400); margin-top: 8px;">
                         Last updated: ${formatTime(loc.timestamp)}
@@ -1104,13 +1105,13 @@ async function loadLocations() {
                         <div style="font-weight: 700; margin-bottom: 6px; font-size: 0.95rem;">${escapeHtml(loc.deviceName)}</div>
                         <div style="font-family: monospace; font-size: 0.75rem; color: #71717a; margin-bottom: 8px;">${loc.deviceId}</div>
                         <div style="background: #f4f4f5; padding: 8px; border-radius: 6px; margin-bottom: 8px; font-size: 0.8rem;">
-                            <strong>📍 Coordinates:</strong><br>
+                            <strong> Coordinates:</strong><br>
                             ${loc.location.lat.toFixed(6)}, ${loc.location.lon.toFixed(6)}
                         </div>
                         <div style="font-size: 0.75rem; color: #71717a; margin-bottom: 6px;">
-                            <strong>Status:</strong> ${isRecent ? '<span style="color: #10b981;">● LIVE</span>' : '<span style="color: #06b6d4;">● Recent</span>'}
+                            <strong>Status:</strong> ${isRecent ? '<span style="color: #10b981;"> LIVE</span>' : '<span style="color: #06b6d4;"> Recent</span>'}
                         </div>
-                        ${loc.geofenced ? '<div style="font-size: 0.75rem; color: #06b6d4;">🔒 Geofenced</div>' : ''}
+                        ${loc.geofenced ? '<div style="font-size: 0.75rem; color: #06b6d4;"> Geofenced</div>' : ''}
                         <div style="font-size: 0.7rem; color: #a1a1aa; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e4e4e7;">
                             Last updated: ${formatTime(loc.timestamp)}
                         </div>
@@ -1219,7 +1220,7 @@ async function loadEmailNotifSettings() {
                     <div>
                         <div style="font-weight:600;font-size:0.9rem;">Enable Email Notifications</div>
                         <div style="font-size:0.8rem;color:var(--zinc-500);margin-top:2px;">
-                            ${data.smtpConfigured ? '✅ SMTP configured' : '⚠️ SMTP_PASS not set in .env — emails cannot be sent until configured'}
+                            ${data.smtpConfigured ? ' SMTP configured' : ' SMTP_PASS not set in .env — emails cannot be sent until configured'}
                         </div>
                     </div>
                     <label style="position:relative;display:inline-block;width:44px;height:24px;cursor:pointer;">
@@ -1472,7 +1473,7 @@ function showRegistrationCodeModal(data) {
                                showToast('Copied', 'Code copied!', 'success');" 
                         style="flex: 1; padding: 12px 24px; background: #3b82f6; color: white; 
                                border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
-                    📋 Copy Code
+                     Copy Code
                 </button>
                 <button onclick="this.closest('div').parentElement.parentElement.remove()" 
                         style="flex: 1; padding: 12px 24px; background: #f4f4f5; color: #18181b; 
@@ -1606,7 +1607,7 @@ async function showAdminDetails(adminId) {
                 <div style="font-size: 0.85rem; line-height: 1.8;">
                     Group: ${escapeHtml(admin.groupName || 'N/A')}<br>
                     Email: ${escapeHtml(admin.email || 'N/A')}<br>
-                    Status: ${admin.active ? '✅ Active' : '❌ Inactive'}<br>
+                    Status: ${admin.active ? ' Active' : ' Inactive'}<br>
                     Created: ${new Date(admin.createdAt).toLocaleString()}<br>
                     Last Active: ${formatTime(admin.lastActive)}<br>
                 </div>
@@ -1714,10 +1715,10 @@ async function showDeviceDetails(deviceId) {
             <div style="background: var(--zinc-50); padding: 16px; border-radius: 12px; margin-bottom: 16px;">
                 <div style="font-weight: 700; margin-bottom: 12px;">Status</div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 0.85rem;">
-                    <div>Online: ${device.online ? '✅ Yes' : '❌ No'}</div>
-                    <div>Armed: ${device.armed ? '🔒 Yes' : '🔓 No'}</div>
-                    <div>Quarantined: ${device.quarantined ? '⚠️ Yes' : '✅ No'}</div>
-                    <div>Geofenced: ${device.geofenced ? '📍 Yes' : '❌ No'}</div>
+                    <div>Online: ${device.online ? ' Yes' : ' No'}</div>
+                    <div>Armed: ${device.armed ? ' Yes' : ' No'}</div>
+                    <div>Quarantined: ${device.quarantined ? ' Yes' : ' No'}</div>
+                    <div>Geofenced: ${device.geofenced ? ' Yes' : ' No'}</div>
                 </div>
                 ${device.armed && device.armedBy ? `<div style="margin-top:10px;font-size:0.8rem;color:var(--zinc-600);">Armed by: <strong>${escapeHtml(device.armedBy)}</strong>${device.armReason ? ` — ${escapeHtml(device.armReason)}` : ''}</div>` : ''}
                 ${device.quarantined && device.quarantinedBy ? `<div style="margin-top:6px;font-size:0.8rem;color:var(--zinc-600);">Quarantined by: <strong>${escapeHtml(device.quarantinedBy)}</strong>${device.quarantineReason ? ` — ${escapeHtml(device.quarantineReason)}` : ''}</div>` : ''}
@@ -2009,7 +2010,7 @@ async function importSystemState(event) {
     const file = event.target.files[0];
     if (!file) return;
 
-    if (!confirm("⚠️ CRITICAL WARNING ⚠️\n\n" +
+    if (!confirm(" CRITICAL WARNING \n\n" +
                  "This will COMPLETELY OVERWRITE all current data including:\n" +
                  "• All devices\n" +
                  "• All users\n" +
@@ -2966,8 +2967,8 @@ function generateSettingsHTML() {
                         <strong>Real-time security alerts delivered to your inbox.</strong><br>
                         Get instant notifications when devices breach geofences, IPs get blocked, or extension resets are attempted.<br>
                         <span style="font-size:0.8rem;color:var(--zinc-500);">
-                            📧 Emails sent via secure TLS from <code>browserbricker@gmail.com</code><br>
-                            ⚙️ Setup required: Add <code>SMTP_PASS</code> (Gmail App Password) to your server's <code>.env</code> file
+                             Emails sent via secure TLS from <code>browserbricker@gmail.com</code><br>
+                             Setup required: Add <code>SMTP_PASS</code> (Gmail App Password) to your server's <code>.env</code> file
                         </span>
                     </p>
                     <div id="emailNotifSettings">
@@ -3500,15 +3501,15 @@ async function viewGroupDetails(groupId) {
                         </tr>
                         <tr>
                             <td><strong>Geofencing:</strong></td>
-                            <td>${group.settings?.allowGeofencing !== false ? '✓ Enabled' : '✗ Disabled'}</td>
+                            <td>${group.settings?.allowGeofencing !== false ? ' Enabled' : ' Disabled'}</td>
                         </tr>
                         <tr>
                             <td><strong>Quarantine:</strong></td>
-                            <td>${group.settings?.allowQuarantine !== false ? '✓ Enabled' : '✗ Disabled'}</td>
+                            <td>${group.settings?.allowQuarantine !== false ? ' Enabled' : ' Disabled'}</td>
                         </tr>
                         <tr>
                             <td><strong>Default Arm State:</strong></td>
-                            <td>${group.settings?.defaultArmState ? '✓ Armed' : '✗ Disarmed'}</td>
+                            <td>${group.settings?.defaultArmState ? ' Armed' : ' Disarmed'}</td>
                         </tr>
                     </table>
                 </div>
@@ -4024,17 +4025,17 @@ async function handleCreatePolicy(event) {
         
         if (!response.ok) {
             const result = await response.json();
-            console.error('❌ Policy creation failed:', result);
+            console.error(' Policy creation failed:', result);
             throw new Error(result.message || result.error || 'Failed to create policy');
         }
         
         const result = await response.json();
-        console.log('✅ Policy created successfully:', result);
+        console.log(' Policy created successfully:', result);
         showToast('Success', 'Policy created successfully!', 'success');
         closeCreatePolicyModal();
         loadPolicies();
     } catch (error) {
-        console.error('❌ Create policy error:', error);
+        console.error(' Create policy error:', error);
         showToast('Error', error.message || 'Failed to create policy. Check console for details.', 'error');
     }
 }
@@ -4178,9 +4179,9 @@ function viewPolicyDetails(policyId) {
             <div class="detail-section">
                 <h4>Notifications</h4>
                 <ul>
-                    <li>Breach Notifications: ${policy.notifications.onBreach ? '✓' : '✗'}</li>
-                    <li>Geofence Exit: ${policy.notifications.onGeofenceExit ? '✓' : '✗'}</li>
-                    <li>Time Limit: ${policy.notifications.onTimeLimitReached ? '✓' : '✗'}</li>
+                    <li>Breach Notifications: ${policy.notifications.onBreach ? '' : ''}</li>
+                    <li>Geofence Exit: ${policy.notifications.onGeofenceExit ? '' : ''}</li>
+                    <li>Time Limit: ${policy.notifications.onTimeLimitReached ? '' : ''}</li>
                     ${policy.notifications.recipients.length > 0 ? 
                         `<li>Recipients: ${policy.notifications.recipients.join(', ')}</li>` : ''}
                 </ul>
@@ -4284,4 +4285,436 @@ if (window.switchTab) {
             loadViolations();
         }
     };
+}
+
+// ==================== NEW FEATURES v5.1.0 ====================
+
+// ========== EMAIL MANAGEMENT ==========
+async function testEmailConfig() {
+    const email = prompt('Enter email address to send test email to:');
+    if (!email) return;
+    
+    try {
+        const response = await fetch(`${API_URL}/api/admin/email/test`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${ownerApiKey}`
+            },
+            body: JSON.stringify({ email })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showToast('Success', ` ${data.message}`, 'success');
+        } else {
+            showToast('Error', ` ${data.error}`, 'error');
+        }
+    } catch (error) {
+        showToast('Error', ' Failed to send test email', 'error');
+    }
+}
+
+async function loadEmailStats() {
+    try {
+        const response = await fetch(`${API_URL}/api/admin/email/stats`, {
+            headers: { 'Authorization': `Bearer ${ownerApiKey}` }
+        });
+        
+        if (!response.ok) return;
+        
+        const { stats } = await response.json();
+        
+        const statsEl = document.getElementById('emailStats');
+        if (statsEl) {
+            statsEl.innerHTML = `
+                <div style="display: flex; gap: 20px; padding: 15px; background: white; border-radius: 8px;">
+                    <div><strong>Sent:</strong> ${stats.sent}</div>
+                    <div><strong>Failed:</strong> ${stats.failed}</div>
+                    <div><strong>Queued:</strong> ${stats.queued}</div>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Failed to load email stats:', error);
+    }
+}
+
+// ========== BULK OPERATIONS ==========
+function toggleDeviceSelection(deviceId, checkbox) {
+    if (checkbox.checked) {
+        selectedDevices.add(deviceId);
+    } else {
+        selectedDevices.delete(deviceId);
+    }
+    updateBulkActionsUI();
+}
+
+function updateBulkActionsUI() {
+    const toolbar = document.getElementById('bulkActionsToolbar');
+    if (toolbar) {
+        toolbar.style.display = selectedDevices.size > 0 ? 'flex' : 'none';
+        const count = document.getElementById('bulkSelectedCount');
+        if (count) count.textContent = selectedDevices.size;
+    }
+}
+
+async function bulkArmSelected() {
+    if (selectedDevices.size === 0) return;
+    
+    if (!confirm(`Arm ${selectedDevices.size} selected devices?`)) return;
+    
+    try {
+        const response = await fetch(`${API_URL}/api/admin/devices/bulk-arm`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${ownerApiKey}`
+            },
+            body: JSON.stringify({ deviceIds: Array.from(selectedDevices) })
+        });
+        
+        const data = await response.json();
+        
+        showToast('Success', ` Armed ${data.armed} devices, ${data.failed} failed`, 'success');
+        
+        loadAllDevices();
+        selectedDevices.clear();
+        updateBulkActionsUI();
+    } catch (error) {
+        showToast('Error', 'Bulk arm operation failed', 'error');
+    }
+}
+
+async function bulkDisarmSelected() {
+    if (selectedDevices.size === 0) return;
+    
+    if (!confirm(`Disarm ${selectedDevices.size} selected devices?`)) return;
+    
+    try {
+        const response = await fetch(`${API_URL}/api/admin/devices/bulk-disarm`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${ownerApiKey}`
+            },
+            body: JSON.stringify({ deviceIds: Array.from(selectedDevices) })
+        });
+        
+        const data = await response.json();
+        
+        showToast('Success', ` Disarmed ${data.disarmed} devices`, 'success');
+        
+        loadAllDevices();
+        selectedDevices.clear();
+        updateBulkActionsUI();
+    } catch (error) {
+        showToast('Error', 'Bulk disarm operation failed', 'error');
+    }
+}
+
+async function bulkDeleteSelected() {
+    if (selectedDevices.size === 0) return;
+    
+    if (!confirm(` Delete ${selectedDevices.size} devices? This cannot be undone!`)) return;
+    
+    try {
+        const response = await fetch(`${API_URL}/api/admin/devices/bulk-delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${ownerApiKey}`
+            },
+            body: JSON.stringify({ deviceIds: Array.from(selectedDevices) })
+        });
+        
+        const data = await response.json();
+        
+        showToast('Success', ` Deleted ${data.deleted} devices`, 'success');
+        
+        loadAllDevices();
+        selectedDevices.clear();
+        updateBulkActionsUI();
+    } catch (error) {
+        showToast('Error', 'Bulk delete operation failed', 'error');
+    }
+}
+
+function toggleSelectAll(checkbox) {
+    const checkboxes = document.querySelectorAll('table tbody input[type="checkbox"]');
+    checkboxes.forEach(cb => {
+        cb.checked = checkbox.checked;
+        const onchangeAttr = cb.getAttribute('onchange');
+        if (onchangeAttr) {
+            const match = onchangeAttr.match(/'([^']+)'/);
+            if (match) {
+                const deviceId = match[1];
+                if (checkbox.checked) {
+                    selectedDevices.add(deviceId);
+                } else {
+                    selectedDevices.delete(deviceId);
+                }
+            }
+        }
+    });
+    updateBulkActionsUI();
+}
+
+// ========== ANALYTICS DASHBOARD ==========
+async function loadAnalytics() {
+    const timeRange = document.getElementById('analyticsTimeRange')?.value || '7d';
+    
+    try {
+        const response = await fetch(`${API_URL}/api/admin/analytics/dashboard?timeRange=${timeRange}`, {
+            headers: { 'Authorization': `Bearer ${ownerApiKey}` }
+        });
+        
+        if (!response.ok) return;
+        
+        const { analytics } = await response.json();
+        
+        // Update overview stats
+        const updates = {
+            'statTotalDevices': analytics.overview.totalDevices,
+            'statOnlineDevices': analytics.overview.deviceStatus.online,
+            'statArmedDevices': analytics.overview.deviceStatus.armed,
+            'statTotalActivity': analytics.activity.total
+        };
+        
+        Object.entries(updates).forEach(([id, value]) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value;
+        });
+        
+        // Display top devices
+        const topDevicesList = document.getElementById('topDevicesList');
+        if (topDevicesList && analytics.topDevices) {
+            topDevicesList.innerHTML = analytics.topDevices.map(device => `
+                <div style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee;">
+                    <span>${device.deviceName}</span>
+                    <span style="color: #666;">${device.activityCount} events</span>
+                </div>
+            `).join('');
+        }
+    } catch (error) {
+        console.error('Failed to load analytics:', error);
+    }
+}
+
+// ========== EXPORT FUNCTIONS ==========
+function exportCompleteData() {
+    window.location.href = `${API_URL}/api/admin/export/complete?auth=${ownerApiKey}`;
+}
+
+function exportDevicesCSV() {
+    window.location.href = `${API_URL}/api/admin/export/csv?type=devices&auth=${ownerApiKey}`;
+}
+
+function exportActivityCSV() {
+    window.location.href = `${API_URL}/api/admin/export/csv?type=activity&auth=${ownerApiKey}`;
+}
+
+// ========== WEBHOOKS MANAGEMENT ==========
+async function loadWebhooks() {
+    try {
+        const response = await fetch(`${API_URL}/api/admin/webhooks`, {
+            headers: { 'Authorization': `Bearer ${ownerApiKey}` }
+        });
+        
+        if (!response.ok) return;
+        
+        const { webhooks } = await response.json();
+        
+        const list = document.getElementById('webhooksList');
+        if (!list) return;
+        
+        list.innerHTML = webhooks.map(webhook => `
+            <div style="padding: 15px; background: white; border-radius: 8px; margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div>
+                        <strong>${webhook.name}</strong><br>
+                        <small style="color: #666;">${webhook.url}</small><br>
+                        <small>Events: ${webhook.events.join(', ')}</small>
+                    </div>
+                    <button onclick="deleteWebhook('${webhook.id}')" style="background: #ef4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Delete</button>
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Failed to load webhooks:', error);
+    }
+}
+
+async function addWebhook() {
+    const name = document.getElementById('webhookName')?.value;
+    const url = document.getElementById('webhookUrl')?.value;
+    const eventsSelect = document.getElementById('webhookEvents');
+    
+    if (!name || !url || !eventsSelect) return;
+    
+    const events = Array.from(eventsSelect.selectedOptions).map(opt => opt.value);
+    
+    try {
+        const response = await fetch(`${API_URL}/api/admin/webhooks`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${ownerApiKey}`
+            },
+            body: JSON.stringify({ name, url, events })
+        });
+        
+        if (response.ok) {
+            showToast('Success', 'Webhook added successfully!', 'success');
+            loadWebhooks();
+            // Clear form
+            document.getElementById('webhookName').value = '';
+            document.getElementById('webhookUrl').value = '';
+        }
+    } catch (error) {
+        showToast('Error', 'Failed to add webhook', 'error');
+    }
+}
+
+async function deleteWebhook(id) {
+    if (!confirm('Delete this webhook?')) return;
+    
+    try {
+        await fetch(`${API_URL}/api/admin/webhooks/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${ownerApiKey}` }
+        });
+        
+        showToast('Success', 'Webhook deleted', 'success');
+        loadWebhooks();
+    } catch (error) {
+        showToast('Error', 'Failed to delete webhook', 'error');
+    }
+}
+
+// ========== DEVICE HEALTH MONITORING ==========
+async function loadDeviceHealth() {
+    try {
+        const response = await fetch(`${API_URL}/api/admin/devices/health`, {
+            headers: { 'Authorization': `Bearer ${ownerApiKey}` }
+        });
+        
+        if (!response.ok) return;
+        
+        const { summary, devices } = await response.json();
+        
+        // Update summary counts
+        const updates = {
+            'healthyCount': summary.healthy,
+            'unhealthyCount': summary.unhealthy,
+            'offlineCount': summary.offline
+        };
+        
+        Object.entries(updates).forEach(([id, value]) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value;
+        });
+        
+        // Display unhealthy devices
+        const unhealthyDevices = devices.filter(d => d.health === 'unhealthy');
+        
+        const detailsDiv = document.getElementById('healthDetails');
+        if (detailsDiv) {
+            detailsDiv.innerHTML = unhealthyDevices.map(device => `
+                <div style="padding: 10px; background: #fee; border-left: 3px solid #ef4444; margin-bottom: 5px;">
+                    <strong>${device.deviceName}</strong><br>
+                    <small>Issues: ${device.issues.join(', ')}</small><br>
+                    <small>Last seen: ${formatHealthTimestamp(device.lastSeen)}</small>
+                </div>
+            `).join('');
+        }
+    } catch (error) {
+        console.error('Failed to load device health:', error);
+    }
+}
+
+function formatHealthTimestamp(ms) {
+    const seconds = Math.floor(ms / 1000);
+    if (seconds < 60) return `${seconds}s ago`;
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    return `${hours}h ago`;
+}
+
+// ========== ADVANCED SEARCH ==========
+async function searchDevices() {
+    const query = document.getElementById('searchQuery')?.value;
+    if (!query && query !== '') return;
+    
+    const filters = {
+        armed: document.getElementById('filterArmed')?.checked ? true : undefined,
+        online: document.getElementById('filterOnline')?.checked ? true : undefined,
+        quarantined: document.getElementById('filterQuarantined')?.checked ? false : undefined
+    };
+    
+    // Remove undefined filters
+    Object.keys(filters).forEach(key => 
+        filters[key] === undefined && delete filters[key]
+    );
+    
+    try {
+        const response = await fetch(`${API_URL}/api/admin/devices/search`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${ownerApiKey}`
+            },
+            body: JSON.stringify({ query, filters })
+        });
+        
+        if (!response.ok) return;
+        
+        const { devices, count } = await response.json();
+        
+        displaySearchResults(devices, count);
+    } catch (error) {
+        showToast('Error', 'Search failed', 'error');
+    }
+}
+
+function displaySearchResults(devices, count) {
+    const resultsDiv = document.getElementById('searchResults');
+    if (!resultsDiv) return;
+    
+    resultsDiv.innerHTML = `
+        <div style="padding: 10px; background: #f0f0f0; margin-bottom: 10px;">
+            Found ${count} devices
+        </div>
+        ${devices.map(device => `
+            <div style="padding: 10px; background: white; border-bottom: 1px solid #eee;">
+                <strong>${device.deviceName}</strong>
+                <span style="margin-left: 10px;">${device.armed ? ' Armed' : ' Disarmed'}</span>
+                <span style="margin-left: 10px;">${isDeviceOnlineCheck(device) ? '🟢 Online' : ' Offline'}</span>
+            </div>
+        `).join('')}
+    `;
+}
+
+function isDeviceOnlineCheck(device) {
+    return (Date.now() - device.lastHeartbeat) < 5 * 60 * 1000;
+}
+
+// ========== SCHEDULED REPORTS ==========
+async function sendDailyDigest() {
+    try {
+        const response = await fetch(`${API_URL}/api/admin/reports/daily-digest`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${ownerApiKey}` }
+        });
+        
+        if (response.ok) {
+            showToast('Success', 'Daily digest email sent!', 'success');
+        } else {
+            showToast('Error', 'Failed to send digest', 'error');
+        }
+    } catch (error) {
+        showToast('Error', 'Failed to send digest', 'error');
+    }
 }
