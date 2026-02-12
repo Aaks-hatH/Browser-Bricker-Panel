@@ -19,7 +19,7 @@ const ALARM_NAME = 'keepalive-heartbeat';
 const ALARM_PERIOD_MINUTES = 0.5;
 
 // Fail-closed configuration
-const MAX_FAILED_HEARTBEATS = 1;
+const MAX_FAILED_HEARTBEATS = 10;
 const GRACE_PERIOD_MS = 10000;
 const RECONNECT_UNLOCK_REQUIRED_HEARTBEATS = 1;
 
@@ -188,6 +188,14 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     console.log('[Lockdown] Extension Installed/Updated:', details.reason);
     startupTime = Date.now();
     await initializeKeepAlive();
+
+    // Reconfiguration Protection Check
+    // If the extension detects an install/update/reinstall and a deviceConfig already exists,
+    // report to the server. If protection is enabled, the server will block and notify.
+    if (details.reason === 'install' || details.reason === 'update') {
+        await checkReconfigurationProtection(details.reason);
+    }
+
     await startup();
 });
 
@@ -227,6 +235,50 @@ async function loadConfig() {
     console.log('[Lockdown] Config Loaded:', deviceConfig ? 'Configured' : 'Not Configured');
     if (isArmed) console.log('[Lockdown] Device is ARMED');
     if (isFailClosedLocked) console.log('[FAIL-CLOSED] Device locked (connection lost)');
+}
+
+// ==========================================
+// RECONFIGURATION PROTECTION CHECK
+// Called on install/update to report to server.
+// If reconfigurationProtected=true on the server, the
+// attempt is blocked, an email is sent, and this function
+// returns false (caller should abort reset).
+// ==========================================
+async function checkReconfigurationProtection(attemptType = 'reset') {
+    try {
+        const data = await chrome.storage.local.get(['deviceConfig']);
+        if (!data.deviceConfig?.deviceApiKey) {
+            // No config yet — this is first install, allow it
+            return true;
+        }
+        
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+        
+        const response = await fetch(`${API_URL}/api/device/check-reconfig`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${data.deviceConfig.deviceApiKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ attemptType }),
+            signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        const result = await response.json();
+        if (result.blocked) {
+            console.warn('[Lockdown] ⛔ Reconfiguration blocked by server. Email notification sent.');
+            // Keep existing config — do NOT clear storage
+            return false;
+        }
+        return true;
+    } catch (err) {
+        console.error('[Lockdown] Reconfig protection check failed (fail-closed):', err);
+        // Fail-closed: if server unreachable, block the reset
+        return false;
+    }
 }
 
 // ==========================================
@@ -687,14 +739,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 
     if (message.action === 'reset') {
-        chrome.storage.local.clear().then(() => {
-            deviceConfig = null;
-            isArmed = false;
-            isFailClosedLocked = false;
-            consecutiveErrors = 0;
-            consecutiveSuccesses = 0;
-            stopAggressiveEnforcement();
-            sendResponse({ success: true });
+        // Check reconfiguration protection before clearing
+        checkReconfigurationProtection('storage_clear').then(allowed => {
+            if (!allowed) {
+                sendResponse({ success: false, blocked: true, reason: 'Reconfiguration protection is enabled. Reset blocked and admin notified.' });
+                return;
+            }
+            chrome.storage.local.clear().then(() => {
+                deviceConfig = null;
+                isArmed = false;
+                isFailClosedLocked = false;
+                consecutiveErrors = 0;
+                consecutiveSuccesses = 0;
+                stopAggressiveEnforcement();
+                sendResponse({ success: true });
+            });
         });
         return true;
     }
