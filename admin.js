@@ -852,7 +852,8 @@ function switchView(viewName) {
         'bulk-ops': 'bulkOpsView',
         'activity': 'activityView',
         'groups': 'groupsView',
-        'policies': 'policiesView'
+        'policies': 'policiesView',
+        'profile': 'profileView'
     };
     
     const targetView = document.getElementById(viewMap[viewName]);
@@ -870,7 +871,8 @@ function switchView(viewName) {
             'bulk-ops': 'Bulk Operations',
             'activity': 'Activity Log',
             'groups': 'Groups',
-            'policies': 'Policies'
+            'policies': 'Policies',
+            'profile': 'Profile & Notifications'
         };
         document.getElementById('pageTitle').textContent = titles[viewName];
         
@@ -879,6 +881,7 @@ function switchView(viewName) {
         else if (viewName === 'users') loadUsers();
         else if (viewName === 'groups') loadGroups();
         else if (viewName === 'policies') loadPolicies();
+        else if (viewName === 'profile') loadProfile();
         else if (viewName === 'geofencing') {
             loadGeofences();
             setTimeout(() => {
@@ -2985,4 +2988,156 @@ async function sendDailyDigest() {
     } catch (error) {
         showToast('Error', 'Failed to send digest', 'error');
     }
+}
+
+// ========== PROFILE & NOTIFICATION SETTINGS ==========
+
+/**
+ * Load admin profile and notification settings
+ */
+async function loadProfile() {
+    try {
+        const response = await fetch(`${API_URL}/api/system/profile`, {
+            headers: { 'Authorization': `Bearer ${systemAdminKey}` }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            
+            // Update profile info
+            document.getElementById('profileName').textContent = data.name || 'System Administrator';
+            document.getElementById('profileEmail').textContent = data.email || 'No email set';
+            
+            // Load notification settings
+            document.getElementById('notificationEmail').value = data.notificationEmail || data.email || '';
+            document.getElementById('notifyGeofenceBreach').checked = data.notifyOnGeofenceBreach !== false;
+            document.getElementById('notifyIpBlock').checked = data.notifyOnIpBlock !== false;
+            document.getElementById('notifyReconfigAttempt').checked = data.notifyOnReconfigAttempt !== false;
+            document.getElementById('notifyPolicyViolation').checked = data.notifyOnPolicyViolation !== false;
+            document.getElementById('notifyQuarantine').checked = data.notifyOnQuarantine !== false;
+            
+            // Update email status
+            updateEmailStatus(data.notificationEmail);
+        } else {
+            showToast('Error', 'Failed to load profile', 'error');
+        }
+    } catch (error) {
+        console.error('Load profile error:', error);
+        showToast('Error', 'Failed to load profile', 'error');
+    }
+}
+
+/**
+ * Save notification settings
+ */
+async function saveNotificationSettings(event) {
+    event.preventDefault();
+    
+    const notificationEmail = document.getElementById('notificationEmail').value.trim();
+    
+    // Validate email if provided
+    if (notificationEmail && !isValidEmail(notificationEmail)) {
+        showToast('Error', 'Please enter a valid email address', 'error');
+        return;
+    }
+    
+    const settings = {
+        notificationEmail: notificationEmail || null,
+        notifyOnGeofenceBreach: document.getElementById('notifyGeofenceBreach').checked,
+        notifyOnIpBlock: document.getElementById('notifyIpBlock').checked,
+        notifyOnReconfigAttempt: document.getElementById('notifyReconfigAttempt').checked,
+        notifyOnPolicyViolation: document.getElementById('notifyPolicyViolation').checked,
+        notifyOnQuarantine: document.getElementById('notifyQuarantine').checked
+    };
+    
+    try {
+        const response = await fetch(`${API_URL}/api/system/notification-settings`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${systemAdminKey}`
+            },
+            body: JSON.stringify(settings)
+        });
+        
+        if (response.ok) {
+            showToast('Success', 'Notification settings saved!', 'success');
+            updateEmailStatus(notificationEmail);
+        } else {
+            const data = await response.json();
+            showToast('Error', data.error || 'Failed to save settings', 'error');
+        }
+    } catch (error) {
+        console.error('Save notification settings error:', error);
+        showToast('Error', 'Failed to save settings', 'error');
+    }
+}
+
+/**
+ * Send test email to admin's notification address
+ */
+async function sendTestEmail() {
+    const email = document.getElementById('notificationEmail').value.trim();
+    
+    if (!email) {
+        showToast('Error', 'Please enter an email address first', 'error');
+        return;
+    }
+    
+    if (!isValidEmail(email)) {
+        showToast('Error', 'Please enter a valid email address', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_URL}/api/system/test-notification`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${systemAdminKey}`
+            },
+            body: JSON.stringify({ email })
+        });
+        
+        if (response.ok) {
+            showToast('Success', `Test email sent to ${email}!`, 'success');
+        } else {
+            const data = await response.json();
+            showToast('Error', data.error || 'Failed to send test email', 'error');
+        }
+    } catch (error) {
+        console.error('Send test email error:', error);
+        showToast('Error', 'Failed to send test email', 'error');
+    }
+}
+
+/**
+ * Update email status indicator
+ */
+function updateEmailStatus(email) {
+    const statusEl = document.getElementById('emailStatus');
+    
+    if (email) {
+        statusEl.innerHTML = `
+            <div style="width: 8px; height: 8px; background: var(--status-safe); border-radius: 50%;"></div>
+            <span style="font-size: 0.85rem; color: var(--zinc-600);">
+                Email notifications enabled for <strong>${email}</strong>
+            </span>
+        `;
+    } else {
+        statusEl.innerHTML = `
+            <div style="width: 8px; height: 8px; background: var(--status-warn); border-radius: 50%;"></div>
+            <span style="font-size: 0.85rem; color: var(--zinc-600);">
+                No notification email set - you won't receive security alerts
+            </span>
+        `;
+    }
+}
+
+/**
+ * Simple email validation
+ */
+function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
 }
