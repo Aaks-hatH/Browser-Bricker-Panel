@@ -768,6 +768,13 @@
                         <i data-lucide="activity" size="18"></i> Activity Log
                     </div>
                 </div>
+
+                <div class="nav-group">
+                    <div class="nav-label">Account</div>
+                    <div class="nav-item" onclick="switchView('profile')">
+                        <i data-lucide="user-circle" size="18"></i> Profile & Notifications
+                    </div>
+                </div>
             </div>
 
             <div class="sidebar-footer">
@@ -1073,6 +1080,125 @@
                     <div id="activityList">
                         <div style="text-align: center; padding: 40px; color: var(--zinc-400);">
                             Loading activity...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PROFILE & NOTIFICATIONS VIEW -->
+            <div class="view-container" id="profileView">
+                <div class="card-main">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i data-lucide="user-circle" size="20"></i>
+                            Profile & Notification Settings
+                        </h2>
+                    </div>
+
+                    <!-- Profile Info Card -->
+                    <div style="background: linear-gradient(135deg, var(--brand-primary), var(--brand-dark)); border-radius: 16px; padding: 32px; margin-bottom: 24px; color: white;">
+                        <div style="display: flex; align-items: center; gap: 20px;">
+                            <div style="width: 70px; height: 70px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 800;">
+                                <i data-lucide="user" size="32"></i>
+                            </div>
+                            <div style="flex: 1;">
+                                <h3 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 4px;" id="profileName">Loading...</h3>
+                                <p style="opacity: 0.9; font-size: 0.9rem;" id="profileEmail">Loading...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notification Settings -->
+                    <div style="background: var(--zinc-50); border-radius: 16px; padding: 28px; margin-bottom: 24px; border: var(--border);">
+                        <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                            <i data-lucide="bell" size="20" style="color: var(--brand-primary);"></i>
+                            Email Notifications
+                        </h3>
+
+                        <form onsubmit="saveNotificationSettings(event)" id="notificationForm">
+                            <div class="field-group" style="margin-bottom: 20px;">
+                                <label class="field-label" style="display: block; margin-bottom: 8px; font-weight: 600;">
+                                    Notification Email Address
+                                </label>
+                                <input 
+                                    type="email" 
+                                    id="notificationEmail" 
+                                    class="input-control" 
+                                    placeholder="your@email.com"
+                                    style="width: 100%; padding: 12px; border-radius: 10px; border: var(--border); font-family: var(--pjs);"
+                                >
+                                <small style="display: block; margin-top: 8px; color: var(--zinc-500); font-size: 0.85rem;">
+                                    All security alerts and notifications for your devices will be sent to this email
+                                </small>
+                            </div>
+
+                            <div style="background: white; border-radius: 12px; padding: 20px; border: var(--border); margin-bottom: 20px;">
+                                <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 16px; color: var(--zinc-700);">
+                                    Notification Preferences
+                                </h4>
+                                
+                                <div style="display: flex; flex-direction: column; gap: 12px;">
+                                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 8px; border-radius: 8px; transition: 0.2s;" onmouseover="this.style.background='var(--zinc-50)'" onmouseout="this.style.background='transparent'">
+                                        <input type="checkbox" id="notifyGeofenceBreach" checked style="width: 18px; height: 18px; cursor: pointer;">
+                                        <div>
+                                            <div style="font-weight: 600; font-size: 0.9rem;">Geofence Breaches</div>
+                                            <div style="font-size: 0.8rem; color: var(--zinc-500);">Alert when devices exit their allowed zones</div>
+                                        </div>
+                                    </label>
+
+                                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 8px; border-radius: 8px; transition: 0.2s;" onmouseover="this.style.background='var(--zinc-50)'" onmouseout="this.style.background='transparent'">
+                                        <input type="checkbox" id="notifyIpBlock" checked style="width: 18px; height: 18px; cursor: pointer;">
+                                        <div>
+                                            <div style="font-weight: 600; font-size: 0.9rem;">IP Blocks</div>
+                                            <div style="font-size: 0.8rem; color: var(--zinc-500);">Alert when suspicious IP addresses are blocked</div>
+                                        </div>
+                                    </label>
+
+                                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 8px; border-radius: 8px; transition: 0.2s;" onmouseover="this.style.background='var(--zinc-50)'" onmouseout="this.style.background='transparent'">
+                                        <input type="checkbox" id="notifyReconfigAttempt" checked style="width: 18px; height: 18px; cursor: pointer;">
+                                        <div>
+                                            <div style="font-weight: 600; font-size: 0.9rem;">Reconfiguration Attempts</div>
+                                            <div style="font-size: 0.8rem; color: var(--zinc-500);">Alert when unauthorized configuration changes are detected</div>
+                                        </div>
+                                    </label>
+
+                                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 8px; border-radius: 8px; transition: 0.2s;" onmouseover="this.style.background='var(--zinc-50)'" onmouseout="this.style.background='transparent'">
+                                        <input type="checkbox" id="notifyPolicyViolation" checked style="width: 18px; height: 18px; cursor: pointer;">
+                                        <div>
+                                            <div style="font-weight: 600; font-size: 0.9rem;">Policy Violations</div>
+                                            <div style="font-size: 0.8rem; color: var(--zinc-500);">Alert when devices violate security policies</div>
+                                        </div>
+                                    </label>
+
+                                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 8px; border-radius: 8px; transition: 0.2s;" onmouseover="this.style.background='var(--zinc-50)'" onmouseout="this.style.background='transparent'">
+                                        <input type="checkbox" id="notifyQuarantine" checked style="width: 18px; height: 18px; cursor: pointer;">
+                                        <div>
+                                            <div style="font-weight: 600; font-size: 0.9rem;">Quarantine Events</div>
+                                            <div style="font-size: 0.8rem; color: var(--zinc-500);">Alert when devices are quarantined for security reasons</div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div style="display: flex; gap: 12px;">
+                                <button type="submit" class="btn btn-primary" style="flex: 1;">
+                                    <i data-lucide="save" size="16"></i>
+                                    Save Notification Settings
+                                </button>
+                                <button type="button" class="btn btn-ghost" onclick="sendTestEmail()" style="flex: 0;">
+                                    <i data-lucide="mail" size="16"></i>
+                                    Send Test Email
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Current Status -->
+                    <div style="background: white; border-radius: 12px; padding: 20px; border: var(--border);">
+                        <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 12px;">Current Status</h4>
+                        <div style="display: flex; align-items: center; gap: 8px;" id="emailStatus">
+                            <div style="width: 8px; height: 8px; background: var(--status-warn); border-radius: 50%;"></div>
+                            <span style="font-size: 0.85rem; color: var(--zinc-600);">Checking email configuration...</span>
                         </div>
                     </div>
                 </div>
