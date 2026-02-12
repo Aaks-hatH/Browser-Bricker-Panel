@@ -41,12 +41,16 @@ let autoRefreshInterval = null;
 function showAlert(message, type = 'error') {
     const alert = document.createElement('div');
     alert.className = `alert alert-${type}`;
+    // Preserve newlines and allow for longer messages
+    alert.style.whiteSpace = 'pre-wrap';
+    alert.style.maxWidth = '400px';
+    alert.style.fontSize = '0.9rem';
     alert.textContent = message;
     alertContainer.appendChild(alert);
 
     setTimeout(() => {
         alert.remove();
-    }, 5000);
+    }, type === 'error' ? 8000 : 5000); // Longer display for errors
 }
 
 // Load and display status
@@ -224,15 +228,23 @@ refreshBtn.addEventListener('click', async () => {
 
 // Reconfigure button
 reconfigureBtn.addEventListener('click', async () => {
-    if (confirm('Reconfigure device? You will need a new API key from the control panel.')) {
+    if (confirm('⚠️ Reconfigure device?\n\nThis will clear all settings. You will need a new API key from the control panel.\n\nNote: If Reconfiguration Protection is enabled on the server, this action will be blocked and your administrator will be notified.')) {
         try {
-            await chrome.runtime.sendMessage({ action: 'reset' });
-            showAlert('Device reset successfully', 'success');
-            setTimeout(() => {
-                loadStatus();
-            }, 500);
+            const response = await chrome.runtime.sendMessage({ action: 'reset' });
+            if (response && response.blocked) {
+                showAlert('🛡️ RESET BLOCKED\n\nReconfiguration Protection is enabled on this device. Your administrator has been notified of this attempt.\n\nReason: ' + (response.reason || 'Protected by policy'), 'error');
+                return;
+            }
+            if (response && response.success) {
+                showAlert('✅ Device reset successfully. Please re-configure with a new API key.', 'success');
+                setTimeout(() => {
+                    loadStatus();
+                }, 500);
+            } else {
+                showAlert('❌ Reset failed. Check server connection.', 'error');
+            }
         } catch (error) {
-            showAlert('Failed to reset device');
+            showAlert('❌ Failed to communicate with background service: ' + error.message, 'error');
         }
     }
 });
