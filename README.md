@@ -7,6 +7,7 @@
 [![Chrome](https://img.shields.io/badge/chrome-extension-orange.svg)](https://github.com/Aaks-hatH/Browser-Bricker-Panel)
 
 > Enterprise-grade remote browser security with real-time device control, geofencing, and comprehensive security features.
+# Use https://aaks-hath.github.io/Browser-Bricker-Panel/main Not any other url with the onrender domain
 
 Created by **Aakshat Hariharan** • 2026
 
